@@ -54,7 +54,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table: "store_configs" },
-          (payload) => {
+          (payload: any) => {
             if (!isMounted) return;
             if (payload.new && "id" in payload.new && "value" in payload.new) {
               setSettings((prev: any) => {

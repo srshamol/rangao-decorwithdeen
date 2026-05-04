@@ -80,7 +80,7 @@ function CourierManagementContent() {
         activeShipments: 0
       };
 
-      orders.forEach(o => {
+      orders.forEach((o: any) => {
         const note = (o.admin_note || "").toLowerCase();
         const isSteadfast = note.includes("steadfast");
         const isCarrybee = note.includes("carrybee");

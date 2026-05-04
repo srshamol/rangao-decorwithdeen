@@ -53,7 +53,7 @@ export function ReviewsSection() {
       
       if (data && data.length > 0) {
         // Map DB reviews to the required format, using fallbacks for missing fields like avatar/location
-        const mappedData = data.map((r, index) => ({
+        const mappedData = data.map((r: any, index: number) => ({
           ...r,
           location: FALLBACK_REVIEWS[index % 3].location,
           avatar: FALLBACK_REVIEWS[index % 3].avatar
@@ -99,7 +99,7 @@ export function ReviewsSection() {
 
           {/* Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {displayReviews.map((r, idx) => (
+            {displayReviews.map((r: any, idx: number) => (
               <motion.div
                 key={r.id || idx}
                 initial={{ opacity: 0, y: 20 }}

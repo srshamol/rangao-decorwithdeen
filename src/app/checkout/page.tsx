@@ -45,7 +45,7 @@ export default function CheckoutPage() {
 
   const checkBlacklist = async () => {
     const { data: blockedNumbers } = await supabase.from("blocked_numbers").select("phone");
-    if (blockedNumbers?.some(n => n.phone === form.phone)) {
+    if (blockedNumbers?.some((n: any) => n.phone === form.phone)) {
       setIsBlocked(true);
     }
   };

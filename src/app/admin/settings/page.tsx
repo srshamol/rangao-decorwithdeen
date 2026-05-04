@@ -373,7 +373,7 @@ export default function AdminSettings() {
               {activeTab === "general" && (
                 <GeneralSettings
                   settings={generalSettings}
-                  onUpdate={(data: Partial<AdminSettings>) => setGeneralSettings({ ...generalSettings, ...data })}
+                  onUpdate={(data: any) => setGeneralSettings({ ...generalSettings, ...data })}
                 />
               )}
 

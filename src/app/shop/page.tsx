@@ -149,9 +149,9 @@ function ShopPageContent() {
         .eq("status", 'active');
       
       if (catsData) {
-        const catsWithCounts = catsData.map(cat => ({
+        const catsWithCounts = catsData.map((cat: any) => ({
           ...cat,
-          count: productsData?.filter(p => p.category === cat.slug || p.category === cat.id).length || 0
+          count: productsData?.filter((p: any) => p.category === cat.slug || p.category === cat.id).length || 0
         }));
         setCategories(catsWithCounts);
       }
@@ -165,10 +165,10 @@ function ShopPageContent() {
     let result = [...allProducts];
 
     if (selectedCategories.length > 0) {
-      result = result.filter(p => selectedCategories.includes(p.category));
+      result = result.filter((p: any) => selectedCategories.includes(p.category));
     }
 
-    result = result.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
+    result = result.filter((p: any) => p.price >= priceRange[0] && p.price <= priceRange[1]);
 
     if (sortBy === "low") {
       result.sort((a, b) => a.price - b.price);

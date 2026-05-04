@@ -344,7 +344,7 @@ function IncompleteOrdersContent() {
                                 <div className="flex items-center gap-2">
                                   <FraudMiniScore phone={cart.phone} />
                                   <button 
-                                    onClick={() => openFraudCheck(cart.phone)}
+                                    onClick={() => openFraudCheck(cart.phone || "")}
                                     className="p-1 rounded-lg hover:bg-primary/10 text-slate-400 hover:text-primary transition-colors"
                                     title="Check Fraud Intelligence"
                                   >

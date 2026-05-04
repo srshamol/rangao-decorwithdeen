@@ -69,7 +69,7 @@ export function ProductCategories() {
         .eq("status", 'active')
         .order("sort_order", { ascending: true });
       if (!error && data && data.length > 0) {
-        const homepageCats = data.filter(c => c.show_on_homepage === true || c.show_on_homepage === 'true');
+        const homepageCats = data.filter((c: any) => c.show_on_homepage === true || c.show_on_homepage === 'true');
         const result = homepageCats.length > 0 ? homepageCats : data;
         _catCache.data = result;
         _catCache.ts = Date.now();

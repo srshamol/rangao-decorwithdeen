@@ -51,7 +51,7 @@ interface ActivityLog {
 }
 
 function AdminTeamContent() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [currentUserRole, setCurrentUserRole] = useState<StaffRole>('production');
   const [staff, setStaff] = useState<StaffUser[]>([]);
@@ -144,7 +144,7 @@ function AdminTeamContent() {
     
     if (profiles.length > 0) {
       const combined = profiles.map((p: any) => {
-        let userRole = roles.find(r => r.user_id === p.id)?.role || 'production';
+        let userRole = roles.find((r: any) => r.user_id === p.id)?.role || 'production';
         if (p.email?.toLowerCase() === 'rangao.bd@gmail.com') userRole = 'super_admin';
         
         return {
@@ -155,7 +155,7 @@ function AdminTeamContent() {
       });
       setStaff(combined as StaffUser[]);
     } else if (roles.length > 0) {
-      const staffFromRoles = roles.map(r => ({
+      const staffFromRoles = roles.map((r: any) => ({
         id: r.user_id,
         full_name: r.user_id.substring(0, 8),
         email: `staff_${r.user_id.substring(0, 8)}@rangao.com`,
@@ -322,14 +322,14 @@ function AdminTeamContent() {
   const stats = useMemo(() => {
     return {
       total: staff.length,
-      active: staff.filter(s => s.status === 'active').length,
-      inactive: staff.filter(s => s.status === 'inactive').length,
-      invited: staff.filter(s => s.status === 'invited').length,
+      active: staff.filter((s: any) => s.status === 'active').length,
+      inactive: staff.filter((s: any) => s.status === 'inactive').length,
+      invited: staff.filter((s: any) => s.status === 'invited').length,
     };
   }, [staff]);
 
   const filteredStaff = useMemo(() => {
-    return staff.filter(s => {
+    return staff.filter((s: any) => {
       const matchesTab = activeTab === 'all' || s.status === activeTab;
       const matchesSearch = s.full_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            s.email.toLowerCase().includes(searchQuery.toLowerCase());

@@ -58,12 +58,12 @@ function CategoryManagementContent() {
     const countsMap: Record<string, { products: number; subs: number }> = {};
     
     // Initialize counts
-    categoriesList.forEach(c => {
+    categoriesList.forEach((c: any) => {
       countsMap[c.id] = { products: 0, subs: 0 };
     });
 
     // Count subs
-    categoriesList.forEach(c => {
+    categoriesList.forEach((c: any) => {
       if (c.parent_id && countsMap[c.parent_id]) {
         countsMap[c.parent_id].subs += 1;
       }
@@ -72,10 +72,10 @@ function CategoryManagementContent() {
     // Count products
     const { data: prodData } = await supabase.from("products").select("category");
     if (prodData) {
-      prodData.forEach(p => {
+      prodData.forEach((p: any) => {
         // Find category by name (the product table uses category names)
         // Wait, better to find by ID if possible, but the schema uses category names.
-        const cat = categoriesList.find(c => c.name === p.category);
+        const cat = categoriesList.find((c: any) => c.name === p.category);
         if (cat) {
           countsMap[cat.id].products += 1;
         }

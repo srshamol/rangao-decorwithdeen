@@ -56,11 +56,18 @@ export function NotificationSettings({ settings, onUpdate }: Props) {
   };
 
   const updCustomer = (type: string, field: string, value: any) => {
+    const currentNotifications = settings.customer_notifications || {};
+    const currentConfig = currentNotifications[type] || {
+      sms: false,
+      email: false,
+      template: ""
+    } as CustomerNotification;
+
     onUpdate({
       customer_notifications: {
-        ...settings.customer_notifications,
+        ...currentNotifications,
         [type]: {
-          ...settings.customer_notifications?.[type],
+          ...currentConfig,
           [field]: value
         }
       }
@@ -286,7 +293,7 @@ export function NotificationSettings({ settings, onUpdate }: Props) {
           >
             <div className="grid grid-cols-1 gap-6">
               {customerEvents.map((event) => {
-                const config = settings.customer_notifications?.[event.id] || {};
+                const config = (settings.customer_notifications?.[event.id] || {}) as any;
                 return (
                   <div key={event.id} className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl p-8 shadow-sm group hover:border-primary/20 transition-all">
                     <div className="flex flex-col lg:flex-row gap-8">

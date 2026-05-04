@@ -70,9 +70,9 @@ export default function AdminComboPage() {
       const salesMap: Record<string, number> = {};
       let comboRevenue = 0;
       
-      ordersData?.forEach(order => {
+      ordersData?.forEach((order: any) => {
         const items = order.items as any[];
-        items?.forEach(item => {
+        items?.forEach((item: any) => {
           if (comboIds.has(item.id)) {
             const qty = Number(item.quantity) || 1;
             comboRevenue += (Number(item.price) || 0) * qty;

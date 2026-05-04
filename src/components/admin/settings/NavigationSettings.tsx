@@ -49,9 +49,16 @@ export function NavigationSettings({ settings, onUpdate }: Props) {
   };
 
   const updatePromoBadge = (field: string, value: any) => {
+    const currentBadge = settings.promo_badge || {
+      enabled: false,
+      text_bn: "",
+      text_en: "",
+      href: ""
+    };
+    
     onUpdate({
       promo_badge: {
-        ...settings.promo_badge,
+        ...currentBadge,
         [field]: value
       }
     });
