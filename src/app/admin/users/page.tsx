@@ -13,9 +13,17 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useLanguage } from "@/lib/language-context";
 
+interface UserRole {
+  id: string;
+  user_id: string;
+  email: string | null;
+  role: "admin" | "moderator" | "user";
+  created_at: string;
+}
+
 function UserManagementContent() {
   const { language, t } = useLanguage();
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -54,7 +62,7 @@ function UserManagementContent() {
       
       if (error) throw error;
       
-      setUsers(users.map((u: any) => u.user_id === userId ? { ...u, role: newRole } : u));
+      setUsers(users.map((u) => u.user_id === userId ? { ...u, role: newRole as "admin" | "moderator" | "user" } : u));
       toast.success(t("role_updated"), { id: toastId });
     } catch (err) {
       toast.error(t("role_update_failed"), { id: toastId });
@@ -66,14 +74,14 @@ function UserManagementContent() {
     try {
       const { error } = await supabase.from("user_roles").delete().eq("id", id);
       if (error) throw error;
-      setUsers(users.filter((u: any) => u.id !== id));
+      setUsers(users.filter((u) => u.id !== id));
       toast.success(t("user_removed"));
     } catch (err) {
       toast.error(t("remove_user_failed"));
     }
   };
 
-  const filteredUsers = users.filter((u: any) => 
+  const filteredUsers = users.filter((u) => 
     (u.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.role.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -131,8 +139,8 @@ function UserManagementContent() {
       {/* KPI Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
-          { label: t("super_admins"), value: users.filter((u: any) => u.role === 'admin').length, icon: ShieldCheck, color: "text-primary", bg: "bg-primary/10" },
-          { label: t("moderators"), value: users.filter((u: any) => u.role === 'moderator').length, icon: Shield, color: "text-blue-500", bg: "bg-blue-500/10" },
+          { label: t("super_admins"), value: users.filter((u) => u.role === 'admin').length, icon: ShieldCheck, color: "text-primary", bg: "bg-primary/10" },
+          { label: t("moderators"), value: users.filter((u) => u.role === 'moderator').length, icon: Shield, color: "text-blue-500", bg: "bg-blue-500/10" },
           { label: t("system_health"), value: t("optimal"), icon: Activity, color: "text-gold", bg: "bg-gold/10" },
         ].map((stat, i) => (
           <div key={i} className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl p-5 shadow-sm hover:shadow-md transition-all group flex items-center gap-4">

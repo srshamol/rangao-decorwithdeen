@@ -13,8 +13,22 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { bn as bnLocale } from "date-fns/locale";
 
+interface AdminNotification {
+  id: string;
+  type: string;
+  category: string;
+  title: string;
+  description: string;
+  time: string;
+  read: boolean;
+  icon: any;
+  color: string;
+  bg: string;
+  link: string;
+}
+
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -56,9 +70,9 @@ export default function NotificationsPage() {
       .order("created_at", { ascending: false })
       .limit(10);
 
-    const combined: any[] = [];
+    const combined: AdminNotification[] = [];
 
-    orders?.forEach((o: any) => {
+    orders?.forEach((o) => {
       combined.push({
         id: `order-${o.id}`,
         type: "order",
@@ -76,7 +90,7 @@ export default function NotificationsPage() {
       });
     });
 
-    lowStock?.forEach((p: any) => {
+    lowStock?.forEach((p) => {
       combined.push({
         id: `stock-${p.id}`,
         type: "stock",
@@ -94,7 +108,7 @@ export default function NotificationsPage() {
       });
     });
 
-    abandoned?.forEach((a: any) => {
+    abandoned?.forEach((a) => {
       combined.push({
         id: `abandoned-${a.id}`,
         type: "abandoned",
@@ -115,7 +129,7 @@ export default function NotificationsPage() {
     combined.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
     
     // Filter out read/dismissed notifications
-    const filtered = combined.filter(n => !readIds.includes(n.id));
+    const filtered = combined.filter((n) => !readIds.includes(n.id));
     
     setNotifications(filtered);
     setLoading(false);
@@ -125,11 +139,11 @@ export default function NotificationsPage() {
     const newReadIds = [...readIds, id];
     setReadIds(newReadIds);
     localStorage.setItem("admin_read_notifs", JSON.stringify(newReadIds));
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    setNotifications(prev => prev.filter((n) => n.id !== id));
   };
 
   const markAllAsRead = () => {
-    const allIds = notifications.map(n => n.id);
+    const allIds = notifications.map((n) => n.id);
     const newReadIds = [...readIds, ...allIds];
     setReadIds(newReadIds);
     localStorage.setItem("admin_read_notifs", JSON.stringify(newReadIds));
@@ -140,7 +154,7 @@ export default function NotificationsPage() {
     fetchNotifications();
   }, [language, readIds]);
 
-  const filteredNotifs = notifications.filter(n => {
+  const filteredNotifs = notifications.filter((n) => {
     const matchesSearch = n.title.toLowerCase().includes(search.toLowerCase()) || 
                           n.description.toLowerCase().includes(search.toLowerCase());
     const matchesFilter = filter === "all" || n.type === filter;
@@ -182,9 +196,9 @@ export default function NotificationsPage() {
       {/* Standardized Dashboard Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
-          { label: bn ? "অর্ডার অ্যালার্ট" : "Order Alerts", count: notifications.filter(n => n.type === 'order').length, color: "text-blue-500", bg: "bg-blue-500/10", icon: ShoppingCart },
-          { label: bn ? "স্টক ওয়ার্নিং" : "Stock Warnings", count: notifications.filter(n => n.type === 'stock').length, color: "text-gold", bg: "bg-gold/10", icon: AlertTriangle },
-          { label: bn ? "রিকভারি সুযোগ" : "Recovery Leads", count: notifications.filter(n => n.type === 'abandoned').length, color: "text-rose-500", bg: "bg-rose-500/10", icon: Ghost },
+          { label: bn ? "অর্ডার অ্যালার্ট" : "Order Alerts", count: notifications.filter((n: any) => n.type === 'order').length, color: "text-blue-500", bg: "bg-blue-500/10", icon: ShoppingCart },
+          { label: bn ? "স্টক ওয়ার্নিং" : "Stock Warnings", count: notifications.filter((n: any) => n.type === 'stock').length, color: "text-gold", bg: "bg-gold/10", icon: AlertTriangle },
+          { label: bn ? "রিকভারি সুযোগ" : "Recovery Leads", count: notifications.filter((n: any) => n.type === 'abandoned').length, color: "text-rose-500", bg: "bg-rose-500/10", icon: Ghost },
         ].map((stat, i) => (
           <div key={i} className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-lg p-5 shadow-sm hover:shadow-md transition-all group flex items-center gap-4">
             <div className={`w-12 h-12 rounded-lg ${stat.bg} flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 shadow-inner`}>

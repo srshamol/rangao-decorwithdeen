@@ -35,16 +35,35 @@ const COLOR_PRESETS = [
 
 type Tab = "theme" | "colors" | "header" | "homepage" | "footer" | "advanced";
 
+interface StoreConfig {
+  theme: string;
+  layout: string;
+  container_width: number;
+  sidebar_position: string;
+  product_grid: number;
+  primary_color: string;
+  secondary_color: string;
+  accent_color: string;
+  bg_color: string;
+  text_color: string;
+  show_hero: boolean;
+  show_categories: boolean;
+  show_combo: boolean;
+  show_reviews: boolean;
+  show_featured: boolean;
+  show_gallery: boolean;
+}
+
 export default function StoreCustomizePage() {
   const { language } = useLanguage();
-  const { settings: storeSettings } = useSettings();
+  const { settings: storeSettings, loading: settingsLoading } = useSettings();
   const [activeTab, setActiveTab] = useState<Tab>("theme");
   const [devicePreview, setDevicePreview] = useState<"desktop" | "mobile">("desktop");
   const [hasChanges, setHasChanges] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeCampaign, setActiveCampaign] = useState<string | null>(null);
 
-  const [config, setConfig] = useState({
+  const [config, setConfig] = useState<StoreConfig>({
     theme: "default",
     layout: "boxed",
     container_width: 1200,
@@ -63,7 +82,14 @@ export default function StoreCustomizePage() {
     show_gallery: true,
   });
 
-  const update = useCallback((key: string, val: any) => {
+  // Sync with global settings on load
+  useEffect(() => {
+    if (storeSettings?.store_customize) {
+      setConfig(prev => ({ ...prev, ...storeSettings.store_customize }));
+    }
+  }, [storeSettings]);
+
+  const update = useCallback(<K extends keyof StoreConfig>(key: K, val: StoreConfig[K]) => {
     setConfig(prev => ({ ...prev, [key]: val }));
     setHasChanges(true);
   }, []);
@@ -86,7 +112,7 @@ export default function StoreCustomizePage() {
     toast.info("পরিবর্তন বাতিল করা হয়েছে");
   };
 
-  const TABS: { id: Tab; label: string; icon: any }[] = [
+  const TABS: { id: Tab; label: string; icon: React.ComponentType<any> }[] = [
     { id: "theme", label: "থিম ও লেআউট", icon: Palette },
     { id: "colors", label: "রং কাস্টমাইজ", icon: Layers },
     { id: "header", label: "হেডার", icon: Layout },
@@ -194,7 +220,7 @@ export default function StoreCustomizePage() {
                     <div className="mt-4">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">প্রোডাক্ট গ্রিড</label>
                       <div className="flex gap-2">
-                        {[2, 3, 4, 5].map(n => (
+                        {[2, 3, 4, 5].map((n: number) => (
                           <button
                             key={n}
                             onClick={() => update("product_grid", n)}
@@ -263,17 +289,17 @@ export default function StoreCustomizePage() {
                       { key: "accent_color", label: "অ্যাকসেন্ট রং" },
                       { key: "bg_color", label: "ব্যাকগ্রাউন্ড" },
                       { key: "text_color", label: "টেক্সট রং" },
-                    ].map(c => (
+                    ] as const).map(c => (
                       <div key={c.key} className="flex items-center gap-3">
                         <input
                           type="color"
-                          value={(config as any)[c.key]}
-                          onChange={e => update(c.key, e.target.value)}
+                          value={config[c.key as keyof StoreConfig] as string}
+                          onChange={e => update(c.key as keyof StoreConfig, e.target.value)}
                           className="w-10 h-10 rounded-xl cursor-pointer border-none p-0.5 bg-slate-50 dark:bg-white/5"
                         />
                         <div>
                           <p className="text-[11px] font-black text-slate-700 dark:text-white">{c.label}</p>
-                          <p className="text-[9px] text-slate-400 font-mono">{(config as any)[c.key]}</p>
+                          <p className="text-[9px] text-slate-400 font-mono">{config[c.key as keyof StoreConfig] as string}</p>
                         </div>
                       </div>
                     ))}
@@ -291,20 +317,20 @@ export default function StoreCustomizePage() {
                     { key: "show_combo", label: "কম্বো অফার", sub: "বিশেষ কম্বো ব্যানার" },
                     { key: "show_gallery", label: "গ্যালারি সেকশন", sub: "ইনস্টাগ্রাম গ্যালারি" },
                     { key: "show_reviews", label: "রিভিউ সেকশন", sub: "কাস্টমার রিভিউ" },
-                  ].map(item => (
+                  ].map((item) => (
                     <div key={item.key} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5">
                       <div>
                         <p className="text-[12px] font-black text-slate-800 dark:text-white">{item.label}</p>
                         <p className="text-[9px] text-slate-400">{item.sub}</p>
                       </div>
                       <button
-                        onClick={() => update(item.key, !(config as any)[item.key])}
+                        onClick={() => update(item.key as keyof StoreConfig, !config[item.key as keyof StoreConfig])}
                         className={`relative w-11 h-6 rounded-full transition-colors ${
-                          (config as any)[item.key] ? "bg-emerald-500" : "bg-slate-200 dark:bg-white/10"
+                          config[item.key as keyof StoreConfig] ? "bg-emerald-500" : "bg-slate-200 dark:bg-white/10"
                         }`}
                       >
                         <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                          (config as any)[item.key] ? "translate-x-6" : "translate-x-1"
+                          config[item.key as keyof StoreConfig] ? "translate-x-6" : "translate-x-1"
                         }`} />
                       </button>
                     </div>
@@ -419,7 +445,7 @@ export default function StoreCustomizePage() {
   );
 }
 
-function Section({ title, icon: Icon, children }: { title: string; icon: any; children: React.ReactNode }) {
+function Section({ title, icon: Icon, children }: { title: string; icon: React.ComponentType<any>; children: React.ReactNode }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">

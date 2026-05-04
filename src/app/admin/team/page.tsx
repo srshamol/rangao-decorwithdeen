@@ -50,9 +50,18 @@ interface ActivityLog {
   created_at: string;
 }
 
+interface SupabaseUser {
+  id: string;
+  email?: string;
+  user_metadata?: {
+    full_name?: string;
+    avatar_url?: string;
+  };
+}
+
 function AdminTeamContent() {
   const { language, t } = useLanguage();
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<StaffRole>('production');
   const [staff, setStaff] = useState<StaffUser[]>([]);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
@@ -143,8 +152,8 @@ function AdminTeamContent() {
     const profiles = profilesResponse.data || [];
     
     if (profiles.length > 0) {
-      const combined = profiles.map((p: any) => {
-        let userRole = roles.find((r: any) => r.user_id === p.id)?.role || 'production';
+      const combined = profiles.map((p) => {
+        let userRole = roles.find((r) => r.user_id === p.id)?.role || 'production';
         if (p.email?.toLowerCase() === 'rangao.bd@gmail.com') userRole = 'super_admin';
         
         return {
@@ -155,7 +164,7 @@ function AdminTeamContent() {
       });
       setStaff(combined as StaffUser[]);
     } else if (roles.length > 0) {
-      const staffFromRoles = roles.map((r: any) => ({
+      const staffFromRoles = roles.map((r) => ({
         id: r.user_id,
         full_name: r.user_id.substring(0, 8),
         email: `staff_${r.user_id.substring(0, 8)}@rangao.com`,
@@ -249,8 +258,9 @@ function AdminTeamContent() {
         joiningDate: new Date().toISOString().split('T')[0], status: "active" 
       });
       fetchInitialData();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to create staff member");
+    } catch (err) {
+      const error = err as Error;
+      toast.error(error.message || "Failed to create staff member");
     } finally {
       setInviting(false);
     }
@@ -292,8 +302,9 @@ function AdminTeamContent() {
       await logActivity('update_staff', `Updated staff member: ${showEditModal.full_name} (${showEditModal.id})`);
       toast.success(language === 'bn' ? "স্টাফ তথ্য আপডেট করা হয়েছে" : "Staff member updated successfully");
       fetchInitialData();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update staff");
+    } catch (err) {
+      const error = err as Error;
+      toast.error(error.message || "Failed to update staff");
     } finally {
       setShowEditModal(null);
     }
@@ -312,8 +323,9 @@ function AdminTeamContent() {
       await logActivity('delete', `Removed staff: ${showDeleteModal.full_name}`);
       toast.success(language === 'bn' ? "স্টাফ মুছে ফেলা হয়েছে" : "Staff member deleted");
       fetchInitialData();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete staff");
+    } catch (err) {
+      const error = err as Error;
+      toast.error(error.message || "Failed to delete staff");
     } finally {
       setShowDeleteModal(null);
     }
@@ -322,14 +334,14 @@ function AdminTeamContent() {
   const stats = useMemo(() => {
     return {
       total: staff.length,
-      active: staff.filter((s: any) => s.status === 'active').length,
-      inactive: staff.filter((s: any) => s.status === 'inactive').length,
-      invited: staff.filter((s: any) => s.status === 'invited').length,
+      active: staff.filter((s) => s.status === 'active').length,
+      inactive: staff.filter((s) => s.status === 'inactive').length,
+      invited: staff.filter((s) => s.status === 'invited').length,
     };
   }, [staff]);
 
   const filteredStaff = useMemo(() => {
-    return staff.filter((s: any) => {
+    return staff.filter((s) => {
       const matchesTab = activeTab === 'all' || s.status === activeTab;
       const matchesSearch = s.full_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            s.email.toLowerCase().includes(searchQuery.toLowerCase());
@@ -924,7 +936,7 @@ function AdminTeamContent() {
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 ">{language === 'bn' ? "স্ট্যাটাস" : "Operational Status"}</label>
                         <div className="grid grid-cols-2 gap-3">
                            {['active', 'inactive'].map(s => (
-                             <button key={s} onClick={() => setShowEditModal({...showEditModal, status: s as any})} className={`flex items-center justify-center gap-2 p-4 rounded-xl border transition-all ${showEditModal.status === s ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent shadow-lg' : 'bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-500'}`}>
+                             <button key={s} onClick={() => setShowEditModal({...showEditModal, status: s as 'active' | 'inactive'})} className={`flex items-center justify-center gap-2 p-4 rounded-xl border transition-all ${showEditModal.status === s ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent shadow-lg' : 'bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-500'}`}>
                                 <span className="text-[10px] font-black uppercase tracking-widest text-center">{s === 'active' ? (language === 'bn' ? 'সক্রিয়' : 'Active') : (language === 'bn' ? 'নিষ্ক্রিয়' : 'Inactive')}</span>
                              </button>
                            ))}

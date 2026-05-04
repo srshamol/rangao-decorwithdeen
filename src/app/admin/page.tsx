@@ -111,11 +111,11 @@ export default function AdminDashboard() {
 
   const todayStr = new Date().toISOString().split("T")[0];
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
-  const todaysOrders = orders.filter(o => o.created_at.startsWith(todayStr));
-  const todaysRevenue = todaysOrders.reduce((s, o) => s + Number(o.total), 0);
-  const totalRevenue = orders.reduce((s, o) => s + Number(o.total), 0);
-  const monthlyRevenue = orders.filter(o => o.created_at >= monthStart).reduce((s, o) => s + Number(o.total), 0);
-  const outOfStock = products.filter(p => p.stock < 1).length;
+  const todaysOrders = orders.filter((o: any) => o.created_at.startsWith(todayStr));
+  const todaysRevenue = todaysOrders.reduce((s: number, o: any) => s + Number(o.total), 0);
+  const totalRevenue = orders.reduce((s: number, o: any) => s + Number(o.total), 0);
+  const monthlyRevenue = orders.filter((o: any) => o.created_at >= monthStart).reduce((s: number, o: any) => s + Number(o.total), 0);
+  const outOfStock = products.filter((p: any) => p.stock < 1).length;
 
   const getRoleBadge = (r: string) => {
     switch (r) {
@@ -132,18 +132,18 @@ export default function AdminDashboard() {
     const dStr = d.toISOString().split("T")[0];
     return { 
       date: d.toLocaleDateString(t("lang") === "bn" ? "bn-BD" : "en-GB", { day: "numeric", month: "short" }), 
-      revenue: orders.filter(o => o.created_at.startsWith(dStr)).reduce((s, o) => s + Number(o.total), 0) 
+      revenue: orders.filter((o: any) => o.created_at.startsWith(dStr)).reduce((s: number, o: any) => s + Number(o.total), 0) 
     };
   });
 
   const statusCounts = {
-    pending: orders.filter(o => o.status === 'pending').length,
-    confirmed: orders.filter(o => o.status === 'confirmed').length,
-    processing: orders.filter(o => o.status === 'processing').length,
-    shipped: orders.filter(o => o.status === 'shipped').length,
-    delivered: orders.filter(o => o.status === 'delivered').length,
-    cancelled: orders.filter(o => o.status === 'cancelled').length,
-    return: orders.filter(o => o.status === 'return').length,
+    pending: orders.filter((o: any) => o.status === 'pending').length,
+    confirmed: orders.filter((o: any) => o.status === 'confirmed').length,
+    processing: orders.filter((o: any) => o.status === 'processing').length,
+    shipped: orders.filter((o: any) => o.status === 'shipped').length,
+    delivered: orders.filter((o: any) => o.status === 'delivered').length,
+    cancelled: orders.filter((o: any) => o.status === 'cancelled').length,
+    return: orders.filter((o: any) => o.status === 'return').length,
   };
 
   const donutData = [
@@ -152,11 +152,11 @@ export default function AdminDashboard() {
     { name: t("shipped"), value: statusCounts.shipped, color: '#6366f1' },
     { name: t("delivered"), value: statusCounts.delivered, color: '#3b82f6' },
     { name: t("cancelled"), value: statusCounts.cancelled, color: '#ef4444' },
-  ].filter(d => d.value > 0);
+  ].filter((d: any) => d.value > 0);
 
-  const topProducts = products.map(p => ({
-    ...p, sales: orders.filter(o => o.items?.some((i: any) => i.id === p.id)).length,
-    revenue: orders.filter(o => o.items?.some((i: any) => i.id === p.id)).reduce((s, o) => s + Number(o.total), 0)
+  const topProducts = products.map((p: any) => ({
+    ...p, sales: orders.filter((o: any) => o.items?.some((i: any) => i.id === p.id)).length,
+    revenue: orders.filter((o: any) => o.items?.some((i: any) => i.id === p.id)).reduce((s: number, o: any) => s + Number(o.total), 0)
   })).sort((a, b) => b.sales - a.sales).slice(0, 5);
   const maxSales = topProducts[0]?.sales || 1;
 
@@ -179,7 +179,7 @@ export default function AdminDashboard() {
     { label: t("total_products"), value: products.length, icon: Box, color: "text-violet-600", bg: "bg-violet-50 dark:bg-violet-500/10", border: "border-violet-100 dark:border-violet-500/10" },
     { label: t("out_of_stock_kpi"), value: outOfStock, icon: AlertTriangle, color: outOfStock > 0 ? "text-rose-600" : "text-primary", bg: outOfStock > 0 ? "bg-rose-50 dark:bg-rose-500/10" : "bg-emerald-50 dark:bg-primary/10", border: outOfStock > 0 ? "border-rose-100 dark:border-rose-500/10" : "border-emerald-100 dark:border-primary/10" },
     { label: t("courier_balance"), value: "৳0", icon: Wallet, color: "text-gold", bg: "bg-amber-50 dark:bg-gold/10", border: "border-amber-100 dark:border-gold/10", hidden: isProduction },
-  ].filter(k => !k.hidden);
+  ].filter((k: any) => !k.hidden);
 
   return (
     <div className="space-y-8 pb-32 max-w-[1400px] mx-auto selection:bg-primary/20">
@@ -287,8 +287,8 @@ export default function AdminDashboard() {
               <div><h3 className="text-sm font-semibold text-slate-900 dark:text-white">{t("sales_graph")}</h3><p className="text-[11px] text-slate-400">{t("revenue_trend")}</p></div>
             </div>
             <div className="flex gap-1 p-1 bg-slate-100 dark:bg-white/5 rounded-xl">
-              {([7,30] as const).map(d=>(
-                <button key={d} onClick={()=>setChartRange(d)} className={`px-3 py-1.5 rounded-xl text-[10px] font-semibold transition-all ${chartRange===d?"bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm":"text-slate-400"}`}>{d} {t("days")}</button>
+              {([7,30] as const).map((d: number)=>(
+                <button key={d} onClick={()=>setChartRange(d as 7 | 30)} className={`px-3 py-1.5 rounded-xl text-[10px] font-semibold transition-all ${chartRange===d?"bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm":"text-slate-400"}`}>{d} {t("days")}</button>
               ))}
             </div>
           </div>
@@ -422,7 +422,7 @@ export default function AdminDashboard() {
               ))}
             </tr></thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-              {orders.slice(0, 8).map((o) => (
+              {orders.slice(0, 8).map((o: any) => (
                 <tr key={o.id} className="hover:bg-slate-50 dark:hover:bg-white/2 transition-colors group">
                   <td className="px-6 py-4"><span className="text-xs font-semibold text-primary">#{o.id.split('-')[0].toUpperCase()}</span></td>
                   <td className="px-6 py-4"><div className="flex items-center gap-3">

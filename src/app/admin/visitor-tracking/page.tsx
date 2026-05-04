@@ -18,17 +18,38 @@ import {
 } from 'recharts';
 import { toast } from "sonner";
 
+interface VisitorSession {
+  id: string;
+  session_id: string;
+  ip_address: string | null;
+  country: string | null;
+  city: string | null;
+  device_type: string | null;
+  browser: string | null;
+  os: string | null;
+  utm_source: string | null;
+  is_active: boolean;
+  last_active: string;
+  created_at: string;
+}
+
+interface PageStep {
+  page_title: string | null;
+  page_url: string;
+  created_at: string;
+}
+
 function VisitorTrackingContent() {
   const { language } = useLanguage();
   const queryClient = useQueryClient();
-  const [selectedVisitor, setSelectedVisitor] = useState<any>(null);
+  const [selectedVisitor, setSelectedVisitor] = useState<VisitorSession | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [mounted, setMounted] = useState(false);
   const [timeRange, setTimeRange] = useState<'today' | '7d' | '30d' | 'custom'>('today');
   const [customRange, setCustomRange] = useState({ from: '', to: '' });
 
-  const { data: sessions = [], isLoading: loadingSessions } = useQuery({
+  const { data: sessions = [], isLoading: loadingSessions } = useQuery<VisitorSession[]>({
     queryKey: ['visitor-sessions'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -37,7 +58,7 @@ function VisitorTrackingContent() {
         .order('last_active', { ascending: false })
         .limit(100);
       if (error) throw error;
-      return data;
+      return (data || []) as VisitorSession[];
     },
     refetchInterval: 10000,
   });
@@ -51,7 +72,7 @@ function VisitorTrackingContent() {
         .order('created_at', { ascending: false })
         .limit(50);
       if (error) throw error;
-      return data;
+      return data || [];
     },
     refetchInterval: 10000,
   });
@@ -122,7 +143,7 @@ function VisitorTrackingContent() {
       for (let i = 0; i < 24; i++) {
         hours[`${i.toString().padStart(2, '0')}:00`] = 0;
       }
-      chartSessions.forEach((s: any) => {
+      chartSessions.forEach((s) => {
         const hour = new Date(s.created_at).getHours();
         const label = `${hour.toString().padStart(2, '0')}:00`;
         hours[label] = (hours[label] || 0) + 1;
@@ -130,7 +151,7 @@ function VisitorTrackingContent() {
       return Object.entries(hours).map(([name, visitors]) => ({ name, visitors }));
     } else {
       const days: Record<string, number> = {};
-      chartSessions.forEach((s: any) => {
+      chartSessions.forEach((s) => {
         const date = new Date(s.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' });
         days[date] = (days[date] || 0) + 1;
       });
@@ -140,9 +161,9 @@ function VisitorTrackingContent() {
 
   const stats = useMemo(() => {
     const activeThreshold = new Date(Date.now() - 60000).toISOString();
-    const liveSessions = sessions.filter((s: any) => s.last_active > activeThreshold && s.is_active);
+    const liveSessions = sessions.filter((s) => s.last_active > activeThreshold && s.is_active);
     const liveCount = liveSessions.length;
-    const todayCount = sessions.filter((s: any) => s.created_at.startsWith(new Date().toISOString().split('T')[0])).length;
+    const todayCount = sessions.filter((s) => s.created_at.startsWith(new Date().toISOString().split('T')[0])).length;
     
     // Calculate conversion rate: (Orders Today / Visitors Today) * 100
     const conversionRate = todayCount > 0 ? ((ordersCount / todayCount) * 100).toFixed(1) : "0.0";
@@ -155,7 +176,7 @@ function VisitorTrackingContent() {
       todayCount,
       conversionRate,
       maxLoadTime,
-      chartData: sessions.slice(0, 24).map((s: any, i: number) => ({
+      chartData: sessions.slice(0, 24).map((s, i) => ({
         name: new Date(s.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         visitors: Math.floor(Math.random() * 50) + 10 + i,
       })).reverse()
@@ -177,7 +198,7 @@ function VisitorTrackingContent() {
     enabled: !!selectedVisitor,
   });
 
-  const filteredSessions = sessions.filter((s: any) => 
+  const filteredSessions = sessions.filter((s) => 
     s.ip_address?.includes(searchQuery) || 
     s.city?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -357,7 +378,7 @@ function VisitorTrackingContent() {
                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Zero active signals detected</p>
                     </div>
                   ) : (
-                    filteredSessions.map((visitor: any) => {
+                    filteredSessions.map((visitor) => {
                       const isActive = new Date(visitor.last_active).getTime() > Date.now() - 60000;
                       return (
                         <motion.div 

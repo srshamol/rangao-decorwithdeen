@@ -17,13 +17,38 @@ import { Dialog, DialogContent, DialogTitle, DialogHeader } from "@/components/u
 import { useLanguage } from "@/lib/language-context";
 import Link from "next/link";
 
+interface CustomerOrder {
+  id: string;
+  customer_name: string;
+  phone: string;
+  email: string | null;
+  district: string | null;
+  address: string | null;
+  total: number;
+  created_at: string;
+  status: string;
+  items: any;
+}
+
+interface Customer {
+  name: string;
+  phone: string;
+  email: string;
+  district: string | null;
+  address: string | null;
+  total_orders: number;
+  total_spend: number;
+  last_order_date: string;
+  orders: CustomerOrder[];
+}
+
 function AdminCustomersContent() {
   const { language } = useLanguage();
   const bn = language === 'bn';
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<CustomerOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -36,7 +61,7 @@ function AdminCustomersContent() {
   useEffect(() => { loadData(); }, []);
 
   const customers = useMemo(() => {
-    const grouped: Record<string, any> = {};
+    const grouped: Record<string, Customer> = {};
     
     orders.forEach(order => {
       const phone = order.phone;
@@ -160,7 +185,7 @@ function AdminCustomersContent() {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
               {filteredCustomers.map((c) => {
-                const allImages = Array.from(new Set(c.orders.flatMap((o: any) => parseItems(o.items).map((i: any) => i.image)).filter(Boolean)));
+                const allImages = Array.from(new Set(c.orders.flatMap((o) => parseItems(o.items).map((i: any) => i.image)).filter(Boolean)));
                 return (
                 <tr 
                   key={c.phone} 
@@ -284,7 +309,7 @@ function AdminCustomersContent() {
                     <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2"><History size={14} className="text-primary"/> {bn ? "অর্ডার ইতিহাস" : "Order History"} ({selectedCustomer?.total_orders})</h3>
                  </div>
                  <div className="space-y-2">
-                    {selectedCustomer?.orders.map((order: any) => (
+                    {selectedCustomer?.orders.map((order: CustomerOrder) => (
                        <div key={order.id} className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-100 dark:border-white/5 shadow-sm flex items-center justify-between group">
                           <div className="flex items-center gap-4">
                              <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors"><ShoppingBag size={18} /></div>

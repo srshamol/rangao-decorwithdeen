@@ -17,6 +17,21 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useLanguage } from "@/lib/language-context";
 
+interface LandingPageConfig {
+  sizes?: { name: string; price: number }[];
+  frames?: string[];
+  package_contents?: string[];
+  specifications?: { key: string; value: string }[];
+  brand?: string;
+  color?: string;
+  weight?: string;
+  hide_out_of_stock?: boolean;
+  tags?: string;
+  included_products?: { name: string; name_bn: string; price: number; image: string }[];
+  hero_features?: string[];
+  top_banner_text?: string;
+}
+
 interface Product {
   id: string;
   name: string;
@@ -38,7 +53,7 @@ interface Product {
   material: string | null;
   installation: string | null;
   size: string | null;
-  landing_page_config: any;
+  landing_page_config: LandingPageConfig;
   created_at: string;
 }
 
@@ -74,16 +89,16 @@ function AdminProductsContent() {
     description: "", images: [] as string[], sku: "", status: "active",
     meta_title: "", meta_description: "", slug: "",
     material: "", installation: "", size: "", landing_page_config: {
-      sizes: [] as any[],
+      sizes: [] as { name: string; price: number }[],
       frames: [] as string[],
       package_contents: [] as string[],
-      specifications: [] as any[],
+      specifications: [] as { key: string; value: string }[],
       brand: "",
       color: "",
       weight: "",
       hide_out_of_stock: false,
       tags: ""
-    } as any
+    } as LandingPageConfig
   });
 
   const loadData = async () => {
@@ -163,25 +178,20 @@ function AdminProductsContent() {
       material: p.material || "",
       installation: p.installation || "",
       size: p.size || "",
-        landing_page_config: {
-          sizes: p.landing_page_config?.sizes || [],
-          frames: p.landing_page_config?.frames || [],
-          package_contents: p.landing_page_config?.package_contents || [],
-          specifications: p.landing_page_config?.specifications || [],
-          brand: p.landing_page_config?.brand || "",
-          color: p.landing_page_config?.color || "",
-          weight: p.landing_page_config?.weight || "",
-          hide_out_of_stock: p.landing_page_config?.hide_out_of_stock || false,
-          tags: p.landing_page_config?.tags || "",
-          included_products: p.landing_page_config?.included_products || [
-            { name: "Islamic Table Clock", name_bn: "ইসলামিক টেবিল ঘড়ি", price: 1200, image: "https://images.unsplash.com/photo-1563861826100-9cb868fdbe1c?q=80&w=2070" },
-            { name: "Ayatul Kursi Wall Art", name_bn: "আয়াতুল কুরসী ওয়াল আর্ট", price: 1800, image: "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?q=80&w=2070" },
-            { name: "Allah & Muhammad Frames", name_bn: "আল্লাহ ও মুহাম্মদ ফ্রেম", price: 1500, image: "https://images.unsplash.com/photo-1544413647-b539a6119460?q=80&w=2070" },
-            { name: "Tasbih Set", name_bn: "তসবিহ সেট", price: 500, image: "https://images.unsplash.com/photo-1590424765421-df5f14421b6d?q=80&w=2070" },
-          ],
-          hero_features: p.landing_page_config?.hero_features || [],
-          top_banner_text: p.landing_page_config?.top_banner_text || ""
-        }
+         landing_page_config: {
+           sizes: p.landing_page_config?.sizes || [],
+           frames: p.landing_page_config?.frames || [],
+           package_contents: p.landing_page_config?.package_contents || [],
+           specifications: p.landing_page_config?.specifications || [],
+           brand: p.landing_page_config?.brand || "",
+           color: p.landing_page_config?.color || "",
+           weight: p.landing_page_config?.weight || "",
+           hide_out_of_stock: p.landing_page_config?.hide_out_of_stock || false,
+           tags: p.landing_page_config?.tags || "",
+           included_products: p.landing_page_config?.included_products || [],
+           hero_features: p.landing_page_config?.hero_features || [],
+           top_banner_text: p.landing_page_config?.top_banner_text || ""
+         }
     });
     setShowForm(true);
   };
@@ -194,7 +204,7 @@ function AdminProductsContent() {
 
   const handleStatusToggle = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === 'active' ? 'draft' : 'active';
-    const { error } = await supabase.from("products").update({ status: newStatus } as any).eq("id", id);
+    const { error } = await supabase.from("products").update({ status: newStatus }).eq("id", id);
     if (!error) {
       setProducts(products.map(p => p.id === id ? { ...p, status: newStatus } : p));
       toast.success(t(newStatus === 'active' ? "status_active_success" : "status_inactive_success"));
@@ -238,8 +248,9 @@ function AdminProductsContent() {
       const publicUrls = await Promise.all(uploadPromises);
       setForm(prev => ({ ...prev, images: [...prev.images, ...publicUrls] }));
       toast.success(`${publicUrls.length} ${t("images_uploaded_success")}`);
-    } catch (error: any) {
-      toast.error(`${t("upload_failed")}: ${error.message}`);
+    } catch (error) {
+      const err = error as Error;
+      toast.error(`${t("upload_failed")}: ${err.message}`);
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -284,7 +295,7 @@ function AdminProductsContent() {
 
   const handleNameChange = (val: string, isBn: boolean) => {
     setForm(prev => {
-      const updates: any = isBn ? { name_bn: val } : { name: val };
+      const updates: Partial<typeof prev> = isBn ? { name_bn: val } : { name: val };
       
       // Auto-set SEO if not manually edited (basic heuristic: if field is empty or matches old auto-gen)
       const currentName = isBn ? val : prev.name_bn;
@@ -337,10 +348,10 @@ function AdminProductsContent() {
 
     let error;
     if (editing) {
-      const res = await supabase.from("products").update(data as any).eq("id", editing);
+      const res = await supabase.from("products").update(data).eq("id", editing);
       error = res.error;
     } else {
-      const res = await supabase.from("products").insert(data as any);
+      const res = await supabase.from("products").insert(data);
       error = res.error;
     }
 

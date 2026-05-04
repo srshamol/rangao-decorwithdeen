@@ -21,12 +21,29 @@ interface ReviewForm {
   product_id: string;
 }
 
+interface ProductMinimal {
+  id: string;
+  name: string;
+  name_bn: string;
+}
+
+interface Review {
+  id: string;
+  customer_name: string;
+  rating: number;
+  comment: string | null;
+  image_url: string | null;
+  product_id: string | null;
+  created_at: string;
+  products: ProductMinimal | null;
+}
+
 const emptyForm: ReviewForm = { customer_name: "", rating: "5", comment: "", image_url: "", product_id: "" };
 
 function AdminReviewsContent() {
   const { language } = useLanguage();
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [products, setProducts] = useState<ProductMinimal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<ReviewForm>(emptyForm);

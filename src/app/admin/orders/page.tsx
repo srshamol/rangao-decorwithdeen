@@ -44,7 +44,7 @@ interface Order {
   admin_note: string | null;
   created_at: string;
   courier_name: string | null;
-  status_history: any[];
+  status_history: { status: string; time: string }[];
 }
 
 type StaffRole = 'super_admin' | 'admin' | 'moderator' | 'production';
@@ -87,20 +87,20 @@ function AdminOrdersContent() {
   const [isFraudCheckOpen, setIsFraudCheckOpen] = useState(false);
   const [selectedPhoneForFraud, setSelectedPhoneForFraud] = useState("");
   const [selectedCourierForOrder, setSelectedCourierForOrder] = useState<string>('steadfast');
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const [role, setRole] = useState<StaffRole>('production');
   const isProduction = role === 'production';
   const isAdmin = role === 'admin' || role === 'super_admin';
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }: any) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        setCurrentUser(session.user);
+        setCurrentUser(session.user as SupabaseUser);
         // Hard override for primary owner
         if (session.user.email === 'rangao.bd@gmail.com') {
           setRole('super_admin');
         } else {
-          supabase.from('user_roles').select('role').eq('user_id', session.user.id).single().then(({ data }: any) => {
+          supabase.from('user_roles').select('role').eq('user_id', session.user.id).single().then(({ data }) => {
             if (data) setRole(data.role as StaffRole);
           });
         }
@@ -121,8 +121,9 @@ function AdminOrdersContent() {
   };
 
   useEffect(() => {
-    const handleOpenFraud = (e: any) => {
-      setSelectedPhoneForFraud(e.detail);
+    const handleOpenFraud = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setSelectedPhoneForFraud(customEvent.detail);
       setIsFraudCheckOpen(true);
     };
     window.addEventListener('open-fraud-checker', handleOpenFraud);
@@ -147,31 +148,31 @@ function AdminOrdersContent() {
 
   const statusCounts = useMemo(() => ({
     all: orders.length,
-    pending: orders.filter(o => o.status === 'pending').length,
-    confirmed: orders.filter(o => o.status === 'confirmed').length,
-    processing: orders.filter(o => o.status === 'processing').length,
-    shipped: orders.filter(o => o.status === 'shipped').length,
-    delivered: orders.filter(o => o.status === 'delivered').length,
-    cancelled: orders.filter(o => o.status === 'cancelled').length,
-    return: orders.filter(o => o.status === 'return').length,
+    pending: orders.filter((o: Order) => o.status === 'pending').length,
+    confirmed: orders.filter((o: Order) => o.status === 'confirmed').length,
+    processing: orders.filter((o: Order) => o.status === 'processing').length,
+    shipped: orders.filter((o: Order) => o.status === 'shipped').length,
+    delivered: orders.filter((o: Order) => o.status === 'delivered').length,
+    cancelled: orders.filter((o: Order) => o.status === 'cancelled').length,
+    return: orders.filter((o: Order) => o.status === 'return').length,
   }), [orders]);
 
   const filteredOrders = useMemo(() => {
     let result = orders;
-    if (currentStatus !== "all") result = result.filter(o => o.status === currentStatus);
+    if (currentStatus !== "all") result = result.filter((o: Order) => o.status === currentStatus);
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      result = result.filter(o => 
+      result = result.filter((o: Order) => 
         o.id.toLowerCase().includes(q) || 
         o.customer_name?.toLowerCase().includes(q) || 
         o.phone?.includes(q)
       );
     }
     if (filters.paymentType !== 'all') {
-      result = result.filter(o => o.payment_method?.toLowerCase() === filters.paymentType.toLowerCase());
+      result = result.filter((o: Order) => o.payment_method?.toLowerCase() === filters.paymentType.toLowerCase());
     }
     if (filters.courier !== 'all') {
-      result = result.filter(o => o.courier_name?.toLowerCase() === filters.courier.toLowerCase());
+      result = result.filter((o: Order) => o.courier_name?.toLowerCase() === filters.courier.toLowerCase());
     }
     
     return result;
@@ -190,7 +191,8 @@ function AdminOrdersContent() {
       logActivity('BULK_STATUS_UPDATE', `Updated ${selectedOrders.length} orders to ${newStatus}`);
       setSelectedOrders([]);
       loadOrders();
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as Error;
       toast.error(t("bulk_update_failure"), { id: toastId });
     }
   };
@@ -234,8 +236,9 @@ function AdminOrdersContent() {
       setCancelOrder(null);
       setAdminNote("");
       setViewOrder(null);
-    } catch (err: any) {
-      toast.error(t("update_failure") + ": " + err.message);
+    } catch (err) {
+      const error = err as Error;
+      toast.error(t("update_failure") + ": " + error.message);
     } finally {
       setIsUpdating(false);
     }
@@ -260,15 +263,16 @@ function AdminOrdersContent() {
     toast.success(t("order_recovered_success"));
   };
 
-  const updateOrder = async (id: string, updates: any) => {
+  const updateOrder = async (id: string, updates: Partial<Order>) => {
     try {
       setIsUpdating(true);
       const { error } = await supabase.from("orders").update(updates).eq("id", id);
       if (error) throw error;
       toast.success(t("order_update_success"));
       loadOrders();
-    } catch (err: any) {
-      toast.error(t("update_failure") + ": " + err.message);
+    } catch (err) {
+      const error = err as Error;
+      toast.error(t("update_failure") + ": " + error.message);
     } finally {
       setIsUpdating(false);
     }
@@ -276,8 +280,8 @@ function AdminOrdersContent() {
 
   const exportCSV = () => {
     const headers = ["Order ID", "Date", "Customer", "Phone", "Total", "Status", "District", "Payment"];
-    const rows = filteredOrders.map(o => [o.id, new Date(o.created_at).toLocaleString(), o.customer_name, o.phone, o.total, o.status, o.district, o.payment_method]);
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const rows = filteredOrders.map((o: Order) => [o.id, new Date(o.created_at).toLocaleString(), o.customer_name, o.phone, o.total, o.status, o.district, o.payment_method]);
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r: (string | number | null)[]) => r.join(","))].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -411,7 +415,7 @@ function AdminOrdersContent() {
             <thead className="sticky top-0 z-20">
               <tr className="bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-white/5">
                 <th className="px-6 py-5 text-left w-12 border-b border-slate-100 dark:border-white/5">
-                   <input type="checkbox" checked={selectedOrders.length === filteredOrders.length && filteredOrders.length > 0} onChange={() => { if (selectedOrders.length === filteredOrders.length) setSelectedOrders([]); else setSelectedOrders(filteredOrders.map(o => o.id)); }} className="rounded border-slate-300" />
+                   <input type="checkbox" checked={selectedOrders.length === filteredOrders.length && filteredOrders.length > 0} onChange={() => { if (selectedOrders.length === filteredOrders.length) setSelectedOrders([]); else setSelectedOrders(filteredOrders.map((o: Order) => o.id)); }} className="rounded border-slate-300" />
                 </th>
                 <th className="px-6 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5">{t("order")}</th>
                 <th className="px-6 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5">{t("customer")}</th>
@@ -427,7 +431,7 @@ function AdminOrdersContent() {
                 <Fragment key={o.id}>
                   <tr className="hover:bg-slate-50 dark:hover:bg-white/2 transition-colors group">
                     <td className="px-6 py-3.5">
-                      <input type="checkbox" checked={selectedOrders.includes(o.id)} onChange={() => { if (selectedOrders.includes(o.id)) setSelectedOrders(selectedOrders.filter(id => id !== o.id)); else setSelectedOrders([...selectedOrders, o.id]); }} className="rounded border-slate-300" />
+                      <input type="checkbox" checked={selectedOrders.includes(o.id)} onChange={() => { if (selectedOrders.includes(o.id)) setSelectedOrders(selectedOrders.filter((id: string) => id !== o.id)); else setSelectedOrders([...selectedOrders, o.id]); }} className="rounded border-slate-300" />
                     </td>
                     <td className="px-6 py-3.5">
                       <button 
@@ -556,8 +560,9 @@ function AdminOrdersContent() {
                                              } else {
                                                toast.error(data.message || t("booking_failed"), { id: loadingToast });
                                              }
-                                           } catch (err: any) {
-                                             toast.error(err.message, { id: loadingToast });
+                                           } catch (err) {
+                                             const error = err as Error;
+                                             toast.error(error.message, { id: loadingToast });
                                            }
                                          }}
                                          className="w-full py-4 bg-primary text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/30 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all"
@@ -708,9 +713,9 @@ function AdminOrdersContent() {
                        <div className="space-y-8 relative ml-4">
                           {['pending', 'confirmed', 'processing', 'shipped', 'delivered'].map((step, idx) => {
                             const statusHistory = viewOrder?.status_history || [];
-                            const stepInfo = statusHistory.find((h: any) => h.status === step);
-                            const isReached = statusHistory.some((h: any) => h.status === step) || viewOrder?.status === step;
-                            const isPast = statusHistory.some((h: any) => h.status === step) && viewOrder?.status !== step;
+                            const stepInfo = statusHistory.find((h) => h.status === step);
+                            const isReached = statusHistory.some((h) => h.status === step) || viewOrder?.status === step;
+                            const isPast = statusHistory.some((h) => h.status === step) && viewOrder?.status !== step;
                             
                             return (
                               <div key={step} className="flex items-start gap-8 relative">

@@ -13,12 +13,40 @@ import { toast } from "sonner";
 import { useLanguage } from "@/lib/language-context";
 import { CourierSettings } from "@/components/admin/settings/CourierSettings";
 
+interface CourierPlan {
+  status: string;
+  plan_name: string;
+  expires_at: string;
+  days_remaining: number;
+  api_calls: number;
+  remaining_paid_calls: number;
+  remaining_free_calls: number;
+}
+
+interface CourierSettingsData {
+  steadfast_api_key?: string;
+  steadfast_secret_key?: string;
+  carrybee_client_id?: string;
+  carrybee_client_secret?: string;
+  redx_api_token?: string;
+  [key: string]: any;
+}
+
+interface DeliveryStats {
+  steadfast: { balance: number; delivered: number; returned: number; pending: number };
+  carrybee: { balance: number; delivered: number; returned: number; pending: number };
+  redx: { balance: number; delivered: number; returned: number; pending: number };
+  totalBalance: number;
+  successRate: number;
+  activeShipments: number;
+}
+
 function CourierManagementContent() {
   const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState<"steadfast" | "redx" | "carrybee" | "intelligence" | "settings">("steadfast");
-  const [plan, setPlan] = useState<any>(null);
+  const [plan, setPlan] = useState<CourierPlan | null>(null);
 
-  const [settings, setSettings] = useState<any>({});
+  const [settings, setSettings] = useState<CourierSettingsData>({});
   const [loading, setLoading] = useState(false);
   
   useEffect(() => { loadSettings(); }, []);
@@ -58,7 +86,7 @@ function CourierManagementContent() {
     }
   };
 
-  const [deliveryStats, setDeliveryStats] = useState({
+  const [deliveryStats, setDeliveryStats] = useState<DeliveryStats>({
     steadfast: { balance: 0, delivered: 0, returned: 0, pending: 0 },
     carrybee: { balance: 0, delivered: 0, returned: 0, pending: 0 },
     redx: { balance: 0, delivered: 0, returned: 0, pending: 0 },
@@ -71,7 +99,7 @@ function CourierManagementContent() {
     setLoading(true);
     const { data: orders } = await supabase.from("orders").select("status, admin_note");
     if (orders) {
-      const stats = {
+      const stats: DeliveryStats = {
         steadfast: { balance: 0, delivered: 0, returned: 0, pending: 0 },
         carrybee: { balance: 0, delivered: 0, returned: 0, pending: 0 },
         redx: { balance: 0, delivered: 0, returned: 0, pending: 0 },
@@ -80,7 +108,7 @@ function CourierManagementContent() {
         activeShipments: 0
       };
 
-      orders.forEach((o: any) => {
+      orders.forEach((o: { status: string; admin_note: string | null }) => {
         const note = (o.admin_note || "").toLowerCase();
         const isSteadfast = note.includes("steadfast");
         const isCarrybee = note.includes("carrybee");
@@ -107,7 +135,7 @@ function CourierManagementContent() {
       const totalReturned = stats.steadfast.returned + stats.carrybee.returned + stats.redx.returned;
       stats.successRate = totalDelivered > 0 ? Number((totalDelivered / (totalDelivered + totalReturned) * 100).toFixed(1)) : 0;
 
-      setDeliveryStats(stats as any);
+      setDeliveryStats(stats);
     }
     setLoading(false);
   };

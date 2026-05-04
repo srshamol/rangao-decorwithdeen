@@ -22,9 +22,17 @@ const DEFAULT_COURIER_COST = 120;
 const RETURN_PENALTY = 120;
 const PRODUCT_COST_PERCENTAGE = 0.6; // 60% of total is cost
 
+interface FinanceOrder {
+  id: string;
+  total: number;
+  status: string;
+  created_at: string;
+  payment_type: string | null;
+}
+
 function AdminFinanceContent() {
   const { language } = useLanguage();
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<FinanceOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState<"7d" | "30d" | "90d" | "all">("30d");
   const [mounted, setMounted] = useState(false);

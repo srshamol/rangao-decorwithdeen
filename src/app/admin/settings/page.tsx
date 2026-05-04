@@ -26,7 +26,7 @@ import { AutomationSettings } from "@/components/admin/settings/AutomationSettin
 import { NotificationSettings } from "@/components/admin/settings/NotificationSettings";
 import { NavigationSettings } from "@/components/admin/settings/NavigationSettings";
 
-const getSettingsTabs = (t: any) => [
+const getSettingsTabs = (t: (key: string) => string) => [
   { id: "general", label: t("general"), icon: Globe, desc: t("company_info"), color: "text-primary", bg: "bg-emerald-50 dark:bg-primary/10" },
   { id: "homepage", label: t("homepage"), icon: Layout, desc: t("frontend_control"), color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-500/10" },
   { id: "order_control", label: t("order_control"), icon: ShieldAlert, desc: t("anti_fraud"), color: "text-rose-600", bg: "bg-rose-50 dark:bg-rose-500/10" },
@@ -40,6 +40,60 @@ const getSettingsTabs = (t: any) => [
   { id: "navigation", label: t("navigation"), icon: Menu, desc: t("header_menu_control"), color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
 ];
 
+interface GeneralSettingsData {
+  site_name?: string;
+  site_tagline?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  office_address?: string;
+  logo_url?: string;
+  favicon_url?: string;
+}
+
+interface DesignSettingsData {
+  hero_slides: any[];
+  home_banners: any[];
+  home_cta: any;
+  trust_badges: any[];
+  show_categories: boolean;
+  show_featured: boolean;
+  show_combo: boolean;
+  show_logo: boolean;
+  show_name: boolean;
+  show_tagline: boolean;
+  featured_product_ids: string[];
+  combo_product_ids: string[];
+  selected_categories: string[];
+  hero_text: any;
+  categories_text: any;
+  featured_text: any;
+  why_choose_text: any;
+  combo_text: any;
+  gallery_text: any;
+  reviews_text: any;
+  quote_text: any;
+  cta_text: any;
+}
+
+interface AdvancedSettingsData {
+  order: any;
+  otp: {
+    mode: string;
+    threshold: number;
+    template: string;
+    popup: { heading: string; subheading: string; button: string };
+  };
+  capi: { enabled: boolean; strict_tracking: boolean; pixel_id: string; access_token: string; test_code: string };
+  firebase: any;
+  recovery: {
+    enabled: boolean;
+    first_delay: number;
+    second_delay: number;
+    first_template: string;
+    second_template: string;
+  };
+}
+
 export default function AdminSettings() {
   const { t } = useLanguage();
   const SETTINGS_TABS = getSettingsTabs(t);
@@ -50,8 +104,8 @@ export default function AdminSettings() {
   const initialDataRef = useRef<string>("");
 
   // State for all settings
-  const [generalSettings, setGeneralSettings] = useState<any>({});
-  const [designSettings, setDesignSettings] = useState<any>({
+  const [generalSettings, setGeneralSettings] = useState<GeneralSettingsData>({});
+  const [designSettings, setDesignSettings] = useState<DesignSettingsData>({
     hero_slides: [], home_banners: [], home_cta: {}, trust_badges: [],
     show_categories: true, show_featured: true, show_combo: true,
     show_logo: true, show_name: true, show_tagline: true,
@@ -60,12 +114,19 @@ export default function AdminSettings() {
     combo_text: {}, gallery_text: {}, reviews_text: {}, quote_text: {}, cta_text: {}
   });
   const [integrations, setIntegrations] = useState<any[]>([]);
-  const [courierSettings, setCourierSettings] = useState<any>({
+  const [courierSettings, setCourierSettings] = useState<{
+    steadfast_key: string;
+    steadfast_secret: string;
+    steadfast_is_sandbox: boolean;
+    steadfast_base_url: string;
+    default_courier: string;
+    couriers: any[];
+  }>({
     steadfast_key: "", steadfast_secret: "", steadfast_is_sandbox: false,
     steadfast_base_url: "", default_courier: "steadfast",
     couriers: []
   });
-  const [advancedSettings, setAdvancedSettings] = useState<any>({
+  const [advancedSettings, setAdvancedSettings] = useState<AdvancedSettingsData>({
     order: {},
     otp: {
       mode: "disabled", threshold: 50,
@@ -80,7 +141,11 @@ export default function AdminSettings() {
       second_template: "এখনও আগ্রহী? SAVE10 কোড ব্যবহার করুন। আপনার কার্ট: {checkout_url}"
     }
   });
-  const [marketingData, setMarketingData] = useState<any>({
+  const [marketingData, setMarketingData] = useState<{
+    campaigns: any[];
+    templates: { id: string; name: string; type: string; message: string }[];
+    audiences: any[];
+  }>({
     campaigns: [],
     templates: [
       { id: "t1", name: "স্বাগতম SMS", type: "sms", message: "আসসালামু আলাইকুম {customer_name}! রাঙাও তে স্বাগতম 🌟 আমাদের সেরা ইসলামিক ডেকোর কালেকশন দেখুন: {checkout_url}" },
@@ -89,7 +154,11 @@ export default function AdminSettings() {
     ],
     audiences: []
   });
-  const [notificationSettings, setNotificationSettings] = useState<any>({
+  const [notificationSettings, setNotificationSettings] = useState<{
+    order_notifications: { enabled: boolean; admin_emails: string[]; admin_phones: string[]; channels: string[] };
+    low_stock_alerts: { enabled: boolean; threshold: number };
+    customer_notifications: Record<string, { sms: boolean; email: boolean; template: string }>;
+  }>({
     order_notifications: { enabled: true, admin_emails: [], admin_phones: [], channels: ["email", "sms"] },
     low_stock_alerts: { enabled: true, threshold: 5 },
     customer_notifications: {
@@ -101,7 +170,11 @@ export default function AdminSettings() {
       order_cancelled: { sms: true, email: false, template: "দুঃখিত, আপনার অর্ডার #{order_id} বাতিল করা হয়েছে। বিস্তারিত জানতে আমাদের কল করুন।" }
     }
   });
-  const [navigationSettings, setNavigationSettings] = useState<any>({
+  const [navigationSettings, setNavigationSettings] = useState<{
+    header_links: any[];
+    show_categories: boolean;
+    promo_badge: { text_bn: string; text_en: string; href: string; enabled: boolean };
+  }>({
     header_links: [],
     show_categories: true,
     promo_badge: { text_bn: "", text_en: "", href: "", enabled: false }
@@ -154,17 +227,17 @@ export default function AdminSettings() {
       ]);
 
       if (configsRes.data) {
-        const design: any = { ...designSettings };
-        configsRes.data.forEach((item: any) => {
-          if (item.id === "general_settings") setGeneralSettings((item.value as any) || {});
-          if (item.id === "hero_slides") design.hero_slides = (item.value as any) || [];
-          if (item.id === "home_banners") design.home_banners = (item.value as any) || [];
+        const design: DesignSettingsData = { ...designSettings };
+        configsRes.data.forEach((item) => {
+          if (item.id === "general_settings") setGeneralSettings((item.value as GeneralSettingsData) || {});
+          if (item.id === "hero_slides") design.hero_slides = (item.value as any[]) || [];
+          if (item.id === "home_banners") design.home_banners = (item.value as any[]) || [];
           if (item.id === "home_cta") design.home_cta = (item.value as any) || {};
-          if (item.id === "trust_badges") design.trust_badges = (item.value as any) || [];
+          if (item.id === "trust_badges") design.trust_badges = (item.value as any[]) || [];
           if (item.id === "homepage_config") Object.assign(design, (item.value as any) || {});
-          if (item.id === "integrations") setIntegrations((item.value as any) || []);
+          if (item.id === "integrations") setIntegrations((item.value as any[]) || []);
           if (item.id === "courier_settings") setCourierSettings((prev: any) => ({ ...prev, ...((item.value as any) || {}) }));
-          if (item.id === "advanced_settings") setAdvancedSettings((prev: any) => ({ ...prev, ...((item.value as any) || {}) }));
+          if (item.id === "advanced_settings") setAdvancedSettings((prev: AdvancedSettingsData) => ({ ...prev, ...((item.value as any) || {}) }));
           if (item.id === "marketing_data") setMarketingData((prev: any) => ({ ...prev, ...((item.value as any) || {}) }));
           if (item.id === "notification_settings") setNotificationSettings((item.value as any) || {});
           if (item.id === "navigation_settings") setNavigationSettings((item.value as any) || { header_links: [], show_categories: true, promo_badge: { text_bn: "", text_en: "", href: "", enabled: false } });
@@ -373,14 +446,14 @@ export default function AdminSettings() {
               {activeTab === "general" && (
                 <GeneralSettings
                   settings={generalSettings}
-                  onUpdate={(data: any) => setGeneralSettings({ ...generalSettings, ...data })}
+                  onUpdate={(data: Partial<GeneralSettingsData>) => setGeneralSettings({ ...generalSettings, ...data })}
                 />
               )}
 
               {activeTab === "homepage" && (
                 <HomepageSettings
                   settings={designSettings}
-                  onUpdate={(data: any) => setDesignSettings({ ...designSettings, ...data })}
+                  onUpdate={(data: Partial<DesignSettingsData>) => setDesignSettings({ ...designSettings, ...data })}
                 />
               )}
 
@@ -396,7 +469,7 @@ export default function AdminSettings() {
                   settings={advancedSettings.otp || {}}
                   integrations={integrations}
                   onUpdate={(data: any) => setAdvancedSettings({ ...advancedSettings, otp: { ...advancedSettings.otp, ...data } })}
-                  onUpdateIntegrations={setIntegrations}
+                  onUpdateIntegrations={(val: any[]) => setIntegrations(val)}
                 />
               )}
 

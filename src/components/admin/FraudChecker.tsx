@@ -25,7 +25,12 @@ interface CourierStats {
 interface FraudResponse {
   status: string;
   data: {
-    [key: string]: any;
+    [key: string]: CourierStats | {
+      total_parcel: number;
+      success_parcel: number;
+      cancelled_parcel: number;
+      success_ratio: number;
+    } | string;
     summary: {
       total_parcel: number;
       success_parcel: number;
@@ -232,7 +237,7 @@ export function FraudChecker({ phone: initialPhone, onClose }: { phone?: string,
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {['steadfast', 'carrybee', 'redx', 'pathao', 'paperfly', 'parceldex'].map((key, idx) => {
-                      const value = result.data[key as keyof typeof result.data];
+                      const value = result.data[key] as CourierStats;
                       if (!value || typeof value !== 'object' || !value.name) return null;
                       const isSafe = value.success_ratio > 80;
                       const isRisk = value.success_ratio < 40;
@@ -355,7 +360,12 @@ export function FraudChecker({ phone: initialPhone, onClose }: { phone?: string,
 }
 
 export function FraudMiniScore({ phone }: { phone: string }) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<{
+    total_parcel: number;
+    success_parcel: number;
+    cancelled_parcel: number;
+    success_ratio: number;
+  } | null>(null);
 
   useEffect(() => {
     const checkCache = () => {
@@ -370,8 +380,9 @@ export function FraudMiniScore({ phone }: { phone: string }) {
 
     checkCache();
     
-    const handleSync = (e: any) => {
-       if (e.detail === phone || !e.detail) {
+    const handleSync = (e: Event) => {
+       const detail = (e as CustomEvent).detail;
+       if (detail === phone || !detail) {
           checkCache();
        }
     };

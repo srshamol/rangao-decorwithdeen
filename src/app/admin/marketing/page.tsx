@@ -14,6 +14,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import SMSCampaignModal from "@/components/admin/marketing/SMSCampaignModal";
 
+interface MarketingOrder {
+  total: number;
+  created_at: string;
+  status: string;
+  admin_note: string | null;
+  phone: string;
+}
+
+interface MarketingEvent {
+  event_type: string;
+}
+
 function MarketingAnalyticsContent() {
   const queryClient = useQueryClient();
   const [selectedAudience, setSelectedAudience] = useState("all");
@@ -29,13 +41,13 @@ function MarketingAnalyticsContent() {
         supabase.from("visitor_events").select("event_type")
       ]);
 
-      const orders = ordersRes.data || [];
+      const orders = (ordersRes.data || []) as MarketingOrder[];
       const sessions = sessionsRes.data || [];
-      const events = eventsRes.data || [];
+      const events = (eventsRes.data || []) as MarketingEvent[];
 
       // Audience Segmentation Logic
-      const customersMap: Record<string, any> = {};
-      orders.forEach((o: any) => {
+      const customersMap: Record<string, { last_order: string; status: string }> = {};
+      orders.forEach((o) => {
         if (!customersMap[o.phone] || new Date(o.created_at) > new Date(customersMap[o.phone].last_order)) {
           customersMap[o.phone] = { last_order: o.created_at, status: o.status };
         }
@@ -46,19 +58,19 @@ function MarketingAnalyticsContent() {
 
       const audienceCounts = {
         all: uniqueCustomers.length,
-        pending: orders.filter((o: any) => o.status !== 'delivered' && o.status !== 'cancelled').length,
-        delivered: orders.filter((o: any) => o.status === 'delivered').length,
-        cancelled: orders.filter((o: any) => o.status === 'cancelled').length,
-        inactive: uniqueCustomers.filter((c: any) => new Date(c.last_order) < thirtyDaysAgo).length
+        pending: orders.filter((o) => o.status !== 'delivered' && o.status !== 'cancelled').length,
+        delivered: orders.filter((o) => o.status === 'delivered').length,
+        cancelled: orders.filter((o) => o.status === 'cancelled').length,
+        inactive: uniqueCustomers.filter((c) => new Date(c.last_order) < thirtyDaysAgo).length
       };
 
       const reach = sessions.length;
       const conversionRate = sessions.length > 0 ? ((orders.length / sessions.length) * 100).toFixed(1) : "0.0";
-      const recoveredRevenue = orders.filter((o: any) => o.status === 'confirmed' && o.admin_note?.includes('Recovered')).reduce((sum: number, o: any) => sum + Number(o.total), 0);
+      const recoveredRevenue = orders.filter((o) => o.status === 'confirmed' && o.admin_note?.includes('Recovered')).reduce((sum: number, o) => sum + Number(o.total), 0);
       
-      const viewContent = events.filter((e: any) => e.event_type === 'PageView').length || sessions.length;
-      const addToCart = events.filter((e: any) => e.event_type === 'AddToCart').length;
-      const initiateCheckout = events.filter((e: any) => e.event_type === 'InitiateCheckout').length;
+      const viewContent = events.filter((e) => e.event_type === 'PageView').length || sessions.length;
+      const addToCart = events.filter((e) => e.event_type === 'AddToCart').length;
+      const initiateCheckout = events.filter((e) => e.event_type === 'InitiateCheckout').length;
       const purchase = orders.length;
 
       return {

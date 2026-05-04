@@ -172,7 +172,7 @@ function IncompleteOrdersContent() {
         phone: recoveryForm.phone,
         address: recoveryForm.address || "Pending",
         district: recoveryForm.district || "Pending",
-        items: selectedCart.items as any,
+        items: selectedCart.items as unknown as Json,
         subtotal: selectedCart.total_amount,
         delivery_charge: recoveryForm.deliveryCharge,
         total: selectedCart.total_amount + recoveryForm.deliveryCharge,
@@ -190,8 +190,9 @@ function IncompleteOrdersContent() {
       setIsConfirmModalOpen(false);
       fetchCarts();
       fetchStats();
-    } catch (error: any) {
-      toast.error("Error creating order: " + error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error("Error creating order: " + msg);
     } finally {
       setIsRecovering(false);
     }

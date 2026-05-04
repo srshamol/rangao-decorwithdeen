@@ -13,15 +13,39 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle, DialogHeader } from "@/components/ui/dialog";
 import { useLanguage } from "@/lib/language-context";
 
+interface InventoryProduct {
+  id: string;
+  name: string;
+  name_bn: string;
+  sku: string;
+  stock: number;
+  price: number;
+  inventory_threshold: number | null;
+}
+
+interface StockMovement {
+  id: string;
+  product_id: string;
+  type: "in" | "out";
+  quantity: number;
+  note: string | null;
+  created_at: string;
+  products: {
+    name: string;
+    name_bn: string;
+    sku: string;
+  } | null;
+}
+
 function InventoryManagementContent() {
   const { language } = useLanguage();
   const bn = language === 'bn';
-  const [products, setProducts] = useState<any[]>([]);
-  const [movements, setMovements] = useState<any[]>([]);
+  const [products, setProducts] = useState<InventoryProduct[]>([]);
+  const [movements, setMovements] = useState<StockMovement[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddStock, setShowAddStock] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedProduct, setSelectedProduct] = useState<InventoryProduct | null>(null);
   const [stockAmount, setStockAmount] = useState("1");
   const [stockNote, setStockNote] = useState("");
   const [updating, setUpdating] = useState(false);
@@ -73,14 +97,15 @@ function InventoryManagementContent() {
     setUpdating(true);
     const amount = Number(stockAmount);
     try {
-      const { error: pError } = await supabase.from("products").update({ stock: selectedProduct.stock + amount } as any).eq("id", selectedProduct.id);
+      const { error: pError } = await supabase.from("products").update({ stock: selectedProduct.stock + amount }).eq("id", selectedProduct.id);
       if (pError) throw pError;
-      await supabase.from("stock_movements").insert({ product_id: selectedProduct.id, type: 'in', quantity: amount, note: stockNote || "Manual Restock" } as any);
+      await supabase.from("stock_movements").insert({ product_id: selectedProduct.id, type: 'in', quantity: amount, note: stockNote || "Manual Restock" });
       toast.success(bn ? "স্টক সফলভাবে আপডেট করা হয়েছে" : "Stock updated successfully");
       setShowAddStock(false);
       loadData();
-    } catch (error: any) {
-      toast.error(bn ? "আপডেট করা সম্ভব হয়নি" : "Update failed: " + error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error(bn ? "আপডেট করা সম্ভব হয়নি" : "Update failed: " + msg);
     } finally {
       setUpdating(false);
     }

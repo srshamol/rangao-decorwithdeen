@@ -15,9 +15,23 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
+interface Coupon {
+  id: string;
+  code: string;
+  discount_type: "percentage" | "fixed";
+  discount_value: number;
+  min_order_amount: number;
+  max_discount: number | null;
+  expires_at: string | null;
+  usage_limit: number | null;
+  used_count: number;
+  is_active: boolean;
+  created_at: string;
+}
+
 function AdminCouponsContent() {
   const { language } = useLanguage();
-  const [coupons, setCoupons] = useState<any[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
@@ -27,7 +41,7 @@ function AdminCouponsContent() {
 
   const [form, setForm] = useState({
     code: "",
-    discount_type: "percentage",
+    discount_type: "percentage" as "percentage" | "fixed",
     discount_value: "",
     min_order_amount: "0",
     max_discount: "",
@@ -72,7 +86,7 @@ function AdminCouponsContent() {
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
-  const handleEdit = (c: any) => {
+  const handleEdit = (c: Coupon) => {
     setEditing(c.id);
     setForm({
       code: c.code,
@@ -97,7 +111,7 @@ function AdminCouponsContent() {
   };
 
   const handleToggleStatus = async (id: string, currentStatus: boolean) => {
-    const { error } = await supabase.from("coupons").update({ is_active: !currentStatus } as any).eq("id", id);
+    const { error } = await supabase.from("coupons").update({ is_active: !currentStatus }).eq("id", id);
     if (!error) {
       setCoupons(coupons.map(c => c.id === id ? { ...c, is_active: !currentStatus } : c));
       toast.success(`Coupon ${!currentStatus ? 'activated' : 'deactivated'}`);
@@ -120,10 +134,10 @@ function AdminCouponsContent() {
 
     let error;
     if (editing) {
-      const res = await supabase.from("coupons").update(data as any).eq("id", editing);
+      const res = await supabase.from("coupons").update(data).eq("id", editing);
       error = res.error;
     } else {
-      const res = await supabase.from("coupons").insert(data as any);
+      const res = await supabase.from("coupons").insert(data);
       error = res.error;
     }
 

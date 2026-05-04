@@ -13,8 +13,24 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
+interface Category {
+  id: string;
+  name: string;
+  name_bn: string;
+  slug: string;
+  parent_id?: string;
+  icon?: string;
+  image?: string;
+  description?: string;
+  sort_order?: number;
+  status: string | boolean;
+  show_on_homepage: boolean | string;
+  meta_title?: string;
+  meta_description?: string;
+}
+
 function CategoryManagementContent() {
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -63,7 +79,7 @@ function CategoryManagementContent() {
     });
 
     // Count subs
-    categoriesList.forEach((c: any) => {
+    categoriesList.forEach((c: Category) => {
       if (c.parent_id && countsMap[c.parent_id]) {
         countsMap[c.parent_id].subs += 1;
       }
@@ -182,7 +198,7 @@ function CategoryManagementContent() {
     const newStatus = isActive ? 'inactive' : 'active';
     const { error } = await supabase.from("categories").update({ status: newStatus } as any).eq("id", id);
     if (!error) {
-      setCategories(categories.map(c => c.id === id ? { ...c, status: newStatus } : c));
+      setCategories(categories.map((c: Category) => c.id === id ? { ...c, status: newStatus } : c));
       toast.success(newStatus === 'active' ? 'ক্যাটাগরি সক্রিয় করা হয়েছে' : 'ক্যাটাগরি নিষ্ক্রিয় করা হয়েছে');
     } else {
       toast.error("স্ট্যাটাস পরিবর্তন করা সম্ভব হয়নি");
@@ -193,7 +209,7 @@ function CategoryManagementContent() {
     const newVal = !currentVal;
     const { error } = await supabase.from("categories").update({ show_on_homepage: newVal } as any).eq("id", id);
     if (!error) {
-      setCategories(categories.map(c => c.id === id ? { ...c, show_on_homepage: newVal } : c));
+      setCategories(categories.map((c: Category) => c.id === id ? { ...c, show_on_homepage: newVal } : c));
       toast.success(newVal ? 'হোমপেজে দেখানো হবে' : 'হোমপেজ থেকে সরানো হয়েছে');
     } else {
       toast.error("পরিবর্তন করা সম্ভব হয়নি");
@@ -248,7 +264,7 @@ function CategoryManagementContent() {
     if (error) toast.error("অর্ডার সেভ করা সম্ভব হয়নি");
   };
 
-  const filtered = categories.filter(c => {
+  const filtered = categories.filter((c: Category) => {
     const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          (c.name_bn && c.name_bn.includes(searchQuery)) ||
                          c.slug?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -294,8 +310,8 @@ function CategoryManagementContent() {
         {[
           { label: "মোট ক্যাটাগরি", value: categories.length, sub: "সকল ক্যাটাগরি", icon: LayoutGrid, color: "text-emerald-500", bg: "bg-emerald-500/10" },
           { label: "সাব ক্যাটাগরি", value: Object.values(counts).reduce((acc, curr) => acc + curr.subs, 0), sub: "সকল সাব ক্যাটাগরি", icon: Layers, color: "text-blue-500", bg: "bg-blue-500/10" },
-          { label: "সক্রিয় ক্যাটাগরি", value: categories.filter(c => c.status === 'active' || c.status === true).length, sub: "প্রকাশিত ক্যাটাগরি", icon: Eye, color: "text-orange-500", bg: "bg-orange-500/10" },
-          { label: "নিষ্ক্রীয় ক্যাটাগরি", value: categories.filter(c => c.status === 'inactive' || c.status === false).length, sub: "আর্কাইভড ক্যাটাগরি", icon: Archive, color: "text-rose-500", bg: "bg-rose-500/10" },
+          { label: "সক্রিয় ক্যাটাগরি", value: categories.filter((c: Category) => c.status === 'active' || c.status === true).length, sub: "প্রকাশিত ক্যাটাগরি", icon: Eye, color: "text-orange-500", bg: "bg-orange-500/10" },
+          { label: "নিষ্ক্রীয় ক্যাটাগরি", value: categories.filter((c: Category) => c.status === 'inactive' || c.status === false).length, sub: "আর্কাইভড ক্যাটাগরি", icon: Archive, color: "text-rose-500", bg: "bg-rose-500/10" },
         ].map((stat, i) => (
           <div key={i} className="bg-white dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group flex items-center gap-5">
             <div className={`w-16 h-16 rounded-2xl ${stat.bg} flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform`}>
@@ -343,7 +359,7 @@ function CategoryManagementContent() {
                   className="bg-transparent text-sm font-bold outline-none cursor-pointer max-w-[150px]"
                 >
                    <option value="all">সব</option>
-                   {categories.filter(c => !c.parent_id).map(c => (
+                   {categories.filter((c: Category) => !c.parent_id).map((c: Category) => (
                      <option key={c.id} value={c.id}>{c.name_bn || c.name}</option>
                    ))}
                 </select>
