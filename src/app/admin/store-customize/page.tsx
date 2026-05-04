@@ -283,7 +283,7 @@ export default function StoreCustomizePage() {
                   </Section>
 
                   <Section title="কাস্টম রং" icon={Layers}>
-                    {[
+                    {([
                       { key: "primary_color", label: "প্রাইমারি রং" },
                       { key: "secondary_color", label: "সেকেন্ডারি রং" },
                       { key: "accent_color", label: "অ্যাকসেন্ট রং" },
