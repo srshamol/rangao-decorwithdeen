@@ -205,8 +205,9 @@ function CategoryManagementContent() {
     }
   };
 
-  const handleHomepageToggle = async (id: string, currentVal: boolean) => {
-    const newVal = !currentVal;
+  const handleHomepageToggle = async (id: string, currentVal: boolean | string) => {
+    const isActive = currentVal === true || currentVal === 'true';
+    const newVal = !isActive;
     const { error } = await supabase.from("categories").update({ show_on_homepage: newVal } as any).eq("id", id);
     if (!error) {
       setCategories(categories.map((c: Category) => c.id === id ? { ...c, show_on_homepage: newVal } : c));
@@ -270,124 +271,118 @@ function CategoryManagementContent() {
                          c.slug?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || (statusFilter === "active" ? (c.status === 'active' || c.status === true) : (c.status === 'inactive' || c.status === false));
     const matchesParent = parentFilter === "all" || c.parent_id === parentFilter;
-    
     return matchesSearch && matchesStatus && matchesParent;
   });
 
   if (loading && categories.length === 0) return (
-    <div className="space-y-10 pb-32 max-w-[1400px] mx-auto animate-pulse px-6 pt-10">
-      <div className="h-10 w-40 bg-slate-100 dark:bg-white/[0.03] rounded-xl mb-4" />
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {[1,2,3,4].map(i => <div key={i} className="h-28 bg-slate-100 dark:bg-white/[0.03] rounded-2xl" />)}
+    <div className="space-y-4 pb-32 max-w-[1400px] mx-auto animate-pulse">
+      <div className="h-24 bg-primary/20 rounded-xl" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[1,2,3,4].map(i => <div key={i} className="h-20 bg-slate-100 dark:bg-white/[0.03] rounded-xl" />)}
       </div>
       <div className="h-16 bg-slate-100 dark:bg-white/[0.03] rounded-xl" />
-      <div className="h-[600px] bg-slate-100 dark:bg-white/[0.03] rounded-2xl" />
+      <div className="h-[500px] bg-slate-100 dark:bg-white/[0.03] rounded-xl" />
     </div>
   );
 
   return (
-    <div className="space-y-10 pb-32 max-w-[1400px] mx-auto px-6 pt-10 selection:bg-primary/20 bg-slate-50/30 dark:bg-transparent min-h-screen">
-      {/* Breadcrumbs & Title */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-           <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">
-              <span>হোম</span>
-              <ChevronRight size={14} />
-              <span className="text-primary/60">ক্যাটাগরি</span>
-           </div>
-           <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">ক্যাটাগরি</h1>
+    <div className="space-y-4 pb-32 max-w-[1400px] mx-auto selection:bg-primary/20">
+      {/* Header Banner */}
+      <div className="bg-primary rounded-xl p-6 text-white relative overflow-hidden shadow-sm">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08)_0%,transparent_60%)]" />
+        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
+              <LayoutGrid size={20} />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">Category Management</h1>
+              <div className="flex items-center gap-2 mt-0.5">
+                <div className="w-1.5 h-1.5 bg-white/60 rounded-xl animate-pulse" />
+                <p className="text-xs text-white/60">{categories.length} categories total</p>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={handleAdd}
+            className="px-4 py-2.5 bg-white text-primary rounded-xl text-xs font-semibold flex items-center gap-2 hover:bg-white/90 transition-all shadow-sm"
+          >
+            <Plus size={15} /> New Category
+          </button>
         </div>
-        <button 
-          onClick={handleAdd} 
-          className="px-8 h-14 bg-emerald-900 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-emerald-800 transition-all flex items-center gap-3 shadow-2xl shadow-emerald-900/20 active:scale-95"
-        >
-          <Plus size={20} strokeWidth={3} /> নতুন ক্যাটাগরি যোগ করুন
-        </button>
       </div>
 
       {/* KPI Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: "মোট ক্যাটাগরি", value: categories.length, sub: "সকল ক্যাটাগরি", icon: LayoutGrid, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-          { label: "সাব ক্যাটাগরি", value: Object.values(counts).reduce((acc, curr) => acc + curr.subs, 0), sub: "সকল সাব ক্যাটাগরি", icon: Layers, color: "text-blue-500", bg: "bg-blue-500/10" },
-          { label: "সক্রিয় ক্যাটাগরি", value: categories.filter((c: Category) => c.status === 'active' || c.status === true).length, sub: "প্রকাশিত ক্যাটাগরি", icon: Eye, color: "text-orange-500", bg: "bg-orange-500/10" },
-          { label: "নিষ্ক্রীয় ক্যাটাগরি", value: categories.filter((c: Category) => c.status === 'inactive' || c.status === false).length, sub: "আর্কাইভড ক্যাটাগরি", icon: Archive, color: "text-rose-500", bg: "bg-rose-500/10" },
+          { label: "Total", value: categories.length, icon: LayoutGrid, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
+          { label: "Sub Categories", value: Object.values(counts).reduce((acc, curr) => acc + curr.subs, 0), icon: Layers, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-500/10" },
+          { label: "Active", value: categories.filter((c: Category) => c.status === 'active' || c.status === true).length, icon: Eye, color: "text-orange-500", bg: "bg-orange-50 dark:bg-orange-500/10" },
+          { label: "Inactive", value: categories.filter((c: Category) => c.status === 'inactive' || c.status === false).length, icon: Archive, color: "text-rose-500", bg: "bg-rose-50 dark:bg-rose-500/10" },
         ].map((stat, i) => (
-          <div key={i} className="bg-white dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group flex items-center gap-5">
-            <div className={`w-16 h-16 rounded-2xl ${stat.bg} flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform`}>
-              <stat.icon size={32} className={stat.color} />
+          <div key={i} className="bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 rounded-xl p-4 hover:shadow-sm transition-all flex items-center gap-3">
+            <div className={`w-9 h-9 rounded-xl ${stat.bg} flex items-center justify-center shrink-0`}>
+              <stat.icon size={16} className={stat.color} />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">{stat.label}</p>
-              <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter leading-none mb-1">{stat.value}</p>
-              <p className={`text-[10px] font-bold ${stat.color} uppercase tracking-tight`}>{stat.sub}</p>
+              <p className="text-[10px] font-medium text-slate-400 truncate mb-0.5">{stat.label}</p>
+              <p className="text-xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Filters Bar */}
-      <div className="bg-white dark:bg-white/[0.03] rounded-2xl border border-slate-100 dark:border-white/5 p-4 shadow-sm flex flex-col lg:flex-row items-center gap-4">
-          <div className="relative group flex-1 w-full">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors" size={18} />
-            <input 
-              type="text" 
-              placeholder="ক্যাটাগরি সার্চ করুন..." 
-              value={searchQuery} 
-              onChange={(e) => setSearchQuery(e.target.value)} 
-              className="w-full h-14 pl-12 pr-6 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl text-sm font-bold outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all shadow-inner" 
+      <div className="bg-white dark:bg-white/[0.03] rounded-xl border border-slate-200 dark:border-white/5 p-3 flex flex-col sm:flex-row items-center gap-3">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+            <input
+              type="text"
+              placeholder="Search categories..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-9 pl-9 pr-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl text-sm outline-none focus:border-primary transition-all"
             />
           </div>
-          <div className="flex flex-wrap items-center gap-4 w-full lg:w-auto">
-             <div className="flex items-center gap-3 bg-slate-50 dark:bg-white/5 px-5 h-14 rounded-xl border border-slate-100 dark:border-white/10">
-                <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">স্ট্যাটাস</span>
-                <select 
-                  value={statusFilter} 
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="bg-transparent text-sm font-bold outline-none cursor-pointer"
-                >
-                   <option value="all">সব</option>
-                   <option value="active">সক্রিয়</option>
-                   <option value="inactive">নিষ্ক্রিয়</option>
-                </select>
-             </div>
-             <div className="flex items-center gap-3 bg-slate-50 dark:bg-white/5 px-5 h-14 rounded-xl border border-slate-100 dark:border-white/10">
-                <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">প্যারেন্ট ক্যাটাগরি</span>
-                <select 
-                  value={parentFilter} 
-                  onChange={(e) => setParentFilter(e.target.value)}
-                  className="bg-transparent text-sm font-bold outline-none cursor-pointer max-w-[150px]"
-                >
-                   <option value="all">সব</option>
-                   {categories.filter((c: Category) => !c.parent_id).map((c: Category) => (
-                     <option key={c.id} value={c.id}>{c.name_bn || c.name}</option>
-                   ))}
-                </select>
-             </div>
-             <button className="h-14 px-6 bg-emerald-900 text-white rounded-xl flex items-center gap-2 text-[11px] font-black uppercase tracking-widest shadow-lg shadow-emerald-900/10 hover:bg-emerald-800 transition-all">
-                <Filter size={18} /> ফিল্টার
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+             <select
+               value={statusFilter}
+               onChange={(e) => setStatusFilter(e.target.value)}
+               className="h-9 px-3 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl text-xs font-medium outline-none dark:text-slate-300"
+             >
+               <option value="all">All Status</option>
+               <option value="active">Active</option>
+               <option value="inactive">Inactive</option>
+             </select>
+             <select
+               value={parentFilter}
+               onChange={(e) => setParentFilter(e.target.value)}
+               className="h-9 px-3 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl text-xs font-medium outline-none dark:text-slate-300"
+             >
+               <option value="all">All Parents</option>
+               {categories.filter((c: Category) => !c.parent_id).map((c: Category) => (
+                 <option key={c.id} value={c.id}>{c.name_bn || c.name}</option>
+               ))}
+             </select>
+             <button className="h-9 px-3 bg-primary text-white rounded-xl flex items-center gap-1.5 text-xs font-medium hover:bg-primary/90 transition-all">
+               <Filter size={13} /> Filter
              </button>
-             <div className="w-px h-8 bg-slate-200 dark:bg-white/10 mx-2" />
-             <div className="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200/50 dark:border-white/5">
-                <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-800 shadow-md text-emerald-500 scale-105' : 'text-slate-400 hover:text-slate-600'}`}><ListFilter size={20}/></button>
-                <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-800 shadow-md text-emerald-500 scale-105' : 'text-slate-400 hover:text-slate-600'}`}><LayoutGrid size={20}/></button>
-             </div>
           </div>
       </div>
 
       {/* Main Table Content */}
-      <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1000px]">
             <thead>
-              <tr className="bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5">
-                <th className="px-8 py-7 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest">ক্যাটাগরি নাম</th>
-                <th className="px-8 py-7 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest">প্যারেন্ট ক্যাটাগরি</th>
-                <th className="px-8 py-7 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest">সাব ক্যাটাগরি</th>
-                <th className="px-8 py-7 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest">প্রোডাক্ট সংখ্যা</th>
-                <th className="px-8 py-7 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest">স্ট্যাটাস</th>
-                <th className="px-8 py-7 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest">হোমপেজ</th>
-                <th className="px-8 py-7 text-right text-[11px] font-black text-slate-400 uppercase tracking-widest">অ্যাকশন</th>
+              <tr className="bg-slate-50 dark:bg-white/[0.02] border-b border-slate-200 dark:border-white/5">
+                <th className="px-5 py-3 text-left text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase">Category</th>
+                <th className="px-5 py-3 text-left text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase">Parent</th>
+                <th className="px-5 py-3 text-left text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase">Subs</th>
+                <th className="px-5 py-3 text-left text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase">Products</th>
+                <th className="px-5 py-3 text-left text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase">Status</th>
+                <th className="px-5 py-3 text-left text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase">Homepage</th>
+                <th className="px-5 py-3 text-right text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -396,71 +391,65 @@ function CategoryManagementContent() {
                 const stats = counts[cat.id] || { products: 0, subs: 0 };
                 
                 return (
-                  <tr key={cat.id} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.01] transition-all group">
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-5">
-                         <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/5 overflow-hidden border border-slate-100 dark:border-white/10 p-1 group-hover:scale-105 transition-all shadow-sm shrink-0">
+                  <tr key={cat.id} className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-all">
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-3">
+                         <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/5 overflow-hidden border border-slate-100 dark:border-white/10 shrink-0">
                            {cat.image ? (
-                             <img src={cat.image} className="w-full h-full object-cover rounded-xl" />
+                             <img src={cat.image} className="w-full h-full object-cover" />
                            ) : (
-                             <div className="w-full h-full flex items-center justify-center text-slate-300 bg-white dark:bg-slate-800 rounded-xl">
-                                {cat.icon ? <span className="text-2xl">{cat.icon}</span> : <Box size={24} />}
+                             <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                {cat.icon ? <span className="text-sm">{cat.icon}</span> : <Box size={14} />}
                              </div>
                            )}
                          </div>
                          <div className="min-w-0">
-                            <p className="text-[15px] font-black text-slate-900 dark:text-white mb-0.5 truncate uppercase tracking-tight">{cat.name_bn || cat.name}</p>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{cat.slug || 'no-slug'}</p>
+                            <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">{cat.name_bn || cat.name}</p>
+                            <p className="text-[10px] text-slate-400 truncate">{cat.slug || 'no-slug'}</p>
                          </div>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
-                       <span className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                    <td className="px-5 py-3">
+                       <span className="text-xs text-slate-500 dark:text-slate-400">
                           {parent ? (parent.name_bn || parent.name) : '—'}
                        </span>
                     </td>
-                    <td className="px-8 py-6">
-                       <span className="text-sm font-black text-slate-700 dark:text-slate-300">{stats.subs}</span>
+                    <td className="px-5 py-3">
+                       <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{stats.subs}</span>
                     </td>
-                    <td className="px-8 py-6">
-                       <span className="text-sm font-black text-slate-700 dark:text-slate-300">{stats.products}</span>
+                    <td className="px-5 py-3">
+                       <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{stats.products}</span>
                     </td>
-                    <td className="px-8 py-6">
-                       <button 
-                         onClick={() => handleStatusToggle(cat.id, cat.status)}
-                         className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 ${cat.status === 'active' || cat.status === true ? 'bg-emerald-500/10 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}
-                       >
-                          <div className={`w-1.5 h-1.5 rounded-full ${cat.status === 'active' || cat.status === true ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
-                          {cat.status === 'active' || cat.status === true ? 'সক্রিয়' : 'নিষ্ক্রিয়'}
-                       </button>
-                    </td>
-                    <td className="px-8 py-6">
-                       <button 
-                         onClick={() => handleHomepageToggle(cat.id, cat.show_on_homepage)}
-                         className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${cat.show_on_homepage ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-white/10'}`}
-                       >
-                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${cat.show_on_homepage ? 'translate-x-4' : 'translate-x-1'}`} />
-                       </button>
-                    </td>
-                    <td className="px-8 py-6 text-right">
-                       <div className="flex items-center justify-end gap-2">
-                          <button onClick={() => handleEdit(cat)} className="w-10 h-10 rounded-xl border border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-400 hover:text-emerald-500 hover:bg-emerald-50/50 transition-all active:scale-90" title="এডিট করুন">
-                             <Pencil size={18} />
-                          </button>
-                          <button onClick={() => handleDelete(cat.id)} className="w-10 h-10 rounded-xl border border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50/50 transition-all active:scale-90" title="ডিলিট করুন">
-                             <Trash2 size={18} />
-                          </button>
-                          <a 
-                            href={`/shop?category=${cat.slug}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="w-10 h-10 rounded-xl border border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-400 hover:text-blue-500 hover:bg-blue-50/50 transition-all active:scale-90" 
-                            title="স্টোরে দেখুন"
-                          >
-                             <ExternalLink size={18} />
-                          </a>
-                       </div>
-                    </td>
+                     <td className="px-5 py-3">
+                        <button
+                          onClick={() => handleStatusToggle(cat.id, cat.status)}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[9px] font-medium transition-all ${cat.status === "active" || cat.status === true ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600" : "bg-slate-100 dark:bg-white/5 text-slate-400"}`}
+                        >
+                           <div className={`w-1.5 h-1.5 rounded-xl ${cat.status === "active" || cat.status === true ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`} />
+                           {cat.status === "active" || cat.status === true ? "Active" : "Inactive"}
+                        </button>
+                     </td>
+                     <td className="px-5 py-3">
+                        <button
+                          onClick={() => handleHomepageToggle(cat.id, cat.show_on_homepage)}
+                          className={`relative inline-flex h-5 w-9 items-center rounded-xl transition-colors ${cat.show_on_homepage ? "bg-primary" : "bg-slate-200 dark:bg-white/10"}`}
+                        >
+                          <span className={`inline-block h-3.5 w-3.5 transform rounded-xl bg-white transition-transform ${cat.show_on_homepage ? "translate-x-4" : "translate-x-0.5"}`} />
+                        </button>
+                     </td>
+                     <td className="px-5 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                           <button onClick={() => handleEdit(cat)} className="w-8 h-8 rounded-xl border border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary/5 transition-all" title="Edit">
+                              <Pencil size={13} />
+                           </button>
+                           <button onClick={() => handleDelete(cat.id)} className="w-8 h-8 rounded-xl border border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all" title="Delete">
+                              <Trash2 size={13} />
+                           </button>
+                           <a href={`/shop?category=${cat.slug}`} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-xl border border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all" title="View">
+                              <ExternalLink size={13} />
+                           </a>
+                        </div>
+                     </td>
                   </tr>
                 );
               })}
@@ -469,8 +458,8 @@ function CategoryManagementContent() {
         </div>
         
         {/* Pagination Bar */}
-        <div className="px-8 py-6 border-t border-slate-100 dark:border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/30 dark:bg-transparent">
-           <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">মোট {filtered.length} টি ক্যাটাগরি</p>
+        <div className="px-5 py-3 border-t border-slate-100 dark:border-white/5 flex flex-col sm:flex-row justify-between items-center gap-3">
+           <p className="text-[10px] font-medium text-slate-400">{filtered.length} categories</p>
            <div className="flex items-center gap-2">
               <button className="w-10 h-10 rounded-xl border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-400 hover:bg-white dark:hover:bg-white/5 transition-all disabled:opacity-30" disabled>
                  <ChevronLeft size={18} />
@@ -493,7 +482,7 @@ function CategoryManagementContent() {
 
       {/* Category Modular Modal */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="max-w-[1200px] w-full p-0 rounded-2xl border-none overflow-hidden bg-white dark:bg-[#0c0c0c] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)]">
+        <DialogContent className="max-w-[1200px] w-full p-0 rounded-xl border-none overflow-hidden bg-white dark:bg-[#0c0c0c] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)]">
            <VisuallyHidden><DialogTitle>Category Configuration</DialogTitle></VisuallyHidden>
            
            {/* Modal Header */}
@@ -523,7 +512,7 @@ function CategoryManagementContent() {
                     <div className="lg:col-span-7 space-y-10">
                        <section className="space-y-6">
                           <div className="flex items-center gap-3 mb-2">
-                             <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
+                             <div className="w-1.5 h-6 bg-emerald-500 rounded-xl" />
                              <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">ক্যাটাগরি তথ্য</h3>
                           </div>
                           
@@ -642,30 +631,30 @@ function CategoryManagementContent() {
 
                              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
                                 <div className="flex items-center gap-3">
-                                   <div className={`w-3 h-3 rounded-full ${form.status ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-slate-300'}`} />
+                                   <div className={`w-3 h-3 rounded-xl ${form.status ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-slate-300'}`} />
                                    <span className="text-[10px] font-black text-slate-700 dark:text-white uppercase tracking-widest">সক্রিয়</span>
                                 </div>
                                 <button 
                                   type="button"
                                   onClick={() => setForm(prev => ({...prev, status: !prev.status}))}
-                                  className={`w-14 h-7 rounded-full relative transition-all duration-300 ${form.status ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-800'}`}
+                                  className={`w-14 h-7 rounded-xl relative transition-all duration-300 ${form.status ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-800'}`}
                                 >
-                                   <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all duration-300 shadow-lg ${form.status ? 'left-8' : 'left-1'}`} />
+                                   <div className={`absolute top-1 w-5 h-5 bg-white rounded-xl transition-all duration-300 shadow-lg ${form.status ? 'left-8' : 'left-1'}`} />
                                 </button>
                                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">ক্যাটাগরিটি সাইটে প্রদর্শন করা হবে</p>
                              </div>
                              
                              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 mt-4">
                                 <div className="flex items-center gap-3">
-                                   <div className={`w-3 h-3 rounded-full ${form.show_on_homepage ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-slate-300'}`} />
+                                   <div className={`w-3 h-3 rounded-xl ${form.show_on_homepage ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-slate-300'}`} />
                                    <span className="text-[10px] font-black text-slate-700 dark:text-white uppercase tracking-widest">হোমপেজে দেখান</span>
                                 </div>
                                 <button 
                                   type="button"
                                   onClick={() => setForm(prev => ({...prev, show_on_homepage: !prev.show_on_homepage}))}
-                                  className={`w-14 h-7 rounded-full relative transition-all duration-300 ${form.show_on_homepage ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-800'}`}
+                                  className={`w-14 h-7 rounded-xl relative transition-all duration-300 ${form.show_on_homepage ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-800'}`}
                                 >
-                                   <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all duration-300 shadow-lg ${form.show_on_homepage ? 'left-8' : 'left-1'}`} />
+                                   <div className={`absolute top-1 w-5 h-5 bg-white rounded-xl transition-all duration-300 shadow-lg ${form.show_on_homepage ? 'left-8' : 'left-1'}`} />
                                 </button>
                                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">হোমপেজে এই ক্যাটাগরিটি থাকবে</p>
                              </div>
@@ -677,7 +666,7 @@ function CategoryManagementContent() {
                     <div className="lg:col-span-5 space-y-10">
                        <section className="space-y-6">
                           <div className="flex items-center gap-3 mb-2">
-                             <div className="w-1.5 h-6 bg-blue-500 rounded-full" />
+                             <div className="w-1.5 h-6 bg-blue-500 rounded-xl" />
                              <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">প্রিভিউ</h3>
                           </div>
                           
@@ -703,7 +692,7 @@ function CategoryManagementContent() {
 
                        <section className="space-y-6">
                           <div className="flex items-center gap-3 mb-2">
-                             <div className="w-1.5 h-6 bg-gold rounded-full" />
+                             <div className="w-1.5 h-6 bg-gold rounded-xl" />
                              <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">SEO সেটিংস (ঐচ্ছিক)</h3>
                           </div>
                           

@@ -1,374 +1,354 @@
 "use client";
 
 import { useState } from "react";
-import { Layout, Image, Award, Grid3X3, Star, Package, ChevronDown, Plus, Trash2, GripVertical, Upload, Loader2, Banknote, Truck, ShieldCheck, HeartHandshake, Zap, Smartphone, Clock, Gift } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Switch } from "@/components/ui/switch";
+import { 
+  Layout, Image as ImageIcon, Award, Grid3X3, Star, Package, 
+  ChevronDown, Plus, Trash2, GripVertical, Upload, Loader2, 
+  Zap, Smartphone, Monitor, Eye, EyeOff, Layers, Flame, 
+  Quote, Mail, Heart, Palette, MoveUp, MoveDown, Gift, ShieldCheck
+} from "lucide-react";
+import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { useLanguage } from "@/lib/language-context";
-import { supabase } from "@/integrations/supabase/client";
+import { AdminSettings, HomepageSection } from "@/types/admin";
 import { toast } from "sonner";
-
-import { AdminSettings, HeroSlide, TrustBadge } from "@/types/admin";
+import { HeroSettings, TrustSettings, CTASettings, BannerSettings, QuoteSettings, SectionTextSettings, ProductPicker } from "./StoreDesignSettings";
+import { ComboSettings } from "./ComboSettings";
 
 interface Props {
   settings: AdminSettings;
   onUpdate: (data: Partial<AdminSettings>) => void;
 }
 
-const SectionCard = ({ id, icon: Icon, title, desc, color, children, isExpanded, onToggle }: {
-  id: string;
-  icon: any;
-  title: string;
-  desc: string;
-  color: string;
-  children: React.ReactNode;
-  isExpanded: boolean;
-  onToggle: (id: string) => void;
-}) => {
-  return (
-    <div className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl shadow-sm overflow-hidden">
-      <button onClick={() => onToggle(id)} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-white/2 transition-colors">
-        <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-xl ${color} flex items-center justify-center`}><Icon size={18} /></div>
-          <div className="text-left">
-            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{title}</h3>
-            <p className="text-[11px] text-slate-400 mt-0.5">{desc}</p>
-          </div>
-        </div>
-        <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
-          <ChevronDown size={18} className="text-slate-400" />
-        </motion.div>
-      </button>
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden">
-            <div className="px-5 pb-6 pt-2 border-t border-slate-100 dark:border-white/5">{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-const ICON_OPTIONS = [
-  { id: "Banknote", icon: Banknote },
-  { id: "Truck", icon: Truck },
-  { id: "ShieldCheck", icon: ShieldCheck },
-  { id: "HeartHandshake", icon: HeartHandshake },
-  { id: "Zap", icon: Zap },
-  { id: "Smartphone", icon: Smartphone },
-  { id: "Star", icon: Star },
-  { id: "Clock", icon: Clock },
-  { id: "Gift", icon: Gift }
+const SECTION_TYPES = [
+  { type: "hero", label_en: "Hero Slider", label_bn: "হিরো স্লাইডার", icon: Layout },
+  { type: "categories", label_en: "Featured Categories", label_bn: "সেরা ক্যাটাগরি", icon: Grid3X3 },
+  { type: "promo_banners", label_en: "Promo Banners", label_bn: "প্রোমো ব্যানার", icon: Flame },
+  { type: "featured_products", label_en: "Featured Products", label_bn: "সেরা পণ্য", icon: Package },
+  { type: "trust_metrics", label_en: "Trust Badges", label_bn: "ট্রাস্ট ব্যাজ", icon: Award },
+  { type: "why_choose", label_en: "Why Choose Us", label_bn: "কেন আমাদের বেছে নেবেন", icon: Heart },
+  { type: "combo", label_en: "Combo Packages", label_bn: "কম্বো প্যাকেজ", icon: Gift },
+  { type: "gallery", label_en: "Visual Gallery", label_bn: "গ্যালারি সেকশন", icon: ImageIcon },
+  { type: "islamic_quote", label_en: "Islamic Verse", label_bn: "আরবি আয়াত", icon: Quote },
+  { type: "reviews", label_en: "Testimonials", label_bn: "কাস্টমার রিভিউ", icon: Star },
+  { type: "cta", label_en: "Call to Action", label_bn: "অর্ডার কল", icon: Zap },
 ];
 
+
 export function HomepageSettings({ settings, onUpdate }: Props) {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const bn = language === 'bn';
-  const [expandedSection, setExpandedSection] = useState<string | null>("hero");
-  const [uploading, setUploading] = useState<number | null>(null);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
-  const update = (field: keyof AdminSettings, value: any) => onUpdate({ [field]: value });
-  const toggleSection = (id: string) => setExpandedSection(expandedSection === id ? null : id);
+  const sections = settings.homepage_sections || [
+    { id: "hero-1", type: "hero", label_en: "Main Hero", label_bn: "মেইন হিরো", enabled: true, visibility: { desktop: true, mobile: true } },
+    { id: "trust-1", type: "trust_metrics", label_en: "Trust Bar", label_bn: "ট্রাস্ট বার", enabled: true, visibility: { desktop: true, mobile: true } },
+    { id: "featured-1", type: "featured_products", label_en: "New Arrivals", label_bn: "নতুন পণ্য", enabled: true, visibility: { desktop: true, mobile: true } },
+  ];
 
-  const addHeroSlide = () => {
-    const slides = [...(settings.hero_slides || [])];
-    slides.push({ 
-      badge: "", 
-      title: "", 
-      description: "", 
-      button_text: t("order_now"), 
-      button_two_text: t("combo_offers"),
-      image: "",
-      layout: "image-right"
-    });
-    update("hero_slides", slides);
-  };
-  const updateHeroSlide = (i: number, f: keyof HeroSlide, v: string) => {
-    const slides = [...(settings.hero_slides || [])];
-    slides[i] = { ...slides[i], [f]: v };
-    update("hero_slides", slides);
-  };
-  const removeHeroSlide = (i: number) => update("hero_slides", (settings.hero_slides || []).filter((_: any, idx: number) => idx !== i));
-
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
-    try {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      setUploading(idx);
-
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) {
-        throw new Error(t("session_expired"));
-      }
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `hero-slide-${Date.now()}.${fileExt}`;
-      const filePath = `branding/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('store-assets')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('store-assets')
-        .getPublicUrl(filePath);
-
-      updateHeroSlide(idx, "image", publicUrl);
-      toast.success(t("upload_success"));
-    } catch (error: any) {
-      console.error("Hero upload error:", error);
-      if (error.message?.includes("exp")) {
-        toast.error(bn ? "আপনার সেশন শেষ হয়ে গেছে। দয়া করে আবার লগইন করুন।" : "Login session expired. Please log in again.");
-      } else {
-        toast.error(`${t("upload_failed")}: ${error.message}`);
-      }
-    } finally {
-      setUploading(null);
-    }
+  const updateSections = (newSections: HomepageSection[]) => {
+    onUpdate({ homepage_sections: newSections });
   };
 
-  const addTrustBadge = () => {
-    const badges = [...(settings.trust_badges || [])];
-    badges.push({ icon: "🌟", title: "", description: "" });
-    update("trust_badges", badges);
-  };
-  const updateTrustBadge = (i: number, f: keyof TrustBadge, v: string) => {
-    const badges = [...(settings.trust_badges || [])];
-    badges[i] = { ...badges[i], [f]: v };
-    update("trust_badges", badges);
-  };
-  const removeTrustBadge = (i: number) => update("trust_badges", (settings.trust_badges || []).filter((_: any, idx: number) => idx !== i));
+  const addSection = (type: string) => {
+    const sectionInfo = SECTION_TYPES.find(s => s.type === type);
+    if (!sectionInfo) return;
 
-  const inputCls = "h-10 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/20 transition-all";
-  const toggleCard = (label: string, desc: string, field: keyof AdminSettings) => (
-    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/2 rounded-xl border border-slate-100 dark:border-white/5">
-      <div><p className="text-sm font-medium text-slate-700 dark:text-slate-200">{label}</p><p className="text-[11px] text-slate-400 mt-0.5">{desc}</p></div>
-      <Switch checked={settings[field] !== false} onCheckedChange={(v) => update(field, v)} />
-    </div>
-  );
+    const newSection: HomepageSection = {
+      id: `${type}-${Date.now()}`,
+      type,
+      label_en: sectionInfo.label_en,
+      label_bn: sectionInfo.label_bn,
+      enabled: true,
+      visibility: { desktop: true, mobile: true }
+    };
+    updateSections([...sections, newSection]);
+    setExpandedSection(newSection.id);
+    toast.success(bn ? "সেকশন যোগ করা হয়েছে" : "Section added successfully");
+  };
+
+  const removeSection = (id: string) => {
+    updateSections(sections.filter(s => s.id !== id));
+    if (expandedSection === id) setExpandedSection(null);
+  };
+
+  const toggleVisibility = (id: string, device: 'desktop' | 'mobile') => {
+    updateSections(sections.map(s => s.id === id ? { 
+      ...s, 
+      visibility: { ...s.visibility, [device]: !s.visibility[device] } 
+    } : s));
+  };
+
+  const toggleEnabled = (id: string) => {
+    updateSections(sections.map(s => s.id === id ? { ...s, enabled: !s.enabled } : s));
+  };
 
   return (
-    <div className="space-y-4">
-      <SectionCard id="header" icon={Layout} title={bn ? "হেডার কনফিগারেশন" : "Header Configuration"} desc={bn ? "হেডারের ভিজিবিলিটি কন্ট্রোল করুন" : "Control header element visibility"} color="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600" isExpanded={expandedSection === 'header'} onToggle={toggleSection}>
-        <div className="space-y-4">
-          {toggleCard(bn ? "লোগো দেখান" : "Show Logo", bn ? "হেডারে ব্র্যান্ড লোগো প্রদর্শন করুন" : "Display brand logo in header", "show_logo")}
-          {toggleCard(bn ? "নাম দেখান" : "Show Name", bn ? "হেডারে স্টোরের নাম প্রদর্শন করুন" : "Display store name in header", "show_name")}
-          {toggleCard(bn ? "ট্যাগলাইন দেখান" : "Show Tagline", bn ? "হেডারে স্টোর ট্যাগলাইন প্রদর্শন করুন" : "Display store tagline in header", "show_tagline")}
+    <div className="space-y-6 pb-40">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-xl shadow-sm">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <Layers size={16} />
+            </div>
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-primary">Homepage Architecture</h3>
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Section Stacker</h2>
+          <p className="text-xs text-slate-400 font-medium">Drag to reorder, click to customize content.</p>
         </div>
-      </SectionCard>
+        
+        <div className="relative group">
+          <button className="h-11 px-6 bg-primary text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+            <Plus size={16} strokeWidth={3} /> {bn ? "সেকশন যোগ করুন" : "Add New Section"}
+          </button>
+          <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 z-50 p-2 grid grid-cols-1 gap-1">
+            <div className="px-3 py-2 mb-1 border-b border-slate-100 dark:border-white/5">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Available Sections</span>
+            </div>
+            {SECTION_TYPES.map(type => (
+              <button
+                key={type.type}
+                onClick={() => addSection(type.type)}
+                className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-left group/item"
+              >
+                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover/item:bg-primary group-hover/item:text-white transition-all">
+                  <type.icon size={16} />
+                </div>
+                <div>
+                  <span className="block text-[11px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-widest leading-none mb-1">{bn ? type.label_bn : type.label_en}</span>
+                  <span className="block text-[9px] text-slate-400 font-medium uppercase tracking-wider">{type.type}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
-      <SectionCard id="hero" icon={Image} title={t("hero_section")} desc={t("banner_slides")} color="bg-blue-50 dark:bg-blue-500/10 text-blue-600" isExpanded={expandedSection === 'hero'} onToggle={toggleSection}>
-        <div className="space-y-4">
-          {(settings.hero_slides || []).map((slide, idx: number) => (
-            <div key={idx} className="p-4 bg-slate-50 dark:bg-white/2 border border-slate-100 dark:border-white/5 rounded-xl space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 flex items-center gap-2"><GripVertical size={14} className="text-slate-300" />{`${t("slide")} ${idx+1}`}</span>
-                <button onClick={() => removeHeroSlide(idx)} className="p-1.5 hover:bg-rose-50 text-rose-400 hover:text-rose-600 rounded-xl transition-all"><Trash2 size={14} /></button>
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
-                {/* Left Side: Text Fields */}
-                <div className="space-y-3">
-                  <input value={slide.badge||""} onChange={e=>updateHeroSlide(idx,"badge",e.target.value)} placeholder={t("badge_text")} className={inputCls + " w-full"} />
-                  <textarea value={slide.title||""} onChange={e=>updateHeroSlide(idx,"title",e.target.value)} placeholder={t("title")} className={inputCls + " w-full font-bold h-24 py-2 resize-none"} />
-                  <textarea value={slide.description||""} onChange={e=>updateHeroSlide(idx,"description",e.target.value)} placeholder={t("sub_text")} className={inputCls + " w-full h-20 py-2 resize-none"} />
-                  <div className="grid grid-cols-2 gap-3">
-                    <input value={slide.button_text||""} onChange={e=>updateHeroSlide(idx,"button_text",e.target.value)} placeholder={t("btn1_text")} className={inputCls} />
-                    <input value={slide.button_two_text||""} onChange={e=>updateHeroSlide(idx,"button_two_text",e.target.value)} placeholder={t("btn2_text")} className={inputCls} />
+      <Reorder.Group axis="y" values={sections} onReorder={updateSections} className="space-y-4">
+        <AnimatePresence initial={false}>
+          {sections.map((section) => (
+            <Reorder.Item
+              key={section.id}
+              value={section}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              className={`group bg-white dark:bg-white/[0.01] border border-slate-200 dark:border-white/5 rounded-xl overflow-hidden transition-all duration-300 ${expandedSection === section.id ? 'shadow-lg ring-1 ring-primary/20' : 'hover:border-primary/20 hover:shadow-md'}`}
+            >
+              <div className="flex items-center gap-4 p-4">
+                <div className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-emerald-500 transition-colors p-2 bg-slate-50 dark:bg-white/[0.02] rounded-xl">
+                  <GripVertical size={20} strokeWidth={2.5} />
+                </div>
+                
+                {/* Visual Miniature Representation */}
+                <div className="hidden sm:flex w-24 h-16 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/5 items-center justify-center relative overflow-hidden group-hover:border-emerald-500/30 transition-all">
+                  {section.type === 'hero' && <div className="flex gap-1"><div className="w-8 h-6 bg-slate-200 dark:bg-white/10 rounded-xl" /><div className="w-8 h-6 bg-emerald-500/20 rounded-xl border border-emerald-500/20" /></div>}
+                  {section.type === 'featured_products' && <div className="grid grid-cols-2 gap-1"><div className="w-4 h-4 bg-slate-200 dark:bg-white/10 rounded-xl" /><div className="w-4 h-4 bg-slate-200 dark:bg-white/10 rounded-xl" /><div className="w-4 h-4 bg-slate-200 dark:bg-white/10 rounded-xl" /><div className="w-4 h-4 bg-emerald-500/20 rounded-xl" /></div>}
+                  {section.type === 'categories' && <div className="flex gap-1"><div className="w-5 h-5 rounded-xl bg-slate-200 dark:bg-white/10" /><div className="w-5 h-5 rounded-xl bg-emerald-500/20" /><div className="w-5 h-5 rounded-xl bg-slate-200 dark:bg-white/10" /></div>}
+                  {section.type === 'islamic_quote' && <div className="w-12 h-2 bg-emerald-500/10 rounded-xl border border-emerald-500/10" />}
+                  {!['hero', 'featured_products', 'categories', 'islamic_quote'].includes(section.type) && <Layers size={20} className="text-slate-200 dark:text-white/5" />}
+                  
+                  <div className={`absolute inset-0 bg-emerald-500/10 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center ${section.enabled ? '' : 'bg-slate-200/50'}`}>
+                    <Eye size={16} className="text-emerald-500" />
                   </div>
                 </div>
 
-                {/* Right Side: Image and Layout */}
-                <div className="space-y-3">
-                   <div className="relative group/img aspect-[16/10] rounded-xl overflow-hidden border-2 border-dashed border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5">
-                      {slide.image ? (
-                        <img src={slide.image} alt="Preview" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-slate-400">
-                          <Image size={24} />
+                <div className="flex-1 cursor-pointer" onClick={() => setExpandedSection(expandedSection === section.id ? null : section.id)}>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className={`w-2 h-2 rounded-xl ${section.enabled ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-300'}`} />
+                    <h3 className={`text-[12px] font-black uppercase tracking-[0.2em] leading-none ${section.enabled ? 'text-slate-900 dark:text-white' : 'text-slate-400'}`}>
+                      {bn ? section.label_bn : section.label_en}
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{section.type}</p>
+                    <span className="w-1 h-1 rounded-xl bg-slate-200" />
+                    <div className="flex items-center gap-2">
+                      <Monitor size={10} className={section.visibility.desktop ? 'text-emerald-500' : 'text-slate-300'} />
+                      <Smartphone size={10} className={section.visibility.mobile ? 'text-emerald-500' : 'text-slate-300'} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-white/[0.02] p-1.5 rounded-xl border border-slate-200/50 dark:border-white/5">
+                    <button 
+                      onClick={() => toggleVisibility(section.id, 'desktop')}
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${section.visibility.desktop ? 'bg-white dark:bg-slate-800 text-emerald-500 shadow-lg shadow-black/5' : 'text-slate-300 hover:text-slate-500'}`}
+                    >
+                      <Monitor size={14} strokeWidth={2.5} />
+                    </button>
+                    <button 
+                      onClick={() => toggleVisibility(section.id, 'mobile')}
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${section.visibility.mobile ? 'bg-white dark:bg-slate-800 text-emerald-500 shadow-lg shadow-black/5' : 'text-slate-300 hover:text-slate-500'}`}
+                    >
+                      <Smartphone size={14} strokeWidth={2.5} />
+                    </button>
+                  </div>
+
+                  <button 
+                    onClick={() => removeSection(section.id)}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all group/trash"
+                  >
+                    <Trash2 size={18} className="group-hover/trash:scale-110 transition-all" />
+                  </button>
+                </div>
+              </div>
+
+              {expandedSection === section.id && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="border-t border-slate-100 dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.01]"
+                >
+                  <div className="p-8 space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Section Label (BN)</label>
+                        <input 
+                          value={section.label_bn} 
+                          onChange={e => updateSections(sections.map(s => s.id === section.id ? { ...s, label_bn: e.target.value } : s))}
+                          className="w-full h-11 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                          placeholder="যেমন: সেরা অফারসমূহ"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Section Label (EN)</label>
+                        <input 
+                          value={section.label_en} 
+                          onChange={e => updateSections(sections.map(s => s.id === section.id ? { ...s, label_en: e.target.value } : s))}
+                          className="w-full h-11 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                          placeholder="e.g. Featured Products"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="pt-8 border-t border-slate-100 dark:border-white/5">
+                      <div className="flex items-center gap-2 mb-6">
+                        <Zap size={14} className="text-emerald-500" />
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white">Detailed Content Configuration</h4>
+                      </div>
+
+                      {section.type === 'hero' && (
+                        <HeroSettings 
+                          slides={settings.hero_slides || []} 
+                          onChange={(slides: any) => onUpdate({ hero_slides: slides })} 
+                        />
+                      )}
+
+                      {section.type === 'trust_metrics' && (
+                        <TrustSettings 
+                          badges={settings.trust_badges || []} 
+                          onChange={(badges: any) => onUpdate({ trust_badges: badges })} 
+                        />
+                      )}
+
+                      {section.type === 'promo_banners' && (
+                        <BannerSettings 
+                          banners={settings.home_banners || []} 
+                          onChange={(banners: any) => onUpdate({ home_banners: banners })} 
+                        />
+                      )}
+
+                      {section.type === 'cta' && (
+                        <CTASettings 
+                          data={settings.home_cta || {}} 
+                          onChange={(data: any) => onUpdate({ home_cta: data })} 
+                        />
+                      )}
+
+                      {section.type === 'combo' && (
+                        <ComboSettings 
+                          settings={settings} 
+                          onUpdate={onUpdate} 
+                        />
+                      )}
+
+                      {section.type === 'islamic_quote' && (
+                        <QuoteSettings 
+                          data={settings.quote_text || {}} 
+                          onChange={(data: any) => onUpdate({ quote_text: data })} 
+                        />
+                      )}
+
+                      {section.type === 'featured_products' && (
+                        <div className="space-y-12">
+                          <SectionTextSettings 
+                            title={bn ? "সেরা পণ্য সেটিংস" : "FEATURED PRODUCTS CONFIG"}
+                            icon={Package}
+                            data={settings.featured_text || {}} 
+                            onChange={(data: any) => onUpdate({ featured_text: data })} 
+                          />
+                          <ProductPicker 
+                            title={bn ? "পণ্য নির্বাচন করুন" : "SELECT FEATURED PRODUCTS"}
+                            icon={Sparkles}
+                            selectedIds={settings.featured_product_ids || []}
+                            onChange={(ids) => onUpdate({ featured_product_ids: ids })}
+                          />
                         </div>
                       )}
-                      <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                        {uploading === idx ? <Loader2 size={24} className="animate-spin text-white" /> : <Upload size={24} className="text-white" />}
-                        <input type="file" className="hidden" accept="image/*" onChange={(e) => handleUpload(e, idx)} />
-                      </label>
-                   </div>
-                   <input value={slide.image||""} onChange={e=>updateHeroSlide(idx,"image",e.target.value)} placeholder={t("image_url")} className={inputCls + " w-full text-[10px] h-8"} />
-                   
-                   {/* Layout Toggle */}
-                   <div className="flex items-center justify-between p-2.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/10">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t("layout")}</span>
-                      <div className="flex gap-1 p-1 bg-slate-100 dark:bg-white/5 rounded-xl">
-                         <button 
-                           onClick={() => updateHeroSlide(idx, "layout", "image-left")}
-                           className={`px-3 py-1 text-[10px] font-bold rounded-sm transition-all ${slide.layout === 'image-left' ? 'bg-white dark:bg-slate-700 shadow-sm text-primary' : 'text-slate-400 hover:text-slate-600'}`}
-                         >
-                           {t("left")}
-                         </button>
-                         <button 
-                           onClick={() => updateHeroSlide(idx, "layout", "image-right")}
-                           className={`px-3 py-1 text-[10px] font-bold rounded-sm transition-all ${slide.layout !== 'image-left' ? 'bg-white dark:bg-slate-700 shadow-sm text-primary' : 'text-slate-400 hover:text-slate-600'}`}
-                         >
-                           {t("right")}
-                         </button>
-                      </div>
-                   </div>
-                </div>
-              </div>
-            </div>
+
+                      {section.type === 'categories' && (
+                        <SectionTextSettings 
+                          title={bn ? "সেরা ক্যাটাগরি সেটিংস" : "FEATURED CATEGORIES CONFIG"}
+                          icon={Grid3X3}
+                          data={settings.categories_text || {}} 
+                          onChange={(data: any) => onUpdate({ categories_text: data })} 
+                        />
+                      )}
+
+                      {section.type === 'why_choose' && (
+                        <SectionTextSettings 
+                          title={bn ? "কেন আমাদের বেছে নেবেন সেটিংস" : "WHY CHOOSE US CONFIG"}
+                          icon={Heart}
+                          data={settings.why_choose_text || {}} 
+                          onChange={(data: any) => onUpdate({ why_choose_text: data })} 
+                        />
+                      )}
+
+                      {section.type === 'gallery' && (
+                        <SectionTextSettings 
+                          title={bn ? "গ্যালারি সেটিংস" : "GALLERY CONFIG"}
+                          icon={ImageIcon}
+                          data={settings.gallery_text || {}} 
+                          onChange={(data: any) => onUpdate({ gallery_text: data })} 
+                        />
+                      )}
+
+                      {section.type === 'reviews' && (
+                        <SectionTextSettings 
+                          title={bn ? "কাস্টমার রিভিউ সেটিংস" : "REVIEWS CONFIG"}
+                          icon={Star}
+                          data={settings.reviews_text || {}} 
+                          onChange={(data: any) => onUpdate({ reviews_text: data })} 
+                        />
+                      )}
+
+                      {/* For other sections, show a generic message or simpler controls */}
+                      {!['hero', 'trust_metrics', 'promo_banners', 'cta', 'combo', 'islamic_quote', 'featured_products', 'categories', 'why_choose', 'gallery', 'reviews'].includes(section.type) && (
+                        <div className="p-10 bg-slate-50 dark:bg-white/[0.01] border-2 border-dashed border-slate-100 dark:border-white/5 rounded-xl text-center">
+                          <p className="text-[11px] text-slate-500 font-medium leading-relaxed italic">
+                            This section uses dynamic data from your store catalog. 
+                            Use the labels above to customize the public display name.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </Reorder.Item>
           ))}
-          <button onClick={addHeroSlide} className="w-full h-12 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-xl text-xs font-medium text-slate-400 hover:text-primary hover:border-primary/30 transition-all flex items-center justify-center gap-2">
-            <Plus size={14} />{t("add_slide")}
-          </button>
-          
-          <div className="pt-4 mt-6 border-t border-slate-100 dark:border-white/5">
-            <h4 className="text-sm font-semibold mb-3">{t("hero_text_customization")}</h4>
-            <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 dark:bg-white/2 rounded-xl border border-slate-100 dark:border-white/5">
-                <input value={settings.hero_text?.badge_en||""} onChange={e=>update("hero_text", {...settings.hero_text, badge_en: e.target.value})} placeholder="Badge (EN)" className={inputCls} />
-                <input value={settings.hero_text?.badge_bn||""} onChange={e=>update("hero_text", {...settings.hero_text, badge_bn: e.target.value})} placeholder="Badge (BN)" className={inputCls} />
-                <input value={settings.hero_text?.title_en_1||""} onChange={e=>update("hero_text", {...settings.hero_text, title_en_1: e.target.value})} placeholder="Title Line 1 (EN)" className={inputCls} />
-                <input value={settings.hero_text?.title_bn_1||""} onChange={e=>update("hero_text", {...settings.hero_text, title_bn_1: e.target.value})} placeholder="Title Line 1 (BN)" className={inputCls} />
-                <input value={settings.hero_text?.title_en_2||""} onChange={e=>update("hero_text", {...settings.hero_text, title_en_2: e.target.value})} placeholder="Title Line 2 (EN)" className={inputCls} />
-                <input value={settings.hero_text?.title_bn_2||""} onChange={e=>update("hero_text", {...settings.hero_text, title_bn_2: e.target.value})} placeholder="Title Line 2 (BN)" className={inputCls} />
-                <textarea value={settings.hero_text?.desc_en||""} onChange={e=>update("hero_text", {...settings.hero_text, desc_en: e.target.value})} placeholder="Description (EN)" className={inputCls + " h-16 py-2 resize-none"} />
-                <textarea value={settings.hero_text?.desc_bn||""} onChange={e=>update("hero_text", {...settings.hero_text, desc_bn: e.target.value})} placeholder="Description (BN)" className={inputCls + " h-16 py-2 resize-none"} />
-                <input value={settings.hero_text?.btn1_en||""} onChange={e=>update("hero_text", {...settings.hero_text, btn1_en: e.target.value})} placeholder="Button 1 (EN)" className={inputCls} />
-                <input value={settings.hero_text?.btn1_bn||""} onChange={e=>update("hero_text", {...settings.hero_text, btn1_bn: e.target.value})} placeholder="Button 1 (BN)" className={inputCls} />
-                <input value={settings.hero_text?.btn2_en||""} onChange={e=>update("hero_text", {...settings.hero_text, btn2_en: e.target.value})} placeholder="Button 2 (EN)" className={inputCls} />
-                <input value={settings.hero_text?.btn2_bn||""} onChange={e=>update("hero_text", {...settings.hero_text, btn2_bn: e.target.value})} placeholder="Button 2 (BN)" className={inputCls} />
-                <input value={settings.hero_text?.image||""} onChange={e=>update("hero_text", {...settings.hero_text, image: e.target.value})} placeholder="Banner Image URL" className={inputCls + " col-span-2"} />
-            </div>
-          </div>
-        </div>
-      </SectionCard>
+        </AnimatePresence>
+      </Reorder.Group>
 
-      <SectionCard id="trust" icon={Award} title={t("trust_badges")} desc={t("credibility_indicators")} color="bg-amber-50 dark:bg-gold/10 text-gold" isExpanded={expandedSection === 'trust'} onToggle={toggleSection}>
-        <div className="space-y-3">
-          {(settings.trust_badges || []).map((badge, idx: number) => (
-            <div key={idx} className="space-y-3 p-4 bg-slate-50 dark:bg-white/2 border border-slate-100 dark:border-white/5 rounded-xl">
-              <div className="flex items-center justify-between">
-                <div className="flex flex-wrap gap-1 p-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/10">
-                   {ICON_OPTIONS.map(opt => (
-                      <button 
-                        key={opt.id}
-                        onClick={() => updateTrustBadge(idx, "icon", opt.id)}
-                        className={`p-2 rounded-xl transition-all ${badge.icon === opt.id ? 'bg-primary/10 text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
-                        title={opt.id}
-                      >
-                        <opt.icon size={16} />
-                      </button>
-                   ))}
-                </div>
-                <button onClick={() => removeTrustBadge(idx)} className="p-1.5 hover:bg-rose-50 text-rose-400 hover:text-rose-600 rounded-xl transition-colors"><Trash2 size={14} /></button>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input value={badge.title||""} onChange={e=>updateTrustBadge(idx,"title",e.target.value)} placeholder={t("title")} className={inputCls+" flex-1 font-semibold"} />
-                <input value={badge.description||""} onChange={e=>updateTrustBadge(idx,"description",e.target.value)} placeholder={t("description")} className={inputCls+" flex-1"} />
-              </div>
-            </div>
-          ))}
-          <button onClick={addTrustBadge} className="w-full h-10 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-xl text-xs font-medium text-slate-400 hover:text-primary hover:border-primary/30 transition-all flex items-center justify-center gap-2">
-            <Plus size={14} />{t("add_badge")}
-          </button>
+      {sections.length === 0 && (
+        <div className="text-center py-20 bg-white dark:bg-[#0c0c0c] border-4 border-dashed border-slate-200 dark:border-white/5 rounded-xl">
+          <Layers size={48} className="mx-auto text-slate-200 dark:text-white/5 mb-4" />
+          <h4 className="text-sm font-black uppercase tracking-widest text-slate-400">No sections added yet</h4>
+          <p className="text-[11px] text-slate-400 mt-2 font-medium">Use the "Add Section" button to start building your homepage</p>
         </div>
-      </SectionCard>
-
-      <SectionCard id="categories" icon={Grid3X3} title={t("categories")} desc={t("category_section")} color="bg-violet-50 dark:bg-violet-500/10 text-violet-600" isExpanded={expandedSection === 'categories'} onToggle={toggleSection}>
-        <div className="space-y-4">
-          {toggleCard(t("show_categories"), t("display_on_homepage"), "show_categories")}
-          <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 dark:bg-white/2 rounded-xl border border-slate-100 dark:border-white/5">
-            <input value={settings.categories_text?.title_en||""} onChange={e=>update("categories_text", {...settings.categories_text, title_en: e.target.value})} placeholder="Title (EN)" className={inputCls} />
-            <input value={settings.categories_text?.title_bn||""} onChange={e=>update("categories_text", {...settings.categories_text, title_bn: e.target.value})} placeholder="Title (BN)" className={inputCls} />
-            <input value={settings.categories_text?.subtitle_en||""} onChange={e=>update("categories_text", {...settings.categories_text, subtitle_en: e.target.value})} placeholder="Subtitle (EN)" className={inputCls} />
-            <input value={settings.categories_text?.subtitle_bn||""} onChange={e=>update("categories_text", {...settings.categories_text, subtitle_bn: e.target.value})} placeholder="Subtitle (BN)" className={inputCls} />
-          </div>
-        </div>
-      </SectionCard>
-
-      <SectionCard id="featured" icon={Star} title={t("featured_products")} desc={t("highlighted_products")} color="bg-emerald-50 dark:bg-primary/10 text-primary" isExpanded={expandedSection === 'featured'} onToggle={toggleSection}>
-        <div className="space-y-4">
-          {toggleCard(t("show_featured"), t("special_products_highlight"), "show_featured")}
-          <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 dark:bg-white/2 rounded-xl border border-slate-100 dark:border-white/5">
-            <input value={settings.featured_text?.title_en||""} onChange={e=>update("featured_text", {...settings.featured_text, title_en: e.target.value})} placeholder="Title (EN)" className={inputCls} />
-            <input value={settings.featured_text?.title_bn||""} onChange={e=>update("featured_text", {...settings.featured_text, title_bn: e.target.value})} placeholder="Title (BN)" className={inputCls} />
-            <input value={settings.featured_text?.btn_en||""} onChange={e=>update("featured_text", {...settings.featured_text, btn_en: e.target.value})} placeholder="Button Text (EN)" className={inputCls} />
-            <input value={settings.featured_text?.btn_bn||""} onChange={e=>update("featured_text", {...settings.featured_text, btn_bn: e.target.value})} placeholder="Button Text (BN)" className={inputCls} />
-          </div>
-        </div>
-      </SectionCard>
-
-      <SectionCard id="combo" icon={Package} title={t("combo_section")} desc={t("combo_offers")} color="bg-pink-50 dark:bg-pink-500/10 text-pink-600" isExpanded={expandedSection === 'combo'} onToggle={toggleSection}>
-        <div className="space-y-4">
-          {toggleCard(t("show_combo"), t("display_combo_offers"), "show_combo")}
-          <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 dark:bg-white/2 rounded-xl border border-slate-100 dark:border-white/5">
-            <input value={settings.combo_text?.title_en||""} onChange={e=>update("combo_text", {...settings.combo_text, title_en: e.target.value})} placeholder="Title (EN)" className={inputCls} />
-            <input value={settings.combo_text?.title_bn||""} onChange={e=>update("combo_text", {...settings.combo_text, title_bn: e.target.value})} placeholder="Title (BN)" className={inputCls} />
-            <input value={settings.combo_text?.heading_en||""} onChange={e=>update("combo_text", {...settings.combo_text, heading_en: e.target.value})} placeholder="Heading (EN)" className={inputCls} />
-            <input value={settings.combo_text?.heading_bn||""} onChange={e=>update("combo_text", {...settings.combo_text, heading_bn: e.target.value})} placeholder="Heading (BN)" className={inputCls} />
-            <input value={settings.combo_text?.coupon_label_en||""} onChange={e=>update("combo_text", {...settings.combo_text, coupon_label_en: e.target.value})} placeholder="Coupon Label (EN)" className={inputCls} />
-            <input value={settings.combo_text?.coupon_label_bn||""} onChange={e=>update("combo_text", {...settings.combo_text, coupon_label_bn: e.target.value})} placeholder="Coupon Label (BN)" className={inputCls} />
-            <input value={settings.combo_text?.coupon_code||""} onChange={e=>update("combo_text", {...settings.combo_text, coupon_code: e.target.value})} placeholder="Coupon Code (e.g. RANGAO5)" className={inputCls} />
-            <input value={settings.combo_text?.btn_text||""} onChange={e=>update("combo_text", {...settings.combo_text, btn_text: e.target.value})} placeholder="Button Text" className={inputCls} />
-            <input value={settings.combo_text?.image||""} onChange={e=>update("combo_text", {...settings.combo_text, image: e.target.value})} placeholder="Background Image URL" className={inputCls + " col-span-2"} />
-          </div>
-        </div>
-      </SectionCard>
-
-      <SectionCard id="why_choose" icon={ShieldCheck} title={t("why_choose_us")} desc={t("benefits")} color="bg-teal-50 dark:bg-teal-500/10 text-teal-600" isExpanded={expandedSection === 'why_choose'} onToggle={toggleSection}>
-        <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 dark:bg-white/2 rounded-xl border border-slate-100 dark:border-white/5">
-            <input value={settings.why_choose_text?.title_en||""} onChange={e=>update("why_choose_text", {...settings.why_choose_text, title_en: e.target.value})} placeholder="Title (EN)" className={inputCls} />
-            <input value={settings.why_choose_text?.title_bn||""} onChange={e=>update("why_choose_text", {...settings.why_choose_text, title_bn: e.target.value})} placeholder="Title (BN)" className={inputCls} />
-        </div>
-      </SectionCard>
-
-      <SectionCard id="gallery" icon={Image} title={t("photo_gallery")} desc={t("customer_photos")} color="bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600" isExpanded={expandedSection === 'gallery'} onToggle={toggleSection}>
-        <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 dark:bg-white/2 rounded-xl border border-slate-100 dark:border-white/5">
-            <input value={settings.gallery_text?.title_en||""} onChange={e=>update("gallery_text", {...settings.gallery_text, title_en: e.target.value})} placeholder="Title (EN)" className={inputCls} />
-            <input value={settings.gallery_text?.title_bn||""} onChange={e=>update("gallery_text", {...settings.gallery_text, title_bn: e.target.value})} placeholder="Title (BN)" className={inputCls} />
-            <input value={settings.gallery_text?.subtitle_en||""} onChange={e=>update("gallery_text", {...settings.gallery_text, subtitle_en: e.target.value})} placeholder="Subtitle (EN)" className={inputCls} />
-            <input value={settings.gallery_text?.subtitle_bn||""} onChange={e=>update("gallery_text", {...settings.gallery_text, subtitle_bn: e.target.value})} placeholder="Subtitle (BN)" className={inputCls} />
-        </div>
-      </SectionCard>
-
-      <SectionCard id="reviews" icon={Star} title={t("reviews")} desc={t("customer_feedback")} color="bg-yellow-50 dark:bg-yellow-500/10 text-yellow-600" isExpanded={expandedSection === 'reviews'} onToggle={toggleSection}>
-        <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 dark:bg-white/2 rounded-xl border border-slate-100 dark:border-white/5">
-            <input value={settings.reviews_text?.title_en||""} onChange={e=>update("reviews_text", {...settings.reviews_text, title_en: e.target.value})} placeholder="Title (EN)" className={inputCls} />
-            <input value={settings.reviews_text?.title_bn||""} onChange={e=>update("reviews_text", {...settings.reviews_text, title_bn: e.target.value})} placeholder="Title (BN)" className={inputCls} />
-            <input value={settings.reviews_text?.btn_en||""} onChange={e=>update("reviews_text", {...settings.reviews_text, btn_en: e.target.value})} placeholder="Button (EN)" className={inputCls} />
-            <input value={settings.reviews_text?.btn_bn||""} onChange={e=>update("reviews_text", {...settings.reviews_text, btn_bn: e.target.value})} placeholder="Button (BN)" className={inputCls} />
-        </div>
-      </SectionCard>
-
-      <SectionCard id="quote" icon={Award} title={t("islamic_quote")} desc={t("wisdom_text")} color="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600" isExpanded={expandedSection === 'quote'} onToggle={toggleSection}>
-        <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 dark:bg-white/2 rounded-xl border border-slate-100 dark:border-white/5">
-            <input value={settings.quote_text?.arabic||""} onChange={e=>update("quote_text", {...settings.quote_text, arabic: e.target.value})} placeholder="Arabic (﷽)" className={inputCls + " col-span-2 text-center text-xl font-arabic"} />
-            <input value={settings.quote_text?.title_en||""} onChange={e=>update("quote_text", {...settings.quote_text, title_en: e.target.value})} placeholder="Title (EN)" className={inputCls} />
-            <input value={settings.quote_text?.title_bn||""} onChange={e=>update("quote_text", {...settings.quote_text, title_bn: e.target.value})} placeholder="Title (BN)" className={inputCls} />
-            <textarea value={settings.quote_text?.text_en||""} onChange={e=>update("quote_text", {...settings.quote_text, text_en: e.target.value})} placeholder="Quote Text (EN)" className={inputCls + " h-20 py-2 resize-none"} />
-            <textarea value={settings.quote_text?.text_bn||""} onChange={e=>update("quote_text", {...settings.quote_text, text_bn: e.target.value})} placeholder="Quote Text (BN)" className={inputCls + " h-20 py-2 resize-none"} />
-            <input value={settings.quote_text?.ref_en||""} onChange={e=>update("quote_text", {...settings.quote_text, ref_en: e.target.value})} placeholder="Reference (EN)" className={inputCls} />
-            <input value={settings.quote_text?.ref_bn||""} onChange={e=>update("quote_text", {...settings.quote_text, ref_bn: e.target.value})} placeholder="Reference (BN)" className={inputCls} />
-        </div>
-      </SectionCard>
-
-      <SectionCard id="cta" icon={Zap} title={t("cta_banner")} desc={t("bottom_banner")} color="bg-rose-50 dark:bg-rose-500/10 text-rose-600" isExpanded={expandedSection === 'cta'} onToggle={toggleSection}>
-        <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 dark:bg-white/2 rounded-xl border border-slate-100 dark:border-white/5">
-            <input value={settings.cta_text?.title_en||""} onChange={e=>update("cta_text", {...settings.cta_text, title_en: e.target.value})} placeholder="Title (EN)" className={inputCls} />
-            <input value={settings.cta_text?.title_bn||""} onChange={e=>update("cta_text", {...settings.cta_text, title_bn: e.target.value})} placeholder="Title (BN)" className={inputCls} />
-            <textarea value={settings.cta_text?.desc_en||""} onChange={e=>update("cta_text", {...settings.cta_text, desc_en: e.target.value})} placeholder="Description (EN)" className={inputCls + " h-20 py-2 resize-none"} />
-            <textarea value={settings.cta_text?.desc_bn||""} onChange={e=>update("cta_text", {...settings.cta_text, desc_bn: e.target.value})} placeholder="Description (BN)" className={inputCls + " h-20 py-2 resize-none"} />
-            <input value={settings.cta_text?.btn1_en||""} onChange={e=>update("cta_text", {...settings.cta_text, btn1_en: e.target.value})} placeholder="Button 1 (EN)" className={inputCls} />
-            <input value={settings.cta_text?.btn1_bn||""} onChange={e=>update("cta_text", {...settings.cta_text, btn1_bn: e.target.value})} placeholder="Button 1 (BN)" className={inputCls} />
-            <input value={settings.cta_text?.btn2_en||""} onChange={e=>update("cta_text", {...settings.cta_text, btn2_en: e.target.value})} placeholder="WhatsApp Button (EN)" className={inputCls} />
-            <input value={settings.cta_text?.btn2_bn||""} onChange={e=>update("cta_text", {...settings.cta_text, btn2_bn: e.target.value})} placeholder="WhatsApp Button (BN)" className={inputCls} />
-        </div>
-      </SectionCard>
+      )}
     </div>
   );
 }

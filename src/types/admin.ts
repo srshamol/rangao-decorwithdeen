@@ -1,5 +1,23 @@
 
 export interface AdminSettings {
+  store_name?: string;
+  store_tagline?: string;
+  email?: string;
+  phone?: string;
+  whatsapp?: string;
+  address?: string;
+  facebook_url?: string;
+  instagram_id?: string;
+  tiktok_id?: string;
+  logo?: string;
+  favicon?: string;
+  primary_color?: string;
+  accent_color?: string;
+  background_color?: string;
+  card_color?: string;
+  border_color?: string;
+  heading_font?: string;
+  body_font?: string;
   show_logo?: boolean;
   show_name?: boolean;
   show_tagline?: boolean;
@@ -21,8 +39,36 @@ export interface AdminSettings {
   promo_badge?: PromoBadge;
   order_notifications?: OrderNotifications;
   low_stock_alerts?: LowStockAlerts;
-  customer_notifications?: Record<string, CustomerNotification>;
+  visibility?: Record<string, { desktop: boolean; mobile: boolean }>;
+  homepage_sections?: HomepageSection[];
+  footer_settings?: FooterSettings;
+  menus?: MenuConfig[];
   [key: string]: any;
+}
+
+export interface FooterSettings {
+  text_bn: string;
+  text_en: string;
+  show_social: boolean;
+  show_payment_methods: boolean;
+  copyright_text: string;
+  columns: FooterColumn[];
+}
+
+export interface FooterColumn {
+  id: string;
+  title_bn: string;
+  title_en: string;
+  links: HeaderLink[];
+}
+
+export interface HomepageSection {
+  id: string;
+  type: string;
+  label_bn: string;
+  label_en: string;
+  enabled: boolean;
+  visibility: { desktop: boolean; mobile: boolean };
 }
 
 export interface HeroSlide {
@@ -124,9 +170,30 @@ export interface CTAText {
 }
 
 export interface HeaderLink {
+  id: string;
   label_bn: string;
   label_en: string;
   href: string;
+  type?: 'link' | 'category' | 'product' | 'collection' | 'static_page' | 'external' | 'whatsapp' | 'social';
+  icon?: string;
+  badge?: 'new' | 'sale' | 'hot' | 'ramadan' | 'eid' | null;
+  children?: HeaderLink[];
+  mega_menu_config?: {
+    enabled: boolean;
+    layout: 'multi-column' | 'product-showcase';
+    columns?: number;
+    featured_product_id?: string;
+    banner_url?: string;
+  };
+}
+
+export interface MenuConfig {
+  id: string;
+  name: string;
+  slug: string;
+  location: 'header' | 'mobile' | 'footer' | 'sidebar' | 'mega' | 'category' | 'sticky' | 'topbar';
+  status: 'published' | 'draft';
+  items: HeaderLink[];
 }
 
 export interface PromoBadge {

@@ -16,7 +16,10 @@ export function VisitorTracker() {
     }
     sessionIdRef.current = sid;
 
-    // 2. Capture Initial Session Info
+    // Capture Initial Session Info
+    const GEO_CACHE_KEY = "rangao_geo_v1";
+    const GEO_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 h
+
     const captureSession = async () => {
       const userAgent = navigator.userAgent;
       const isMobile = /iPhone|iPad|iPod|Android/i.test(userAgent);
@@ -28,17 +31,36 @@ export function VisitorTracker() {
 
       const urlParams = new URLSearchParams(window.location.search);
       
-      // Try to get IP and Location (simple fetch)
+      // Try to get IP and Location — use localStorage cache to avoid rate-limiting
       let ip = "unknown";
       let city = "Dhaka"; // Default for Rangao.bd
       try {
-        const ipRes = await fetch("https://api.ipify.org?format=json");
-        const ipData = await ipRes.json();
-        ip = ipData.ip;
+        // Read from cache first (valid for 24 h)
+        const cached = localStorage.getItem(GEO_CACHE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Date.now() - parsed.ts < GEO_CACHE_TTL) {
+            ip = parsed.ip;
+            city = parsed.city;
+          }
+        }
 
-        const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
-        const geoData = await geoRes.json();
-        if (geoData.city) city = geoData.city;
+        // Only hit the network if cache is stale / missing
+        if (ip === "unknown") {
+          const ipRes = await fetch("https://api.ipify.org?format=json");
+          const ipData = await ipRes.json();
+          ip = ipData.ip;
+
+          // Use our server-side proxy so ipapi.co is never called from the browser
+          const geoRes = await fetch(`/api/geo?ip=${ip}`);
+          if (geoRes.ok) {
+            const geoData = await geoRes.json();
+            if (geoData.city) city = geoData.city;
+          }
+
+          // Persist to localStorage so subsequent mounts skip the API call
+          localStorage.setItem(GEO_CACHE_KEY, JSON.stringify({ ip, city, ts: Date.now() }));
+        }
       } catch (e) {
         console.warn("Geo lookup failed, using defaults", e);
       }

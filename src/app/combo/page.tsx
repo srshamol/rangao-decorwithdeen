@@ -50,17 +50,17 @@ export default function ComboListPage() {
       <section className="relative pt-32 pb-44 px-6 overflow-hidden">
         {/* Abstract Background Elements */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(6,78,59,0.08)_0%,rgba(253,252,249,1)_70%)] pointer-events-none" />
-        <div className="absolute top-20 right-[10%] w-64 h-64 bg-amber-200/20 blur-[100px] rounded-full animate-pulse" />
-        <div className="absolute -bottom-20 left-[5%] w-96 h-96 bg-emerald-200/20 blur-[120px] rounded-full" />
+        <div className="absolute top-20 right-[10%] w-64 h-64 bg-amber-200/20 blur-[100px] rounded-xl animate-pulse" />
+        <div className="absolute -bottom-20 left-[5%] w-96 h-96 bg-emerald-200/20 blur-[120px] rounded-xl" />
         
         <div className="container mx-auto max-w-7xl relative z-10">
           <div className="flex flex-col items-center text-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm border border-amber-200/50 text-[#8B6E31] rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-sm mb-10"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm border border-amber-200/50 text-[#8B6E31] rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm mb-10"
             >
-              <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <div className="w-2 h-2 rounded-xl bg-amber-400 animate-pulse" />
               <Sparkles size={14} className="text-amber-500" />
               {t("exclusive_savings")}
             </motion.div>
@@ -91,7 +91,7 @@ export default function ComboListPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="flex flex-wrap items-center justify-center gap-3 p-2 bg-white/50 backdrop-blur-md rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/20"
+              className="flex flex-wrap items-center justify-center gap-3 p-2 bg-white/50 backdrop-blur-md rounded-xl border border-slate-100 shadow-xl shadow-slate-200/20"
             >
               {categories.map((cat) => (
                 <button
@@ -139,14 +139,14 @@ export default function ComboListPage() {
                       
                       {/* Discount Glass Badge */}
                       {discount > 0 && (
-                        <div className="absolute top-3 left-3 bg-[#064E3B]/90 backdrop-blur-md text-white font-black text-[10px] px-3 py-1.5 rounded-lg border border-white/20 shadow-lg z-20">
+                        <div className="absolute top-3 left-3 bg-[#064E3B]/90 backdrop-blur-md text-white font-black text-[10px] px-3 py-1.5 rounded-xl border border-white/20 shadow-lg z-20">
                           {discount}% {t("off")}
                         </div>
                       )}
 
                       {/* Hot Badge with Glow */}
-                      <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg border border-amber-100 shadow-lg flex items-center gap-2 z-20">
-                         <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
+                      <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-amber-100 shadow-lg flex items-center gap-2 z-20">
+                         <div className="w-1.5 h-1.5 rounded-xl bg-rose-500 animate-ping" />
                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-900">
                            {t("hot_deal")}
                          </span>
@@ -154,7 +154,7 @@ export default function ComboListPage() {
 
                       {/* Floating Save Badge */}
                       {combo.old_price && (
-                        <div className="absolute bottom-3 right-3 bg-amber-400 text-[#5C481A] font-black text-[9px] px-3 py-1.5 rounded-lg shadow-xl translate-y-12 group-hover:translate-y-0 transition-transform duration-500">
+                        <div className="absolute bottom-3 right-3 bg-amber-400 text-[#5C481A] font-black text-[9px] px-3 py-1.5 rounded-xl shadow-xl translate-y-12 group-hover:translate-y-0 transition-transform duration-500">
                           {t("save")} ৳{(combo.old_price - combo.price).toLocaleString()}
                         </div>
                       )}

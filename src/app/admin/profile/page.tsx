@@ -179,8 +179,8 @@ function AdminProfileContent() {
     <div className="max-w-4xl mx-auto space-y-10 pb-40 selection:bg-primary/20">
       {/* Header Banner - Signature Style */}
       <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-primary/20 rounded-xl p-10 text-white relative overflow-hidden shadow-2xl border border-white/5">
-         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] -mr-[250px] -mt-[250px] opacity-60" />
-         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-500/5 rounded-full blur-[100px] -ml-[150px] -mb-[150px] opacity-30" />
+         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-xl blur-[120px] -mr-[250px] -mt-[250px] opacity-60" />
+         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-500/5 rounded-xl blur-[100px] -ml-[150px] -mb-[150px] opacity-30" />
          
          <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
             <div className="relative group">
@@ -207,7 +207,7 @@ function AdminProfileContent() {
                <button 
                  onClick={() => fileInputRef.current?.click()}
                  disabled={uploadingAvatar}
-                 className="absolute -bottom-3 -right-3 w-12 h-12 bg-primary rounded-lg flex items-center justify-center shadow-2xl border-4 border-slate-950 hover:rotate-12 hover:scale-110 transition-all group/cam disabled:opacity-50"
+                 className="absolute -bottom-3 -right-3 w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-2xl border-4 border-slate-950 hover:rotate-12 hover:scale-110 transition-all group/cam disabled:opacity-50"
                >
                   {uploadingAvatar ? <Loader2 size={20} className="animate-spin" /> : <Camera size={20} className="group-hover/cam:scale-110 transition-transform" />}
                </button>
@@ -216,7 +216,7 @@ function AdminProfileContent() {
                <div className="space-y-1">
                   <div className="flex items-center justify-center md:justify-start gap-4">
                      <h1 className="text-4xl font-black uppercase tracking-tighter leading-none">{profile.full_name}</h1>
-                     <div className={`px-4 py-1.5 ${roleConfig.bg} ${roleConfig.color} rounded-lg border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 backdrop-blur-xl shadow-xl`}>
+                     <div className={`px-4 py-1.5 ${roleConfig.bg} ${roleConfig.color} rounded-xl border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 backdrop-blur-xl shadow-xl`}>
                         <roleConfig.icon size={12} className="animate-pulse" />
                         {roleConfig.label}
                      </div>
@@ -228,11 +228,11 @@ function AdminProfileContent() {
                   </p>
                </div>
                <div className="flex flex-wrap justify-center md:justify-start gap-3">
-                  <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg flex items-center gap-2">
+                  <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2">
                     <ShieldCheck size={14} className="text-emerald-400" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{t("verified_identity")}</span>
                   </div>
-                  <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg flex items-center gap-2">
+                  <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2">
                     <Zap size={14} className="text-gold" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{t("active_node")}</span>
                   </div>
@@ -246,7 +246,7 @@ function AdminProfileContent() {
          <div className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl p-8 lg:p-10 shadow-2xl relative overflow-hidden group/card">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/50 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
             <div className="flex items-center gap-5 mb-10">
-               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary shadow-inner group-hover/card:scale-110 transition-transform duration-500">
+               <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary shadow-inner group-hover/card:scale-110 transition-transform duration-500">
                   <User size={22} />
                </div>
                <div>
@@ -264,7 +264,7 @@ function AdminProfileContent() {
                        required 
                        value={profile.full_name} 
                        onChange={(e) => setProfile({...profile, full_name: e.target.value})} 
-                       className="w-full h-14 pl-14 pr-6 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-lg text-sm font-bold outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/20 transition-all shadow-inner" 
+                       className="w-full h-14 pl-14 pr-6 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl text-sm font-bold outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/20 transition-all shadow-inner" 
                      />
                   </div>
                </div>
@@ -276,7 +276,7 @@ function AdminProfileContent() {
                      <input 
                        disabled 
                        value={profile.username || "NOT_SET"} 
-                       className="w-full h-14 pl-14 pr-6 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-lg text-sm font-bold outline-none cursor-not-allowed" 
+                       className="w-full h-14 pl-14 pr-6 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl text-sm font-bold outline-none cursor-not-allowed" 
                      />
                   </div>
                </div>
@@ -288,7 +288,7 @@ function AdminProfileContent() {
                      <input 
                        disabled 
                        value={profile.email} 
-                       className="w-full h-14 pl-14 pr-6 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-lg text-sm font-bold outline-none cursor-not-allowed" 
+                       className="w-full h-14 pl-14 pr-6 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl text-sm font-bold outline-none cursor-not-allowed" 
                      />
                   </div>
                </div>
@@ -300,13 +300,13 @@ function AdminProfileContent() {
                      <input 
                        value={profile.phone || ""} 
                        onChange={(e) => setProfile({...profile, phone: e.target.value})} 
-                       className="w-full h-14 pl-14 pr-6 bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-lg text-sm font-bold outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/20 transition-all shadow-inner" 
+                       className="w-full h-14 pl-14 pr-6 bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-xl text-sm font-bold outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/20 transition-all shadow-inner" 
                        placeholder="01XXXXXXXXX"
                      />
                   </div>
                </div>
 
-               <button disabled={saving} type="submit" className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg font-black text-xs uppercase tracking-[0.3em] shadow-xl hover:bg-primary hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-4 group/btn overflow-hidden relative active:scale-95">
+               <button disabled={saving} type="submit" className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black text-xs uppercase tracking-[0.3em] shadow-xl hover:bg-primary hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-4 group/btn overflow-hidden relative active:scale-95">
                   <div className="absolute inset-0 bg-primary translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300" />
                   <span className="relative z-10 flex items-center gap-3">
                     {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} className="group-hover/btn:scale-110 transition-transform" />}
@@ -320,7 +320,7 @@ function AdminProfileContent() {
          <div className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl p-8 lg:p-10 shadow-2xl relative overflow-hidden group/card">
             <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-gold/50 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
             <div className="flex items-center gap-5 mb-10">
-               <div className="w-12 h-12 bg-gold/10 rounded-lg flex items-center justify-center text-gold shadow-inner group-hover/card:scale-110 transition-transform duration-500">
+               <div className="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center text-gold shadow-inner group-hover/card:scale-110 transition-transform duration-500">
                   <Key size={22} />
                </div>
                <div>
@@ -339,7 +339,7 @@ function AdminProfileContent() {
                        required 
                        value={passwords.current} 
                        onChange={(e) => setPasswords({...passwords, current: e.target.value})} 
-                       className="w-full h-14 pl-14 pr-6 bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-lg text-sm font-bold outline-none focus:ring-4 focus:ring-gold/10 focus:border-gold/20 transition-all shadow-inner" 
+                       className="w-full h-14 pl-14 pr-6 bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-xl text-sm font-bold outline-none focus:ring-4 focus:ring-gold/10 focus:border-gold/20 transition-all shadow-inner" 
                        placeholder="••••••••"
                      />
                   </div>
@@ -354,7 +354,7 @@ function AdminProfileContent() {
                        required 
                        value={passwords.new} 
                        onChange={(e) => setPasswords({...passwords, new: e.target.value})} 
-                       className="w-full h-14 pl-14 pr-6 bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-lg text-sm font-bold outline-none focus:ring-4 focus:ring-gold/10 focus:border-gold/20 transition-all shadow-inner" 
+                       className="w-full h-14 pl-14 pr-6 bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-xl text-sm font-bold outline-none focus:ring-4 focus:ring-gold/10 focus:border-gold/20 transition-all shadow-inner" 
                        placeholder="••••••••"
                      />
                   </div>
@@ -369,13 +369,13 @@ function AdminProfileContent() {
                        required 
                        value={passwords.confirm} 
                        onChange={(e) => setPasswords({...passwords, confirm: e.target.value})} 
-                       className="w-full h-14 pl-14 pr-6 bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-lg text-sm font-bold outline-none focus:ring-4 focus:ring-gold/10 focus:border-gold/20 transition-all shadow-inner" 
+                       className="w-full h-14 pl-14 pr-6 bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-xl text-sm font-bold outline-none focus:ring-4 focus:ring-gold/10 focus:border-gold/20 transition-all shadow-inner" 
                        placeholder="••••••••"
                      />
                   </div>
                </div>
 
-               <button disabled={changingPass} type="submit" className="w-full h-14 bg-linear-to-r from-amber-500 to-gold text-white rounded-lg font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:shadow-gold/20 hover:scale-[1.02] transition-all disabled:opacity-50 flex items-center justify-center gap-4 active:scale-95 group/btn">
+               <button disabled={changingPass} type="submit" className="w-full h-14 bg-linear-to-r from-amber-500 to-gold text-white rounded-xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:shadow-gold/20 hover:scale-[1.02] transition-all disabled:opacity-50 flex items-center justify-center gap-4 active:scale-95 group/btn">
                   {changingPass ? <Loader2 className="animate-spin" size={18} /> : <Lock size={18} className="group-hover/btn:rotate-12 transition-transform" />}
                   {t("update_password")}
                </button>

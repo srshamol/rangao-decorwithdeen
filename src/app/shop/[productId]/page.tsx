@@ -175,13 +175,13 @@ export default function ProductDetailPage() {
                 {/* Carousel Controls */}
                 <button 
                   onClick={() => setActiveImage(prev => (prev === 0 ? product.images.length - 1 : prev - 1))}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full shadow-lg flex items-center justify-center text-slate-900 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-md rounded-xl shadow-lg flex items-center justify-center text-slate-900 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
                 >
                   <ChevronLeft size={20} />
                 </button>
                 <button 
                   onClick={() => setActiveImage(prev => (prev === product.images.length - 1 ? 0 : prev + 1))}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full shadow-lg flex items-center justify-center text-slate-900 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-md rounded-xl shadow-lg flex items-center justify-center text-slate-900 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
                 >
                   <ChevronRight size={20} />
                 </button>
@@ -192,7 +192,7 @@ export default function ProductDetailPage() {
                   </Badge>
                 </div>
                 
-                <button className="absolute top-4 right-4 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all">
+                <button className="absolute top-4 right-4 w-10 h-10 bg-white rounded-xl shadow-lg flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all">
                   <Heart size={20} />
                 </button>
               </div>
@@ -214,7 +214,7 @@ export default function ProductDetailPage() {
                 </div>
                 {product.images.length > 4 && (
                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-24 bg-gradient-to-l from-white to-transparent pointer-events-none flex items-center justify-end">
-                      <div className="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center text-slate-400 border border-slate-100">
+                      <div className="w-8 h-8 bg-white rounded-xl shadow-md flex items-center justify-center text-slate-400 border border-slate-100">
                         <ChevronRight size={16} />
                       </div>
                    </div>
@@ -416,7 +416,7 @@ export default function ProductDetailPage() {
                      language === 'bn' ? 'সুরক্ষিত প্যাকেজিং' : 'Secure Protective Packaging'
                    ].map((item, i) => (
                      <div key={i} className="flex items-center gap-3">
-                        <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600"><Check size={12} strokeWidth={4} /></div>
+                        <div className="w-5 h-5 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600"><Check size={12} strokeWidth={4} /></div>
                         <span className="text-sm font-black text-slate-700">{item}</span>
                      </div>
                    ))}

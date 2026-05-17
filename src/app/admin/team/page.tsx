@@ -152,8 +152,8 @@ function AdminTeamContent() {
     const profiles = profilesResponse.data || [];
     
     if (profiles.length > 0) {
-      const combined = profiles.map((p) => {
-        let userRole = roles.find((r) => r.user_id === p.id)?.role || 'production';
+      const combined = profiles.map((p: any) => {
+        let userRole = roles.find((r: any) => r.user_id === p.id)?.role || 'production';
         if (p.email?.toLowerCase() === 'rangao.bd@gmail.com') userRole = 'super_admin';
         
         return {
@@ -164,7 +164,7 @@ function AdminTeamContent() {
       });
       setStaff(combined as StaffUser[]);
     } else if (roles.length > 0) {
-      const staffFromRoles = roles.map((r) => ({
+      const staffFromRoles = roles.map((r: any) => ({
         id: r.user_id,
         full_name: r.user_id.substring(0, 8),
         email: `staff_${r.user_id.substring(0, 8)}@rangao.com`,
@@ -389,31 +389,35 @@ function AdminTeamContent() {
 
   return (
     <div className="space-y-10 pb-40 selection:bg-primary/20">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter mb-1">
-            {t("team_management")}
-          </h1>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest opacity-80">
-            {t("team_management_desc")}
-          </p>
-        </div>
-        <div className="flex items-center gap-4 w-full md:w-auto">
-          <button 
-            onClick={() => setShowInviteModal(true)}
-            className="flex-1 md:flex-none h-12 px-6 border border-slate-200 dark:border-white/10 rounded-xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
-          >
-            <Mail size={16} />
-            {t("invite_member")}
-          </button>
-          <button 
-            onClick={() => setShowInviteModal(true)}
-            className="flex-1 md:flex-none h-12 px-6 bg-[#064e3b] text-white rounded-xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-emerald-900/20"
-          >
-            <Plus size={18} />
-            {t("add_new_member")}
-          </button>
+      {/* Standard Green Header Banner */}
+      <div className="bg-primary rounded-xl p-5 text-white relative overflow-hidden shadow-lg" style={{background: 'radial-gradient(ellipse at 70% 50%, rgba(255,255,255,0.07) 0%, transparent 70%), var(--primary)'}}>
+        <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/5 rounded-xl blur-2xl" />
+        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+              <Users size={18} />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight">{t("team_management")}</h1>
+              <p className="text-xs text-white/60 mt-0.5">{t("team_management_desc")}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setShowInviteModal(true)}
+              className="h-9 px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-semibold flex items-center gap-2 border border-white/10 transition-all"
+            >
+              <Mail size={13} />
+              {t("invite_member")}
+            </button>
+            <button 
+              onClick={() => setShowInviteModal(true)}
+              className="h-9 px-4 bg-white text-primary rounded-xl text-[10px] font-bold flex items-center gap-2 shadow-lg transition-all hover:bg-white/90"
+            >
+              <Plus size={15} />
+              {t("add_new_member")}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -537,7 +541,7 @@ function AdminTeamContent() {
                        </div>
                     </td>
                     <td className="px-8 py-5">
-                       <div className={`inline-flex items-center px-3 py-1.5 ${roleConfig.bg} ${roleConfig.text} rounded-lg border ${roleConfig.text.replace('text-', 'border-')}/10`}>
+                       <div className={`inline-flex items-center px-3 py-1.5 ${roleConfig.bg} ${roleConfig.text} rounded-xl border ${roleConfig.text.replace('text-', 'border-')}/10`}>
                           <span className="text-[9px] font-black uppercase tracking-widest">{roleConfig.label}</span>
                        </div>
                     </td>
@@ -558,7 +562,7 @@ function AdminTeamContent() {
                           </p>
                           {member.last_login && (new Date().getTime() - new Date(member.last_login).getTime()) < 120000 && (
                             <div className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-500/10 text-emerald-500 rounded-xl w-fit">
-                               <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                               <div className="w-1.5 h-1.5 bg-emerald-500 rounded-xl animate-pulse" />
                                <span className="text-[7px] font-black uppercase tracking-widest">Live</span>
                             </div>
                           )}
@@ -621,8 +625,8 @@ function AdminTeamContent() {
 
       {/* Activity Log Section */}
       <div className="bg-slate-900/90 dark:bg-slate-950/80 backdrop-blur-xl rounded-xl p-8 lg:p-12 text-white relative overflow-hidden shadow-2xl border border-white/5">
-         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] mr-[-300px] mt-[-300px] opacity-50" />
-         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[100px] ml-[-200px] mb-[-200px] opacity-30" />
+         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/10 rounded-xl blur-[120px] mr-[-300px] mt-[-300px] opacity-50" />
+         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/5 rounded-xl blur-[100px] ml-[-200px] mb-[-200px] opacity-30" />
          
          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10 relative z-10">
             <div>
@@ -653,7 +657,7 @@ function AdminTeamContent() {
                     <div>
                        <div className="flex items-center gap-3 mb-1">
                           <span className="text-[11px] font-black uppercase tracking-widest text-white/90 group-hover:text-primary transition-colors">{log.staff_name || "System Staff"}</span>
-                          <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-white/5 rounded-lg text-white/40 border border-white/5">{log.role || "Operator"}</span>
+                          <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-white/5 rounded-xl text-white/40 border border-white/5">{log.role || "Operator"}</span>
                        </div>
                        <p className="text-sm font-bold text-white/50 tracking-tight leading-relaxed">"{log.action_type}: {log.description}"</p>
                     </div>
@@ -806,8 +810,8 @@ function AdminTeamContent() {
                                          <p className={`text-[11px] font-black uppercase tracking-widest ${inviteForm.role === r.id ? `text-${r.color}-600` : 'text-slate-900 dark:text-white'}`}>{r.label}</p>
                                          <p className="text-[9px] font-bold text-slate-400 truncate tracking-tight">{r.desc}</p>
                                       </div>
-                                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${inviteForm.role === r.id ? `border-${r.color}-500 bg-${r.color}-500` : 'border-slate-200 dark:border-white/10'}`}>
-                                        {inviteForm.role === r.id && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                      <div className={`w-5 h-5 rounded-xl border-2 flex items-center justify-center transition-all ${inviteForm.role === r.id ? `border-${r.color}-500 bg-${r.color}-500` : 'border-slate-200 dark:border-white/10'}`}>
+                                        {inviteForm.role === r.id && <div className="w-1.5 h-1.5 bg-white rounded-xl" />}
                                       </div>
                                       <input type="radio" name="role" checked={inviteForm.role === r.id} onChange={() => setInviteForm({...inviteForm, role: r.id as StaffRole})} className="hidden" />
                                    </label>
@@ -836,7 +840,7 @@ function AdminTeamContent() {
                      {/* Footer Actions */}
                      <div className="px-10 py-6 border-t border-slate-100 dark:border-white/5 flex items-center justify-between bg-white dark:bg-slate-900 sticky bottom-0 z-20">
                         <div className="flex items-center gap-2">
-                           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                           <div className="w-2 h-2 rounded-xl bg-emerald-500 animate-pulse" />
                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Live System Sync Enabled</span>
                         </div>
                         <div className="flex items-center gap-4">
@@ -926,7 +930,7 @@ function AdminTeamContent() {
                                    <p className={`text-[11px] font-black uppercase tracking-widest ${showEditModal.role === r.id ? `text-${r.color}-600` : 'text-slate-900 dark:text-white'}`}>{r.label}</p>
                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{r.desc}</p>
                                 </div>
-                                {showEditModal.role === r.id && <div className={`w-4 h-4 bg-${r.color}-500 rounded-full flex items-center justify-center`}><div className="w-1.5 h-1.5 bg-white rounded-full" /></div>}
+                                {showEditModal.role === r.id && <div className={`w-4 h-4 bg-${r.color}-500 rounded-xl flex items-center justify-center`}><div className="w-1.5 h-1.5 bg-white rounded-xl" /></div>}
                              </button>
                            ))}
                         </div>

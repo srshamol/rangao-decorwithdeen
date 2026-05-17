@@ -1,4 +1,5 @@
 "use client";
+import { format } from "date-fns";
 
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
@@ -142,112 +143,88 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
 
     setSubmitting(true);
     setError("");
 
-    const orderItems = items.map((i) => ({ id: i.id, name: i.name, qty: i.quantity, price: i.price, image: i.image }));
+    try {
+      // 1. Generate formatted Order Number (DDMMYY-XXXX)
+      const now = new Date();
+      const ddmmyy = format(now, 'ddMMyy');
+      
+      // Use the new RPC to get an accurate count bypassing RLS
+      const { data: count, error: countErr } = await supabase.rpc('get_daily_order_count');
+      
+      if (countErr) console.error("Error getting order count:", countErr);
+      
+      const sequence = (Number(count) || 0) + 1;
+      const orderNumber = `Order # ${ddmmyy}-${String(sequence).padStart(4, '0')}`;
 
-    const { error: dbError } = await supabase.from("orders").insert({
-      customer_name: form.name.trim(),
-      phone: form.phone.trim(),
-      address: form.address.trim(),
-      district: form.district,
-      items: orderItems,
-      subtotal,
-      delivery_charge: deliveryCharge,
-      discount: discount,
-      total,
-      payment_method: form.payment,
-      status: "pending",
-    });
+      // 2. Prepare Items Data
+      const orderItems = items.map((i) => ({ 
+        id: i.id, 
+        name: i.name, 
+        qty: i.quantity, 
+        price: i.price, 
+        image: i.image 
+      }));
 
-    if (dbError) {
-      console.error("Supabase Error:", dbError);
-      setError(language === 'bn' ? `অর্ডার সাবমিট করতে সমস্যা হয়েছে: ${dbError.message}` : `Error submitting order: ${dbError.message}`);
-      setSubmitting(false);
+      // 3. Insert Order
+      const { error: dbError } = await supabase.from("orders").insert({
+        order_number: orderNumber,
+        customer_name: form.name.trim(),
+        phone: form.phone.trim(),
+        address: form.address.trim(),
+        district: form.district,
+        items: orderItems as any,
+        subtotal,
+        delivery_charge: deliveryCharge,
+        discount: discount,
+        total,
+        payment_method: form.payment,
+        status: "pending",
+      });
+
+      if (dbError) {
+        console.error("Supabase Error:", dbError);
+        const errorMsg = language === 'bn' ? `অর্ডার সাবমিট করতে সমস্যা হয়েছে: ${dbError.message}` : `Error submitting order: ${dbError.message}`;
+        setError(errorMsg);
+        toast.error(errorMsg); // LOUD ERROR
+        throw new Error(dbError.message);
+      }
+
+      // 4. Cleanup & Tracking
+      await supabase.from("abandoned_carts").update({ is_recovered: true }).eq("phone", form.phone.trim());
+
+      trackEvent(TRACKING_EVENTS.PURCHASE, {
+        content_ids: items.map(i => i.id),
+        value: total,
+        currency: "BDT",
+        num_items: items.length,
+      });
+
+      clearCart();
+      router.push(`/order-success?orderNumber=${encodeURIComponent(orderNumber)}`);
       return;
+    } catch (err: any) {
+      setError(language === 'bn' 
+        ? `অর্ডার সাবমিট করতে সমস্যা হয়েছে: ${err.message}` 
+        : `Error submitting order: ${err.message}`);
+    } finally {
+      setSubmitting(false);
     }
-
-    // Mark abandoned cart as recovered if exists
-    await supabase.from("abandoned_carts").update({ is_recovered: true }).eq("phone", form.phone.trim());
-
-    trackEvent(TRACKING_EVENTS.PURCHASE, {
-      content_ids: items.map(i => i.id),
-      value: total,
-      currency: "BDT",
-      num_items: items.length,
-    });
-
-    clearCart();
-    setSubmitting(false);
-    setSuccess(true);
   };
 
   const updateField = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
 
-  if (items.length === 0 && !success) {
+  if (items.length === 0) {
     return (
       <div className="py-20 text-center px-4">
         <p className="text-muted-foreground">{language === 'bn' ? 'আপনার কার্টে কোনো পণ্য নেই।' : 'No items in cart.'}</p>
         <Button asChild className="mt-4 rounded-xl">
           <Link href="/shop">{language === 'bn' ? 'শপে ফিরে যান' : 'Go to Shop'}</Link>
         </Button>
-      </div>
-    );
-  }
-
-  if (success) {
-    return (
-      <div className="py-20 px-4 max-w-lg mx-auto text-center min-h-[70vh]">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-card rounded-xl border-2 border-primary/20 p-12 shadow-2xl relative overflow-hidden"
-        >
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 via-primary to-emerald-400 animate-gradient-x" />
-          
-          <div className="w-24 h-24 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-8 relative">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="w-16 h-16 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/30"
-            >
-              <CheckCircle size={32} strokeWidth={3} />
-            </motion.div>
-            <div className="absolute inset-0 rounded-xl border-4 border-primary/20 animate-ping" />
-          </div>
-
-          <h1 className="text-3xl font-black font-heading text-foreground mb-4">
-            {language === 'bn' ? 'অর্ডার সফল হয়েছে! 🎉' : 'Order Successful! 🎉'}
-          </h1>
-          <p className="text-muted-foreground text-sm leading-relaxed mb-10">
-            {language === 'bn' 
-              ? 'আপনার অর্ডারটি আমরা পেয়েছি। আমাদের একজন প্রতিনিধি শীঘ্রই আপনার সাথে যোগাযোগ করবেন। আপনার ঘর সাজানোর জন্য রাঙ্গাও-কে বেছে নেওয়ায় ধন্যবাদ।' 
-              : 'Thank you for choosing Rangao. Our representative will contact you shortly to confirm your delivery details.'}
-          </p>
-
-          <div className="grid grid-cols-2 gap-4 mb-10">
-            <div className="bg-muted/50 p-4 rounded-xl border border-border">
-              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-1">Status</p>
-              <p className="text-sm font-bold text-primary uppercase tracking-wider">{language === 'bn' ? 'প্রসেসিং' : 'Processing'}</p>
-            </div>
-            <div className="bg-muted/50 p-4 rounded-xl border border-border">
-              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-1">Support</p>
-              <p className="text-sm font-bold text-primary">{language === 'bn' ? '২৪/৭ সাপোর্ট' : '24/7 Support'}</p>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <Button asChild className="w-full h-14 rounded-xl text-lg font-bold shadow-xl shadow-primary/20">
-              <Link href="/">{language === 'bn' ? 'শপিং চালিয়ে যান' : 'Continue Shopping'}</Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full h-12 rounded-xl font-bold border-2">
-              <Link href="/account">{language === 'bn' ? 'অর্ডার ট্র্যাকিং' : 'Track Order'}</Link>
-            </Button>
-          </div>
-        </motion.div>
       </div>
     );
   }

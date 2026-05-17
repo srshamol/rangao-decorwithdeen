@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Mail, MessageSquare, AlertTriangle, Settings2, Plus, X, Phone, ShieldCheck, Inbox, ArrowRight } from "lucide-react";
+import { Bell, Mail, MessageSquare, AlertTriangle, Settings2, Plus, X, Phone, ShieldCheck, Inbox, ArrowRight, Zap, RefreshCw, BarChart3, Fingerprint, Trash2, Shield, Target, Clock, Globe, Smartphone } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/lib/language-context";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,23 +14,11 @@ interface Props {
 }
 
 export function NotificationSettings({ settings, onUpdate }: Props) {
-  const { t, language } = useLanguage();
+  const { language, t } = useLanguage();
   const bn = language === 'bn';
   const [newEmail, setNewEmail] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [activeCategory, setActiveCategory] = useState<"admin" | "customer">("admin");
-
-  const update = (field: keyof AdminSettings, value: any) => onUpdate({ [field]: value });
-
-  const toggleCard = (label: string, desc: string, field: keyof AdminSettings) => (
-    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/2 rounded-xl border border-slate-100 dark:border-white/5 group hover:border-slate-200 dark:hover:border-white/10 transition-all">
-      <div>
-        <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{label}</p>
-        <p className="text-[11px] text-slate-500 font-medium mt-0.5">{desc}</p>
-      </div>
-      <Switch checked={!!settings[field]} onCheckedChange={(v) => update(field, v)} />
-    </div>
-  );
 
   const upd = (category: keyof AdminSettings, field: string, value: any) => {
     onUpdate({
@@ -74,310 +62,282 @@ export function NotificationSettings({ settings, onUpdate }: Props) {
     });
   };
 
-  const inputCls = "w-full h-11 px-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 font-medium";
-  const labelCls = "text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] ml-1 mb-2 block";
-
   const customerEvents = [
-    { id: "order_placed", label: bn ? "অর্ডার প্লেসড" : "Order Placed", desc: bn ? "অর্ডার করার সাথে সাথে" : "Right after order placement" },
-    { id: "order_confirmed", label: bn ? "অর্ডার কনফার্ম" : "Order Confirmed", desc: bn ? "অর্ডার ভেরিফাই করার পর" : "After order verification" },
-    { id: "order_shipped", label: bn ? "অর্ডার শিপড" : "Order Shipped", desc: bn ? "কুরিয়ারে হ্যান্ডওভার করলে" : "Handover to courier" },
-    { id: "out_for_delivery", label: bn ? "আউট ফর ডেলিভারি" : "Out for Delivery", desc: bn ? "ডেলিভারি রাইডার কল করলে" : "When out with rider" },
-    { id: "order_delivered", label: bn ? "ডেলিভারি সাকসেস" : "Delivered", desc: bn ? "পণ্য বুঝে পাওয়ার পর" : "After successful delivery" },
-    { id: "order_cancelled", label: bn ? "অর্ডার বাতিল" : "Cancelled", desc: bn ? "অর্ডারটি ক্যানসেল করলে" : "When order is cancelled" },
+    { id: "order_placed", label: t("order_placed"), desc: t("order_placed_desc") },
+    { id: "order_confirmed", label: t("order_confirmed"), desc: t("order_confirmed_desc") },
+    { id: "order_shipped", label: t("order_shipped"), desc: t("order_shipped_desc") },
+    { id: "out_for_delivery", label: t("out_for_delivery"), desc: t("out_for_delivery_desc") },
+    { id: "order_delivered", label: t("delivered"), desc: t("delivered_desc") },
+    { id: "order_cancelled", label: t("cancelled"), desc: t("cancelled_desc") },
   ];
 
-  return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex bg-slate-100 dark:bg-white/5 p-1.5 rounded-xl w-fit border border-slate-200 dark:border-white/5 shadow-sm">
-          <button
-            onClick={() => setActiveCategory("admin")}
-            className={`px-8 py-2.5 rounded-xl text-xs font-black transition-all ${activeCategory === "admin" ? "bg-white dark:bg-slate-800 text-primary shadow-sm shadow-primary/5" : "text-slate-500 hover:text-slate-700"}`}
-          >
-            {bn ? "অ্যাডমিন নোটিফিকেশন" : "Admin Alerts"}
-          </button>
-          <button
-            onClick={() => setActiveCategory("customer")}
-            className={`px-8 py-2.5 rounded-xl text-xs font-black transition-all ${activeCategory === "customer" ? "bg-white dark:bg-slate-800 text-primary shadow-sm shadow-primary/5" : "text-slate-500 hover:text-slate-700"}`}
-          >
-            {bn ? "কাস্টমার নোটিফিকেশন" : "Customer Alerts"}
-          </button>
-        </div>
+  const inputCls = "w-full min-h-[3.5rem] px-[1.5%] sm:px-6 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-xl text-[clamp(11px,2.5vw,13px)] font-black uppercase tracking-tight outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all placeholder:text-slate-400 shadow-sm";
 
-        <Link 
-          href="/admin/notifications"
-          className="flex items-center gap-2 px-6 py-2.5 bg-primary/10 text-primary rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm "
-        >
-          <Inbox size={14} />
-          {bn ? "সব নোটিফিকেশন দেখুন" : "View All Notifications"}
-          <ArrowRight size={14} />
-        </Link>
+  return (
+    <div className="space-y-12">
+      {/* Premium Navigation Hub Elite */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+        <div className="flex p-2 bg-slate-100/80 dark:bg-white/[0.03] rounded-xl border border-slate-200/50 dark:border-white/5 w-fit shadow-inner backdrop-blur-xl">
+          {[
+            { id: "admin", label: t("admin_command"), icon: ShieldCheck },
+            { id: "customer", label: t("customer_suite"), icon: MessageSquare }
+          ].map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id as any)}
+              className={`flex items-center gap-4 px-10 py-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all relative ${
+                activeCategory === cat.id 
+                ? "bg-white dark:bg-white/10 text-emerald-600 shadow-2xl border border-emerald-500/10" 
+                : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              }`}
+            >
+              <cat.icon size={16} className={activeCategory === cat.id ? "animate-pulse" : ""} />
+              {cat.label}
+              {activeCategory === cat.id && (
+                <motion.div layoutId="activeTabGlow" className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-emerald-500 rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.8)]" />
+              )}
+            </button>
+          ))}
+        </div>
+        
+        <div className="hidden lg:flex items-center gap-4 px-6 py-3 bg-emerald-500/5 rounded-xl border border-emerald-500/10">
+           <div className="w-2 h-2 rounded-xl bg-emerald-500 animate-ping" />
+           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600">Signal Relay Active</span>
+        </div>
       </div>
 
       <AnimatePresence mode="wait">
-        {activeCategory === "admin" ? (
-          <motion.div
-            key="admin"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-6"
-          >
-            {/* New Order Alerts */}
-            <div className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl p-8 shadow-sm">
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600">
-                    <Bell size={24} />
+        <motion.div
+          key={activeCategory}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-12"
+        >
+          {activeCategory === "admin" ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+              {/* Internal Dashboard Signals */}
+              <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-xl p-10 lg:p-12 shadow-sm space-y-10">
+                <div className="flex items-center gap-6">
+                  <div className="w-14 h-14 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 shadow-inner">
+                    <Bell size={28} />
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                      {bn ? "নতুন অর্ডার অ্যালার্ট" : "New Order Alerts"}
-                    </h3>
-                    <p className="text-xs font-medium text-slate-400 mt-1">{bn ? "নতুন অর্ডার আসলে অ্যাডমিনদের যেভাবে জানানো হবে" : "How admins are notified of new incoming orders"}</p>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{t("internal_signals")}</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-1">{t("dashboard_telemetry")}</p>
                   </div>
                 </div>
-                <Switch 
-                  checked={!!settings.order_notifications?.enabled} 
-                  onCheckedChange={(v) => upd("order_notifications", "enabled", v)} 
-                />
-              </div>
 
-              {settings.order_notifications?.enabled && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Admin Emails */}
-                    <div className="space-y-4">
-                      <label className={labelCls}>{bn ? "অ্যাডমিন ইমেইল লিস্ট" : "Admin Email Registry"}</label>
-                      <div className="flex gap-2">
-                        <input 
-                          type="email" 
-                          placeholder="admin@example.com"
-                          value={newEmail}
-                          onChange={(e) => setNewEmail(e.target.value)}
-                          className={inputCls}
-                          onKeyDown={(e) => e.key === 'Enter' && addAdminContact("order_notifications", "admin_emails", newEmail, setNewEmail)}
-                        />
-                        <button 
-                          onClick={() => addAdminContact("order_notifications", "admin_emails", newEmail, setNewEmail)}
-                          className="w-11 h-11 bg-primary text-white rounded-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20"
-                        >
-                          <Plus size={18} />
-                        </button>
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between p-8 bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-100 dark:border-white/5 group hover:border-emerald-500/30 transition-all">
+                    <div className="flex items-center gap-6">
+                      <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+                        <Inbox size={24} />
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        {settings.order_notifications?.admin_emails?.map((email: string) => (
-                          <div key={email} className="px-4 py-2 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-3 group transition-all hover:border-primary/30">
-                            <Mail size={12} className="text-slate-400" />
-                            {email}
-                            <button onClick={() => removeAdminContact("order_notifications", "admin_emails", email)} className="text-slate-400 hover:text-rose-500 transition-colors">
-                              <X size={14} />
-                            </button>
-                          </div>
-                        ))}
+                      <div>
+                        <p className="text-[14px] font-black text-slate-900 dark:text-white uppercase tracking-tight">{t("order_notifications")}</p>
+                        <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest mt-1 opacity-60">{t("new_signal_alerts")}</p>
                       </div>
                     </div>
-
-                    {/* Admin Phones */}
-                    <div className="space-y-4">
-                      <label className={labelCls}>{bn ? "অ্যাডমিন ফোন লিস্ট (SMS)" : "Admin SMS Registry"}</label>
-                      <div className="flex gap-2">
-                        <input 
-                          type="tel" 
-                          placeholder="017XXXXXXXX"
-                          value={newPhone}
-                          onChange={(e) => setNewPhone(e.target.value)}
-                          className={inputCls}
-                          onKeyDown={(e) => e.key === 'Enter' && addAdminContact("order_notifications", "admin_phones", newPhone, setNewPhone)}
-                        />
-                        <button 
-                          onClick={() => addAdminContact("order_notifications", "admin_phones", newPhone, setNewPhone)}
-                          className="w-11 h-11 bg-primary text-white rounded-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20"
-                        >
-                          <Plus size={18} />
-                        </button>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {settings.order_notifications?.admin_phones?.map((phone: string) => (
-                          <div key={phone} className="px-4 py-2 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-3 group transition-all hover:border-primary/30">
-                            <Phone size={12} className="text-slate-400" />
-                            {phone}
-                            <button onClick={() => removeAdminContact("order_notifications", "admin_phones", phone)} className="text-slate-400 hover:text-rose-500 transition-colors">
-                              <X size={14} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                    <Switch 
+                      checked={!!settings.admin_notifications?.enabled} 
+                      onCheckedChange={v => upd("admin_notifications", "enabled", v)}
+                      className="data-[state=checked]:bg-emerald-600"
+                    />
                   </div>
+                  <div className="flex items-center justify-between p-8 bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-100 dark:border-white/5 group hover:border-emerald-500/30 transition-all">
+                    <div className="flex items-center gap-6">
+                      <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600">
+                        <AlertTriangle size={24} />
+                      </div>
+                      <div>
+                        <p className="text-[14px] font-black text-slate-900 dark:text-white uppercase tracking-tight">{t("system_alerts")}</p>
+                        <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest mt-1 opacity-60">{t("critical_engine_status")}</p>
+                      </div>
+                    </div>
+                    <Switch 
+                      checked={!!settings.admin_notifications?.system_alerts} 
+                      onCheckedChange={v => upd("admin_notifications", "system_alerts", v)}
+                      className="data-[state=checked]:bg-emerald-600"
+                    />
+                  </div>
+                </div>
+              </section>
 
-                  <div className="p-6 bg-slate-50 dark:bg-white/2 border border-slate-100 dark:border-white/5 rounded-[2rem] flex flex-wrap gap-10">
-                    {[
-                      { id: "email", label: bn ? "ইমেইল অ্যালার্ট" : "Email Alert", icon: Mail },
-                      { id: "sms", label: bn ? "এসএমএস অ্যালার্ট" : "SMS Alert", icon: MessageSquare }
-                    ].map((channel) => {
-                      const isChecked = settings.order_notifications?.channels?.includes(channel.id);
-                      return (
-                        <div key={channel.id} className="flex items-center gap-4">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isChecked ? 'bg-primary/10 text-primary' : 'bg-slate-200 dark:bg-white/5 text-slate-400'}`}>
-                            <channel.icon size={18} />
-                          </div>
-                          <div>
-                            <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-wider">{channel.label}</p>
-                            <Switch 
-                              className="mt-2 scale-90"
-                              checked={isChecked}
-                              onCheckedChange={(v) => {
-                                const current = settings.order_notifications?.channels || [];
-                                const next = v ? [...current, channel.id] : current.filter((c: string) => c !== channel.id);
-                                upd("order_notifications", "channels", next);
-                              }}
-                            />
-                          </div>
-                        </div>
-                      );
+              {/* External Relay (SMS/Email) */}
+              <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-xl p-10 lg:p-12 shadow-sm space-y-10">
+                <div className="flex items-center gap-6">
+                  <div className="w-14 h-14 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 shadow-inner">
+                    <Target size={28} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{t("external_relay")}</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-1">{t("multichannel_dispatch")}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-8">
+                   <div className="p-8 bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-100 dark:border-white/5 space-y-6">
+                      <div className="flex items-center justify-between">
+                         <div className="flex items-center gap-4">
+                            <Mail size={18} className="text-blue-500" />
+                            <span className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-widest">{t("email_distribution")}</span>
+                         </div>
+                         <Switch 
+                            checked={!!settings.admin_notifications?.email_enabled} 
+                            onCheckedChange={v => upd("admin_notifications", "email_enabled", v)}
+                            className="data-[state=checked]:bg-emerald-600"
+                         />
+                      </div>
+                      <div className="flex gap-3">
+                         <input 
+                            placeholder="admin@store.com" 
+                            value={newEmail} 
+                            onChange={e => setNewEmail(e.target.value)} 
+                            className={inputCls}
+                         />
+                         <button 
+                            onClick={() => addAdminContact("admin_notifications", "emails", newEmail, setNewEmail)}
+                            className="w-16 h-16 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl"
+                         >
+                            <Plus size={24} />
+                         </button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                         {settings.admin_notifications?.emails?.map((email: string) => (
+                            <div key={email} className="px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl flex items-center gap-3 group shadow-sm">
+                               <span className="text-[10px] font-black text-slate-600 dark:text-slate-300">{email}</span>
+                               <button onClick={() => removeAdminContact("admin_notifications", "emails", email)} className="text-rose-400 hover:text-rose-600 transition-colors">
+                                  <X size={14} />
+                               </button>
+                            </div>
+                         ))}
+                      </div>
+                   </div>
+
+                   <div className="p-8 bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-100 dark:border-white/5 space-y-6">
+                      <div className="flex items-center justify-between">
+                         <div className="flex items-center gap-4">
+                            <Smartphone size={18} className="text-emerald-500" />
+                            <span className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-widest">{t("sms_dispatch")}</span>
+                         </div>
+                         <Switch 
+                            checked={!!settings.admin_notifications?.sms_enabled} 
+                            onCheckedChange={v => upd("admin_notifications", "sms_enabled", v)}
+                            className="data-[state=checked]:bg-emerald-600"
+                         />
+                      </div>
+                      <div className="flex gap-3">
+                         <input 
+                            placeholder="+8801..." 
+                            value={newPhone} 
+                            onChange={e => setNewPhone(e.target.value)} 
+                            className={inputCls}
+                         />
+                         <button 
+                            onClick={() => addAdminContact("admin_notifications", "phones", newPhone, setNewPhone)}
+                            className="w-16 h-16 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl"
+                         >
+                            <Plus size={24} />
+                         </button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                         {settings.admin_notifications?.phones?.map((phone: string) => (
+                            <div key={phone} className="px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl flex items-center gap-3 group shadow-sm">
+                               <span className="text-[10px] font-black text-slate-600 dark:text-slate-300">{phone}</span>
+                               <button onClick={() => removeAdminContact("admin_notifications", "phones", phone)} className="text-rose-400 hover:text-rose-600 transition-colors">
+                                  <X size={14} />
+                               </button>
+                            </div>
+                         ))}
+                      </div>
+                   </div>
+                </div>
+              </section>
+            </div>
+          ) : (
+            <div className="space-y-12">
+              {/* Customer {t("engagement_suite")} Elite */}
+              <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-xl p-12 lg:p-16 shadow-sm">
+                 <div className="flex items-center gap-8 mb-16">
+                    <div className="w-20 h-20 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 shadow-inner">
+                       <MessageSquare size={40} />
+                    </div>
+                    <div>
+                       <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">{t("engagement_suite")}</h3>
+                       <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.4em] mt-1">{t("communication_matrix")}</p>
+                    </div>
+                 </div>
+
+                 <div className="grid grid-cols-1 gap-10">
+                    {customerEvents.map((event, idx) => {
+                       const config = settings.customer_notifications?.[event.id] || { sms: false, email: false, template: "" };
+                       return (
+                          <motion.div 
+                            key={event.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                            className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 rounded-xl p-10 group hover:shadow-2xl hover:shadow-emerald-500/5 transition-all"
+                          >
+                             <div className="flex flex-col lg:flex-row gap-12">
+                                <div className="lg:w-1/3 space-y-4">
+                                   <div className="w-14 h-14 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-slate-900 dark:text-white shadow-xl group-hover:rotate-6 transition-transform">
+                                      <Zap size={28} />
+                                   </div>
+                                   <div>
+                                      <h4 className="text-xl font-black uppercase tracking-tight text-slate-900 dark:text-white">{event.label}</h4>
+                                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{event.desc}</p>
+                                   </div>
+                                </div>
+
+                                <div className="lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-8">
+                                   <div className="space-y-4">
+                                      <div className="flex items-center justify-between p-6 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-white/10">
+                                         <div className="flex items-center gap-4">
+                                            <Smartphone size={18} className="text-emerald-500" />
+                                            <span className="text-[11px] font-black uppercase tracking-widest">{t("sms_alert")}</span>
+                                         </div>
+                                         <Switch 
+                                            checked={!!config.sms} 
+                                            onCheckedChange={v => updCustomer(event.id, "sms", v)}
+                                            className="data-[state=checked]:bg-emerald-600"
+                                         />
+                                      </div>
+                                      <div className="flex items-center justify-between p-6 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-white/10">
+                                         <div className="flex items-center gap-4">
+                                            <Mail size={18} className="text-blue-500" />
+                                            <span className="text-[11px] font-black uppercase tracking-widest">{t("email_relay")}</span>
+                                         </div>
+                                         <Switch 
+                                            checked={!!config.email} 
+                                            onCheckedChange={v => updCustomer(event.id, "email", v)}
+                                            className="data-[state=checked]:bg-emerald-600"
+                                         />
+                                      </div>
+                                   </div>
+                                   <div className="space-y-4">
+                                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">{t("dispatch_template")}</label>
+                                      <textarea 
+                                         rows={3}
+                                         value={config.template || ""}
+                                         onChange={e => updCustomer(event.id, "template", e.target.value)}
+                                         placeholder={t("message_content_placeholder")}
+                                         className={`${inputCls} h-32 py-5 resize-none font-bold`}
+                                      />
+                                   </div>
+                                </div>
+                             </div>
+                          </motion.div>
+                       );
                     })}
-                  </div>
-                </div>
-              )}
+                 </div>
+              </section>
             </div>
-
-            {/* Low Stock Alerts */}
-            <div className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl p-8 shadow-sm">
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-gold/10 flex items-center justify-center text-gold">
-                    <AlertTriangle size={24} />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                      {bn ? "লো স্টক অ্যালার্ট" : "Low Stock Intel"}
-                    </h3>
-                    <p className="text-xs font-medium text-slate-400 mt-1">{bn ? "স্টক শেষ হওয়ার আগে স্মার্ট সতর্কবার্তা" : "Predictive alerts before inventory depletion"}</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={!!settings.low_stock_alerts?.enabled} 
-                  onCheckedChange={(v) => upd("low_stock_alerts", "enabled", v)} 
-                />
-              </div>
-
-              {settings.low_stock_alerts?.enabled && (
-                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <div className="space-y-4 max-w-sm">
-                    <label className={labelCls}>{bn ? "স্টক থ্রেশহোল্ড (সর্বনিম্ন পরিমাণ)" : "Stock Critical Threshold"}</label>
-                    <div className="relative">
-                      <input 
-                        type="number" 
-                        value={settings.low_stock_alerts?.threshold || 5}
-                        onChange={(e) => upd("low_stock_alerts", "threshold", Number(e.target.value))}
-                        className={inputCls}
-                      />
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 uppercase tracking-widest">{bn ? "ইউনিট" : "Units"}</div>
-                    </div>
-                    <p className="text-[10px] text-slate-400  mt-2">
-                      * {bn ? "স্টক এই সংখ্যার নিচে নামলে আপনার ইমেইলে রিপোর্ট যাবে।" : "An automated report will be dispatched once stock falls below this level."}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="customer"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-6"
-          >
-            <div className="grid grid-cols-1 gap-6">
-              {customerEvents.map((event) => {
-                const config = (settings.customer_notifications?.[event.id] || {}) as any;
-                return (
-                  <div key={event.id} className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl p-8 shadow-sm group hover:border-primary/20 transition-all">
-                    <div className="flex flex-col lg:flex-row gap-8">
-                      <div className="lg:w-1/3">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                            <MessageSquare size={20} />
-                          </div>
-                          <div>
-                            <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">{event.label}</h3>
-                            <p className="text-[10px] font-bold text-slate-400 mt-0.5">{event.desc}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex flex-col gap-4 mt-8 p-6 bg-slate-50 dark:bg-white/2 border border-slate-100 dark:border-white/5 rounded-xl">
-                           <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                 <Phone size={14} className={config.sms ? "text-primary" : "text-slate-300"} />
-                                 <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">SMS Alert</span>
-                              </div>
-                              <Switch 
-                                checked={!!config.sms}
-                                onCheckedChange={(v) => updCustomer(event.id, "sms", v)}
-                              />
-                           </div>
-                           <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                 <Mail size={14} className={config.email ? "text-primary" : "text-slate-300"} />
-                                 <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">Email Alert</span>
-                              </div>
-                              <Switch 
-                                checked={!!config.email}
-                                onCheckedChange={(v) => updCustomer(event.id, "email", v)}
-                              />
-                           </div>
-                        </div>
-                      </div>
-
-                      <div className="flex-1 space-y-4">
-                        <div className="flex items-center justify-between">
-                           <label className={labelCls}>{bn ? "মেসেজ টেম্পলেট" : "Message Template"}</label>
-                           <div className="flex items-center gap-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                              <span>Variables: </span>
-                              <code className="text-primary bg-primary/5 px-2 py-0.5 rounded">{"{customer_name}"}</code>
-                              <code className="text-primary bg-primary/5 px-2 py-0.5 rounded">{"{order_id}"}</code>
-                              {event.id === 'order_shipped' && <code className="text-primary bg-primary/5 px-2 py-0.5 rounded">{"{tracking_id}"}</code>}
-                           </div>
-                        </div>
-                        <textarea 
-                          value={config.template || ""}
-                          onChange={(e) => updCustomer(event.id, "template", e.target.value)}
-                          className="w-full h-32 px-6 py-5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[1.5rem] text-sm font-medium outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none shadow-inner"
-                          placeholder={bn ? "এখানে মেসেজ লিখুন..." : "Draft your message here..."}
-                        />
-                        <div className="flex items-center justify-end gap-2 text-[10px] font-bold text-slate-400">
-                           <div className="w-1.5 h-1.5 rounded-xl bg-primary" />
-                           {(config.template?.length || 0)} {bn ? "অক্ষর" : "Characters"}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
+          )}
+        </motion.div>
       </AnimatePresence>
-
-      {/* Logic Preview Card */}
-      <div className="bg-slate-900 rounded-xl p-10 text-white relative overflow-hidden group border border-white/5 shadow-2xl">
-        <div className="absolute right-0 top-0 w-64 h-64 bg-primary/10 rounded-xl blur-[100px] -mr-32 -mt-32 group-hover:bg-primary/20 transition-all duration-1000" />
-        <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
-          <div className="w-20 h-20 rounded-[1.5rem] bg-white/10 flex items-center justify-center text-primary shadow-inner border border-white/10 rotate-3 group-hover:rotate-0 transition-transform">
-            <Settings2 size={40} />
-          </div>
-          <div className="flex-1">
-             <h4 className="text-xl font-black  tracking-tight mb-3">Notification Neural Engine <span className="text-primary text-xs ml-2 uppercase font-black tracking-widest not-">v3.0.1 PRO</span></h4>
-             <p className="text-sm text-slate-400 leading-relaxed font-medium">
-               {bn ? "নোটিফিকেশন ইঞ্জিন আপনার স্টোরের সব ডেটা রিয়েল-টাইমে প্রসেস করে। এটি আপনার অ্যাডমিন এবং কাস্টমারদের স্মার্ট অ্যালার্ট পাঠায় যাতে কোনো সেলস মিস না হয় এবং কাস্টমার সন্তুষ্টি সর্বোচ্চ থাকে।" 
-                  : "Our optimized notification engine processes store events in real-time. It dispatches precise alerts to admins and tailored updates to customers, maximizing conversion rates and post-purchase satisfaction."}
-             </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

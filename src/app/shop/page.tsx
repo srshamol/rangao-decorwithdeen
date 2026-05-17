@@ -232,10 +232,10 @@ function ShopPageContent() {
                   </SelectContent>
                 </Select>
                 <div className="flex items-center p-1 bg-white border border-slate-200 rounded-xl">
-                  <button onClick={() => setViewMode("grid")} className={`p-2 rounded-lg transition-all ${viewMode === "grid" ? 'bg-[#0F3D2E] text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>
+                  <button onClick={() => setViewMode("grid")} className={`p-2 rounded-xl transition-all ${viewMode === "grid" ? 'bg-[#0F3D2E] text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>
                     <Grid2X2 size={20} />
                   </button>
-                  <button onClick={() => setViewMode("list")} className={`p-2 rounded-lg transition-all ${viewMode === "list" ? 'bg-[#0F3D2E] text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>
+                  <button onClick={() => setViewMode("list")} className={`p-2 rounded-xl transition-all ${viewMode === "list" ? 'bg-[#0F3D2E] text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>
                     <List size={20} />
                   </button>
                 </div>
@@ -252,7 +252,7 @@ function ShopPageContent() {
           {SEARCH_TAGS.map((tag) => (
             <button 
               key={tag.id}
-              className="px-4 py-1.5 bg-[#F0F7F4] text-[#0F3D2E] text-sm font-bold rounded-full hover:bg-[#0F3D2E] hover:text-white transition-all duration-300"
+              className="px-4 py-1.5 bg-[#F0F7F4] text-[#0F3D2E] text-sm font-bold rounded-xl hover:bg-[#0F3D2E] hover:text-white transition-all duration-300"
             >
               {language === 'bn' ? tag.label_bn : tag.label_en}
             </button>
@@ -350,16 +350,16 @@ function ShopPageContent() {
                           <button
                             key={color.id}
                             onClick={() => setSelectedColors(prev => prev.includes(color.id) ? prev.filter(c => c !== color.id) : [...prev, color.id])}
-                            className={`w-7 h-7 rounded-full border-2 transition-all p-0.5 ${selectedColors.includes(color.id) ? 'border-[#0F3D2E] scale-110' : 'border-transparent'}`}
+                            className={`w-7 h-7 rounded-xl border-2 transition-all p-0.5 ${selectedColors.includes(color.id) ? 'border-[#0F3D2E] scale-110' : 'border-transparent'}`}
                           >
                             <div 
-                              className="w-full h-full rounded-full border border-black/5" 
+                              className="w-full h-full rounded-xl border border-black/5" 
                               style={{ backgroundColor: color.hex }}
                               title={color.label_bn}
                             />
                           </button>
                         ))}
-                        <button className="w-7 h-7 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:border-slate-400 transition-colors">
+                        <button className="w-7 h-7 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:border-slate-400 transition-colors">
                           <span className="text-lg leading-none">+</span>
                         </button>
                       </div>
@@ -414,10 +414,10 @@ function ShopPageContent() {
               {language === 'bn' ? 'ফিল্টার করুন' : 'Filters'}
             </button>
             <div className="flex items-center p-1 bg-white border border-slate-200 rounded-xl shadow-sm">
-              <button onClick={() => setViewMode("grid")} className={`p-2 rounded-lg transition-all ${viewMode === "grid" ? 'bg-[#0F3D2E] text-white shadow-lg' : 'text-slate-400'}`}>
+              <button onClick={() => setViewMode("grid")} className={`p-2 rounded-xl transition-all ${viewMode === "grid" ? 'bg-[#0F3D2E] text-white shadow-lg' : 'text-slate-400'}`}>
                 <Grid2X2 size={18} />
               </button>
-              <button onClick={() => setViewMode("list")} className={`p-2 rounded-lg transition-all ${viewMode === "list" ? 'bg-[#0F3D2E] text-white shadow-lg' : 'text-slate-400'}`}>
+              <button onClick={() => setViewMode("list")} className={`p-2 rounded-xl transition-all ${viewMode === "list" ? 'bg-[#0F3D2E] text-white shadow-lg' : 'text-slate-400'}`}>
                 <List size={18} />
               </button>
             </div>
@@ -470,8 +470,8 @@ function ShopPageContent() {
         {/* Features Bar - 2x2 on Mobile, 4x1 on Desktop */}
         <div className="mt-24 grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
           {FEATURES.map((feature) => (
-            <div key={feature.id} className="bg-white p-4 md:p-6 rounded-[24px] border border-slate-100 shadow-sm flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-3 md:gap-5 group hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-500">
-              <div className="w-10 h-10 md:w-14 md:h-14 bg-[#F0F7F4] rounded-full flex-shrink-0 flex items-center justify-center group-hover:bg-[#0F3D2E] transition-all duration-500">
+            <div key={feature.id} className="bg-white p-4 md:p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-3 md:gap-5 group hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-500">
+              <div className="w-10 h-10 md:w-14 md:h-14 bg-[#F0F7F4] rounded-xl flex-shrink-0 flex items-center justify-center group-hover:bg-[#0F3D2E] transition-all duration-500">
                 <feature.icon className="text-[#0F3D2E] group-hover:text-white transition-colors duration-500" size={20} />
               </div>
               <div>

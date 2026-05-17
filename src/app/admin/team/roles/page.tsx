@@ -232,7 +232,7 @@ export default function RolesPermissionsPage() {
             className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/5 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all group"
           >
             <div className="flex items-center gap-4">
-              <div className={`w-14 h-14 ${stat.bg} rounded-2xl flex items-center justify-center ${stat.color} group-hover:scale-110 transition-transform`}>
+              <div className={`w-14 h-14 ${stat.bg} rounded-xl flex items-center justify-center ${stat.color} group-hover:scale-110 transition-transform`}>
                 <stat.icon size={28} />
               </div>
               <div>
@@ -274,10 +274,10 @@ export default function RolesPermissionsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-tighter ${role.type === 'system' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                  <span className={`px-2 py-1 rounded-xl text-[8px] font-black uppercase tracking-tighter ${role.type === 'system' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-500'}`}>
                     {role.type === 'system' ? t("system_role") : t("custom_role")}
                   </span>
-                  <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
+                  <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
                     <MoreHorizontal size={14} />
                   </div>
                 </div>
@@ -346,11 +346,11 @@ export default function RolesPermissionsPage() {
                             ) : (
                               <div className="flex justify-center">
                                 {isGranted ? (
-                                  <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+                                  <div className="w-6 h-6 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
                                     <Check size={14} strokeWidth={4} />
                                   </div>
                                 ) : (
-                                  <div className="w-6 h-6 rounded-full border-2 border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-300" />
+                                  <div className="w-6 h-6 rounded-xl border-2 border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-300" />
                                 )}
                               </div>
                             )}
@@ -526,7 +526,7 @@ export default function RolesPermissionsPage() {
                                   <tr key={module.id} className="group hover:bg-slate-50 dark:hover:bg-white/[0.01] transition-colors">
                                     <td className="px-6 py-4">
                                       <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-400 group-hover:text-primary transition-all">
+                                        <div className="w-8 h-8 rounded-xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-400 group-hover:text-primary transition-all">
                                           <module.icon size={14} />
                                         </div>
                                         <span className="text-[11px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-tighter">{language === 'bn' ? module.name_bn : module.name_en}</span>
@@ -544,7 +544,7 @@ export default function RolesPermissionsPage() {
                                             <div className="flex justify-center">
                                               <input 
                                                 type="checkbox" 
-                                                className="w-5 h-5 rounded-lg border-2 border-slate-300 dark:border-white/10 text-primary focus:ring-primary/20 transition-all cursor-pointer"
+                                                className="w-5 h-5 rounded-xl border-2 border-slate-300 dark:border-white/10 text-primary focus:ring-primary/20 transition-all cursor-pointer"
                                               />
                                             </div>
                                           )}
@@ -568,7 +568,7 @@ export default function RolesPermissionsPage() {
                          <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">
                            {t("role_summary")}
                          </h3>
-                         <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                         <div className="w-2 h-2 rounded-xl bg-primary animate-pulse" />
                        </div>
 
                        <div className="p-6 bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl flex items-center gap-5 shadow-sm group">
@@ -594,13 +594,13 @@ export default function RolesPermissionsPage() {
                           <div className="space-y-3">
                              <div className="flex justify-between items-center">
                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("total_permissions")}</p>
-                               <span className="text-[10px] font-black text-emerald-500 uppercase tracking-tighter bg-emerald-500/10 px-2 py-0.5 rounded-lg">11 {t("authorized")}</span>
+                               <span className="text-[10px] font-black text-emerald-500 uppercase tracking-tighter bg-emerald-500/10 px-2 py-0.5 rounded-xl">11 {t("authorized")}</span>
                              </div>
                              <div className="space-y-3">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("primary_access")}</p>
                                 <div className="flex flex-wrap gap-2">
                                   {['টিকিট / সাপোর্ট', 'অর্ডারসমূহ', 'প্রোডাক্ট', 'কাস্টমার'].map((tag, i) => (
-                                    <span key={i} className="px-3 py-1.5 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold uppercase tracking-tighter rounded-lg border border-emerald-500/10">
+                                    <span key={i} className="px-3 py-1.5 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold uppercase tracking-tighter rounded-xl border border-emerald-500/10">
                                       {tag}
                                     </span>
                                   ))}
@@ -664,8 +664,8 @@ export default function RolesPermissionsPage() {
 
       {/* Background Decorative Elements */}
       <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full" />
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-xl" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-xl" />
       </div>
     </div>
   );

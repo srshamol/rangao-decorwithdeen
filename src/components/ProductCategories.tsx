@@ -64,16 +64,13 @@ export function ProductCategories() {
     const fetchCategories = async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("id, name, name_bn, slug, image_url, show_on_homepage, status, sort_order")
-        .is("parent_id", null)
-        .eq("status", 'active')
+        .select("id, name, name_bn, slug, image, icon, sort_order")
+        .eq("is_active", true)
         .order("sort_order", { ascending: true });
       if (!error && data && data.length > 0) {
-        const homepageCats = data.filter((c: any) => c.show_on_homepage === true || c.show_on_homepage === 'true');
-        const result = homepageCats.length > 0 ? homepageCats : data;
-        _catCache.data = result;
+        _catCache.data = data;
         _catCache.ts = Date.now();
-        setDbCategories(result);
+        setDbCategories(data);
       }
     };
     fetchCategories();
@@ -117,7 +114,7 @@ export function ProductCategories() {
           {/* Left Arrow */}
           <button 
             onClick={() => scrollContainerRef.current?.scrollBy({ left: -300, behavior: 'smooth' })}
-            className="absolute -left-2 lg:-left-6 top-[35%] lg:top-[40%] -translate-y-1/2 z-10 w-10 h-10 lg:w-12 lg:h-12 bg-white rounded-full shadow-lg border border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#0F3D2E] hover:scale-110 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-0"
+            className="absolute -left-2 lg:-left-6 top-[35%] lg:top-[40%] -translate-y-1/2 z-10 w-10 h-10 lg:w-12 lg:h-12 bg-white rounded-xl shadow-lg border border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#0F3D2E] hover:scale-110 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-0"
           >
             <ChevronLeft size={24} />
           </button>
@@ -140,9 +137,9 @@ export function ProductCategories() {
                   className="flex flex-col items-center w-full"
                 >
                   {/* Circular Image Container */}
-                  <div className="w-full aspect-square rounded-full overflow-hidden border-[4px] lg:border-[6px] border-white shadow-[0_12px_40px_-12px_rgba(15,61,46,0.15)] group-hover/card:shadow-[0_20px_50px_-12px_rgba(15,61,46,0.25)] group-hover/card:scale-105 transition-all duration-500 ring-1 ring-slate-100/50 relative bg-slate-50">
+                  <div className="w-full aspect-square rounded-xl overflow-hidden border-[4px] lg:border-[6px] border-white shadow-[0_12px_40px_-12px_rgba(15,61,46,0.15)] group-hover/card:shadow-[0_20px_50px_-12px_rgba(15,61,46,0.25)] group-hover/card:scale-105 transition-all duration-500 ring-1 ring-slate-100/50 relative bg-slate-50">
                     <Image
-                      src={cat.image_url || cat.image || '/placeholder.png'}
+                      src={cat.image || '/placeholder.png'}
                       alt={cat.name}
                       fill
                       sizes="(max-width: 768px) 30vw, 20vw"
@@ -171,7 +168,7 @@ export function ProductCategories() {
           {/* Right Arrow */}
           <button 
             onClick={() => scrollContainerRef.current?.scrollBy({ left: 300, behavior: 'smooth' })}
-            className="absolute -right-2 lg:-right-6 top-[35%] lg:top-[40%] -translate-y-1/2 z-10 w-10 h-10 lg:w-12 lg:h-12 bg-white rounded-full shadow-lg border border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#0F3D2E] hover:scale-110 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-0"
+            className="absolute -right-2 lg:-right-6 top-[35%] lg:top-[40%] -translate-y-1/2 z-10 w-10 h-10 lg:w-12 lg:h-12 bg-white rounded-xl shadow-lg border border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#0F3D2E] hover:scale-110 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-0"
           >
             <ChevronRight size={24} />
           </button>

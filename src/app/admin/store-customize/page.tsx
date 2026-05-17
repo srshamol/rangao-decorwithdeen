@@ -1,19 +1,24 @@
 "use client";
-// Deployment Trigger: Finalizing Administrative Hardening
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
-  Palette, Layout, Home, Monitor, Smartphone, Save,
-  AlertTriangle, Loader2, Eye, ChevronRight, Zap,
-  Moon, Sun, Flame, Gift, RefreshCw, ExternalLink,
-  ToggleLeft, ToggleRight, Image as ImageIcon, Type,
-  Layers, Star, Sparkles, Check, X, Upload, Globe
+  Palette, Layout, Home, Save,
+  Loader2, Zap, Moon, Sparkles, Check, Globe, Menu as MenuIcon, Layers, Code, Undo2, Monitor
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/lib/language-context";
 import { useSettings } from "@/lib/useSettings";
+import { AdminSettings } from "@/types/admin";
+
+import { GeneralSettings } from "@/components/admin/settings/GeneralSettings";
+import { BrandingSettings } from "@/components/admin/settings/BrandingSettings";
+import { StoreDesignSettings } from "@/components/admin/settings/StoreDesignSettings";
+import { NavigationSettings } from "@/components/admin/settings/NavigationSettings";
+import { HomepageSettings } from "@/components/admin/settings/HomepageSettings";
+import { FooterSettings } from "@/components/admin/settings/FooterSettings";
+import { CodeInjectionSettings } from "@/components/admin/settings/CodeInjectionSettings";
 
 const THEMES = [
   { id: "default", label: "Rangao Default", sub: "Light Theme", recommended: true, preview: "bg-gradient-to-br from-emerald-50 to-white" },
@@ -25,22 +30,15 @@ const THEMES = [
 const CAMPAIGNS = [
   { id: "ramadan", label: "রমজান মোড", icon: Moon, color: "text-purple-500 bg-purple-50" },
   { id: "eid", label: "ঈদ মোড", icon: Sparkles, color: "text-amber-500 bg-amber-50" },
-  { id: "wedding", label: "বিবাহ মোড", icon: Gift, color: "text-rose-500 bg-rose-50" },
 ];
 
-const COLOR_PRESETS = [
-  { id: "islamic", label: "Islamic", primary: "#0F3D2E", secondary: "#D4AF37" },
-  { id: "minimal", label: "Minimal", primary: "#1a1a1a", secondary: "#6366f1" },
-  { id: "luxury", label: "Luxury", primary: "#7c3aed", secondary: "#D4AF37" },
-];
-
-type Tab = "theme" | "colors" | "header" | "homepage" | "footer" | "advanced";
+type EditorView = "root" | "general" | "header" | "homepage" | "footer" | "code";
 
 interface StoreConfig {
   theme: string;
-  layout: string;
+  layout: "boxed" | "full";
   container_width: number;
-  sidebar_position: string;
+  sidebar_position: "left" | "right";
   product_grid: number;
   primary_color: string;
   secondary_color: string;
@@ -57,9 +55,9 @@ interface StoreConfig {
 
 export default function StoreCustomizePage() {
   const { language } = useLanguage();
+  const isBn = language === 'bn';
   const { settings: storeSettings, loading: settingsLoading } = useSettings();
-  const [activeTab, setActiveTab] = useState<Tab>("theme");
-  const [devicePreview, setDevicePreview] = useState<"desktop" | "mobile">("desktop");
+  const [view, setView] = useState<EditorView>("root");
   const [hasChanges, setHasChanges] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeCampaign, setActiveCampaign] = useState<string | null>(null);
@@ -83,10 +81,41 @@ export default function StoreCustomizePage() {
     show_gallery: true,
   });
 
-  // Sync with global settings on load
+  const [generalSettings, setGeneralSettings] = useState<Partial<AdminSettings>>({});
+  const [brandingSettings, setBrandingSettings] = useState<Partial<AdminSettings>>({});
+  const [designSettings, setDesignSettings] = useState<AdminSettings>({
+    hero_slides: [],
+    home_banners: [],
+    home_cta: { title: "", subtitle: "", button_text: "", button_link: "", image_url: "" },
+    trust_badges: [],
+    show_categories: true,
+    show_featured: true,
+    show_combo: true,
+    homepage_sections: []
+  });
+  const [navigationSettings, setNavigationSettings] = useState<Partial<AdminSettings>>({
+    header_links: [],
+    show_categories: true,
+    promo_badge: { text_bn: "", text_en: "", href: "", enabled: false }
+  });
+  const [footerSettings, setFooterSettings] = useState<Partial<AdminSettings>>({});
+
   useEffect(() => {
-    if (storeSettings?.store_customize) {
-      setConfig(prev => ({ ...prev, ...storeSettings.store_customize }));
+    if (storeSettings) {
+      if (storeSettings.store_customize) setConfig(prev => ({ ...prev, ...storeSettings.store_customize }));
+      if (storeSettings.general_settings) setGeneralSettings(storeSettings.general_settings);
+      if (storeSettings.branding_settings) setBrandingSettings(storeSettings.branding_settings);
+      
+      const design: AdminSettings = { ...designSettings };
+      if (storeSettings.hero_slides) design.hero_slides = storeSettings.hero_slides;
+      if (storeSettings.home_banners) design.home_banners = storeSettings.home_banners;
+      if (storeSettings.home_cta) design.home_cta = storeSettings.home_cta;
+      if (storeSettings.trust_badges) design.trust_badges = storeSettings.trust_badges;
+      if (storeSettings.homepage_config) Object.assign(design, storeSettings.homepage_config);
+      setDesignSettings(design);
+
+      if (storeSettings.navigation_settings) setNavigationSettings(storeSettings.navigation_settings);
+      if (storeSettings.footer_settings) setFooterSettings(storeSettings.footer_settings);
     }
   }, [storeSettings]);
 
@@ -98,11 +127,41 @@ export default function StoreCustomizePage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await supabase.from("store_configs").upsert({ id: "store_customize", value: config });
-      toast.success("স্টোর আপডেট সেভ হয়েছে ✓");
+      const updates = [
+        supabase.from("store_configs").upsert({ id: "store_customize", value: config }),
+        supabase.from("store_configs").upsert({ id: "general_settings", value: generalSettings }),
+        supabase.from("store_configs").upsert({ id: "branding_settings", value: brandingSettings }),
+        supabase.from("store_configs").upsert({ id: "hero_slides", value: designSettings.hero_slides }),
+        supabase.from("store_configs").upsert({ id: "home_banners", value: designSettings.home_banners }),
+        supabase.from("store_configs").upsert({ id: "home_cta", value: designSettings.home_cta }),
+        supabase.from("store_configs").upsert({ id: "trust_badges", value: designSettings.trust_badges }),
+        supabase.from("store_configs").upsert({ id: "navigation_settings", value: navigationSettings }),
+        supabase.from("store_configs").upsert({ id: "footer_settings", value: footerSettings }),
+        supabase.from("store_configs").upsert({ id: "homepage_config", value: {
+          show_categories: designSettings.show_categories,
+          show_featured: designSettings.show_featured,
+          show_combo: designSettings.show_combo,
+          featured_product_ids: designSettings.featured_product_ids,
+          combo_product_ids: designSettings.combo_product_ids,
+          selected_categories: designSettings.selected_categories,
+          hero_text: designSettings.hero_text,
+          categories_text: designSettings.categories_text,
+          featured_text: designSettings.featured_text,
+          why_choose_text: designSettings.why_choose_text,
+          combo_text: designSettings.combo_text,
+          gallery_text: designSettings.gallery_text,
+          reviews_text: designSettings.reviews_text,
+          quote_text: designSettings.quote_text,
+          cta_text: designSettings.cta_text,
+          homepage_sections: designSettings.homepage_sections,
+        }})
+      ];
+
+      await Promise.all(updates);
+      toast.success(isBn ? "স্টোর আপডেট সেভ হয়েছে ✓" : "Store config saved ✓");
       setHasChanges(false);
     } catch {
-      toast.error("সেভ করা সম্ভব হয়নি");
+      toast.error(isBn ? "সেভ করা সম্ভব হয়নি" : "Failed to save config");
     } finally {
       setSaving(false);
     }
@@ -110,354 +169,269 @@ export default function StoreCustomizePage() {
 
   const handleDiscard = () => {
     setHasChanges(false);
-    toast.info("পরিবর্তন বাতিল করা হয়েছে");
+    toast.info(isBn ? "পরিবর্তন বাতিল করা হয়েছে" : "Changes discarded");
   };
 
-  const TABS: { id: Tab; label: string; icon: React.ComponentType<any> }[] = [
-    { id: "theme", label: "থিম ও লেআউট", icon: Palette },
-    { id: "colors", label: "রং কাস্টমাইজ", icon: Layers },
-    { id: "header", label: "হেডার", icon: Layout },
-    { id: "homepage", label: "হোমপেজ সেটিংস", icon: Home },
-    { id: "footer", label: "ফুটার কাস্টমাইজেশন", icon: Globe },
-    { id: "advanced", label: "আরও", icon: Zap },
+  const SECTIONS = [
+    { 
+      id: "general", 
+      label: isBn ? "স্টোর আইডেন্টিটি" : "Store Identity", 
+      icon: Globe, 
+      desc: isBn ? "লোগো, নাম ও কন্টাক্ট" : "Logo, name & contact details",
+      color: "from-blue-500 to-indigo-600",
+      accent: "bg-blue-500/10 text-blue-500"
+    },
+    { 
+      id: "homepage", 
+      label: isBn ? "হোমপেজ লেআউট" : "Homepage Studio", 
+      icon: Layout, 
+      desc: isBn ? "সেকশন সাজান ও এডিট" : "Build & arrange your homepage",
+      color: "from-emerald-500 to-teal-600",
+      accent: "bg-emerald-500/10 text-emerald-500"
+    },
+    { 
+      id: "header", 
+      label: isBn ? "নেভিগেশন মেনু" : "Navigation & Links", 
+      icon: MenuIcon, 
+      desc: isBn ? "হেডার মেনু বিল্ডার" : "Configure menus & top links",
+      color: "from-purple-500 to-violet-600",
+      accent: "bg-purple-500/10 text-purple-500"
+    },
+    { 
+      id: "footer", 
+      label: isBn ? "ফুটার কাস্টমাইজ" : "Footer Architecture", 
+      icon: Layers, 
+      desc: isBn ? "ফুটার সেকশন এডিট" : "Design the bottom of your site",
+      color: "from-amber-500 to-orange-600",
+      accent: "bg-amber-500/10 text-amber-500"
+    },
+    { 
+      id: "code", 
+      label: isBn ? "কোড ইনজেকশন" : "Code Injection", 
+      icon: Code, 
+      desc: isBn ? "কাস্টম CSS এবং JS" : "Inject custom styling and scripts",
+      color: "from-purple-500 to-indigo-600",
+      accent: "bg-purple-500/10 text-purple-500"
+    },
   ];
 
   return (
-    <div className="h-[calc(100vh-5rem)] flex flex-col overflow-hidden -mx-6 -mt-8 lg:-mx-14 lg:-mt-12">
-      {/* Top Tab Bar */}
-      <div className="bg-white dark:bg-[#0c0c0c] border-b border-slate-200 dark:border-white/5 px-6 lg:px-10 flex-shrink-0">
-        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
-          {TABS.map(tab => (
+    <div className="max-w-[1400px] mx-auto space-y-8 pb-32 selection:bg-primary/20">
+      
+      {/* Header Banner - Standard Admin Style */}
+      <div className="bg-primary rounded-xl p-6 text-white relative overflow-hidden">
+        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-xl font-bold">{isBn ? "ডিজাইন স্টুডিও" : "Design Studio"}</h1>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/15 rounded-xl text-xs font-medium uppercase">
+                <Sparkles size={12} className="text-emerald-400" />
+                Storefront v4.2
+              </div>
+            </div>
+            <p className="text-xs text-white/60">{isBn ? "আপনার স্টোরের লুক এবং ফিল পরিবর্তন করুন" : "Customize your storefront's visual identity and layout"}</p>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            {hasChanges && (
+              <button 
+                onClick={handleDiscard} 
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-medium transition-all"
+              >
+                {isBn ? "বাতিল" : "Discard"}
+              </button>
+            )}
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-4 text-[11px] font-black uppercase tracking-widest whitespace-nowrap border-b-2 transition-all ${
-                activeTab === tab.id
-                  ? "border-emerald-600 text-emerald-700 dark:text-emerald-400"
-                  : "border-transparent text-slate-400 hover:text-slate-700 dark:hover:text-white"
+              onClick={handleSave}
+              disabled={!hasChanges || saving}
+              className={`px-6 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
+                hasChanges 
+                  ? "bg-white text-primary shadow-lg hover:bg-white/90" 
+                  : "bg-white/10 text-white/40 cursor-not-allowed"
               }`}
             >
-              <tab.icon size={14} />
-              {tab.label}
+              {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+              {saving ? (isBn ? "সেভ হচ্ছে..." : "Saving...") : (isBn ? "পরিবর্তন সেভ করুন" : "Publish")}
             </button>
-          ))}
+          </div>
         </div>
       </div>
 
-      {/* Main Split Layout */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* LEFT: Controls */}
-        <div className="w-[380px] flex-shrink-0 overflow-y-auto border-r border-slate-200 dark:border-white/5 bg-white dark:bg-[#0c0c0c] p-6 space-y-6 no-scrollbar">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-6"
+      <main className="animate-in fade-in duration-500">
+        <AnimatePresence mode="wait" initial={false}>
+          {view === "root" ? (
+            <motion.div 
+              key="root"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              className="space-y-8"
             >
-              {activeTab === "theme" && (
-                <>
-                  {/* Theme Selection */}
-                  <Section title="থিম নির্বাচন করুন" icon={Palette}>
-                    <div className="grid grid-cols-2 gap-3">
-                      {THEMES.map(theme => (
-                        <button
-                          key={theme.id}
-                          onClick={() => update("theme", theme.id)}
-                          className={`relative p-3 rounded-xl border-2 text-left transition-all hover:scale-[1.02] ${
-                            config.theme === theme.id
-                              ? "border-emerald-600 shadow-lg shadow-emerald-600/10"
-                              : "border-slate-100 dark:border-white/10"
-                          }`}
-                        >
-                          {theme.recommended && (
-                            <span className="absolute -top-2 left-2 px-2 py-0.5 bg-emerald-600 text-white text-[8px] font-black uppercase tracking-widest rounded-full">
-                              ✦ সেরা
-                            </span>
-                          )}
-                          <div className={`w-full h-16 rounded-lg mb-2 ${theme.preview}`} />
-                          <p className="text-[11px] font-black text-slate-800 dark:text-white">{theme.label}</p>
-                          <p className="text-[9px] text-slate-400">{theme.sub}</p>
-                          {config.theme === theme.id && (
-                            <div className="absolute top-2 right-2 w-5 h-5 bg-emerald-600 rounded-full flex items-center justify-center">
-                              <Check size={10} className="text-white" />
-                            </div>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </Section>
-
-                  {/* Layout */}
-                  <Section title="সাইট লেআউট" icon={Layout}>
-                    <div className="flex gap-2">
-                      {["boxed", "full-width"].map(l => (
-                        <button
-                          key={l}
-                          onClick={() => update("layout", l)}
-                          className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${
-                            config.layout === l
-                              ? "border-emerald-600 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400"
-                              : "border-slate-100 dark:border-white/10 text-slate-400"
-                          }`}
-                        >
-                          {l === "boxed" ? "বক্সড" : "ফুল-উইড"}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="space-y-2 mt-4">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">কন্টেইনার প্রস্থ: {config.container_width}px</label>
-                      <input
-                        type="range" min={960} max={1600} step={40}
-                        value={config.container_width}
-                        onChange={e => update("container_width", Number(e.target.value))}
-                        className="w-full accent-emerald-600"
-                      />
-                    </div>
-
-                    <div className="mt-4">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">প্রোডাক্ট গ্রিড</label>
-                      <div className="flex gap-2">
-                        {[2, 3, 4, 5].map((n: number) => (
-                          <button
-                            key={n}
-                            onClick={() => update("product_grid", n)}
-                            className={`w-10 h-10 rounded-xl border-2 text-sm font-black transition-all ${
-                              config.product_grid === n
-                                ? "border-emerald-600 bg-emerald-600 text-white"
-                                : "border-slate-100 dark:border-white/10 text-slate-400 hover:border-emerald-300"
-                            }`}
-                          >
-                            {n}
-                          </button>
-                        ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {SECTIONS.map((section) => (
+                  <button
+                    key={section.id}
+                    onClick={() => setView(section.id as EditorView)}
+                    className="group p-6 rounded-xl bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 text-left relative overflow-hidden"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`w-12 h-12 rounded-xl ${section.accent} flex items-center justify-center shrink-0 transition-transform group-hover:scale-110`}>
+                        <section.icon size={20} strokeWidth={2.5} />
                       </div>
-                    </div>
-                  </Section>
-
-                  {/* Campaign Mode */}
-                  <Section title="ক্যাম্পেইন মোড" icon={Sparkles}>
-                    <div className="space-y-2">
-                      {CAMPAIGNS.map(c => (
-                        <button
-                          key={c.id}
-                          onClick={() => setActiveCampaign(activeCampaign === c.id ? null : c.id)}
-                          className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
-                            activeCampaign === c.id
-                              ? "border-emerald-600 bg-emerald-50 dark:bg-emerald-900/20"
-                              : "border-slate-100 dark:border-white/10"
-                          }`}
-                        >
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${c.color}`}>
-                            <c.icon size={16} />
-                          </div>
-                          <span className="text-[12px] font-black text-slate-800 dark:text-white">{c.label}</span>
-                          {activeCampaign === c.id && <Check size={14} className="ml-auto text-emerald-600" />}
-                        </button>
-                      ))}
-                    </div>
-                  </Section>
-                </>
-              )}
-
-              {activeTab === "colors" && (
-                <>
-                  <Section title="রং প্রিসেট" icon={Palette}>
-                    <div className="flex gap-2">
-                      {COLOR_PRESETS.map(p => (
-                        <button
-                          key={p.id}
-                          onClick={() => { update("primary_color", p.primary); update("secondary_color", p.secondary); }}
-                          className="flex-1 p-2.5 rounded-xl border border-slate-100 dark:border-white/10 text-[9px] font-black uppercase tracking-widest text-slate-500 hover:border-emerald-400 transition-all"
-                        >
-                          <div className="flex gap-1 mb-1.5">
-                            <div className="w-4 h-4 rounded-full" style={{ background: p.primary }} />
-                            <div className="w-4 h-4 rounded-full" style={{ background: p.secondary }} />
-                          </div>
-                          {p.label}
-                        </button>
-                      ))}
-                    </div>
-                  </Section>
-
-                  <Section title="কাস্টম রং" icon={Layers}>
-                    {([
-                      { key: "primary_color", label: "প্রাইমারি রং" },
-                      { key: "secondary_color", label: "সেকেন্ডারি রং" },
-                      { key: "accent_color", label: "অ্যাকসেন্ট রং" },
-                      { key: "bg_color", label: "ব্যাকগ্রাউন্ড" },
-                      { key: "text_color", label: "টেক্সট রং" },
-                    ] as const).map(c => (
-                      <div key={c.key} className="flex items-center gap-3">
-                        <input
-                          type="color"
-                          value={config[c.key as keyof StoreConfig] as string}
-                          onChange={e => update(c.key as keyof StoreConfig, e.target.value)}
-                          className="w-10 h-10 rounded-xl cursor-pointer border-none p-0.5 bg-slate-50 dark:bg-white/5"
-                        />
-                        <div>
-                          <p className="text-[11px] font-black text-slate-700 dark:text-white">{c.label}</p>
-                          <p className="text-[9px] text-slate-400 font-mono">{config[c.key as keyof StoreConfig] as string}</p>
-                        </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">{section.label}</h4>
+                        <p className="text-xs text-slate-500 font-medium leading-relaxed">{section.desc}</p>
                       </div>
-                    ))}
-                  </Section>
-                </>
-              )}
-
-              {activeTab === "homepage" && (
-                <Section title="হোমপেজ সেকশন কন্ট্রোল" icon={Home}>
-                  <p className="text-[10px] text-slate-400 mb-4">হোমপেজে কোন সেকশনগুলো দেখাবে তা নিয়ন্ত্রণ করুন</p>
-                  {[
-                    { key: "show_hero", label: "হিরো সেকশন", sub: "মূল ব্যানার স্লাইডার" },
-                    { key: "show_categories", label: "ক্যাটাগরি সেকশন", sub: "পপুলার ক্যাটাগরি রো" },
-                    { key: "show_featured", label: "ফিচার্ড প্রোডাক্ট", sub: "বাছাই করা পণ্য" },
-                    { key: "show_combo", label: "কম্বো অফার", sub: "বিশেষ কম্বো ব্যানার" },
-                    { key: "show_gallery", label: "গ্যালারি সেকশন", sub: "ইনস্টাগ্রাম গ্যালারি" },
-                    { key: "show_reviews", label: "রিভিউ সেকশন", sub: "কাস্টমার রিভিউ" },
-                  ].map((item) => (
-                    <div key={item.key} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5">
-                      <div>
-                        <p className="text-[12px] font-black text-slate-800 dark:text-white">{item.label}</p>
-                        <p className="text-[9px] text-slate-400">{item.sub}</p>
-                      </div>
-                      <button
-                        onClick={() => update(item.key as keyof StoreConfig, !config[item.key as keyof StoreConfig])}
-                        className={`relative w-11 h-6 rounded-full transition-colors ${
-                          config[item.key as keyof StoreConfig] ? "bg-emerald-500" : "bg-slate-200 dark:bg-white/10"
-                        }`}
-                      >
-                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                          config[item.key as keyof StoreConfig] ? "translate-x-6" : "translate-x-1"
-                        }`} />
-                      </button>
+                      <Undo2 className="rotate-180 text-slate-300 group-hover:text-primary transition-colors mt-1" size={16} />
                     </div>
-                  ))}
-                </Section>
-              )}
-
-              {(activeTab === "header" || activeTab === "footer" || activeTab === "advanced") && (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="w-16 h-16 bg-slate-50 dark:bg-white/5 rounded-2xl flex items-center justify-center mb-4">
-                    <Zap size={28} className="text-emerald-500" />
-                  </div>
-                  <p className="text-sm font-black text-slate-700 dark:text-white mb-1">শীঘ্রই আসছে</p>
-                  <p className="text-[11px] text-slate-400">এই সেকশনটি শীঘ্রই যোগ করা হবে</p>
-                </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* RIGHT: Live Preview */}
-        <div className="flex-1 overflow-hidden bg-slate-100 dark:bg-slate-900 flex flex-col">
-          {/* Preview Header */}
-          <div className="flex-shrink-0 bg-white dark:bg-[#0c0c0c] border-b border-slate-200 dark:border-white/5 px-6 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">স্টোর প্রিভিউ</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 p-1 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/10">
-                <button
-                  onClick={() => setDevicePreview("desktop")}
-                  className={`p-1.5 rounded-md transition-all ${devicePreview === "desktop" ? "bg-white dark:bg-slate-800 shadow text-emerald-600" : "text-slate-400"}`}
-                >
-                  <Monitor size={14} />
-                </button>
-                <button
-                  onClick={() => setDevicePreview("mobile")}
-                  className={`p-1.5 rounded-md transition-all ${devicePreview === "mobile" ? "bg-white dark:bg-slate-800 shadow text-emerald-600" : "text-slate-400"}`}
-                >
-                  <Smartphone size={14} />
-                </button>
+                  </button>
+                ))}
               </div>
-              <a
-                href="/"
-                target="_blank"
-                className="flex items-center gap-1.5 px-3 h-8 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-emerald-600 transition-all"
-              >
-                <ExternalLink size={11} /> লাইভ দেখুন
-              </a>
-            </div>
-          </div>
 
-          {/* Preview Iframe */}
-          <div className="flex-1 overflow-hidden flex items-center justify-center p-6">
-            <div className={`bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 ${
-              devicePreview === "desktop" ? "w-full h-full" : "w-[375px] h-[700px]"
-            }`}>
-              <iframe
-                src="/"
-                className="w-full h-full border-none"
-                title="Store Preview"
-                style={{ pointerEvents: "none" }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+              {/* Simplified Status Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { label: "Storefront", status: "Active", icon: Zap, color: "text-emerald-500", bg: "bg-emerald-500/5" },
+                  { label: "Performance", status: "98/100", icon: Monitor, color: "text-blue-500", bg: "bg-blue-500/5" },
+                  { label: "Version", status: "Pro v4.2", icon: Sparkles, color: "text-purple-500", bg: "bg-purple-500/5" }
+                ].map((stat, i) => (
+                  <div key={i} className="p-4 rounded-xl bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-xl ${stat.bg} ${stat.color} flex items-center justify-center`}>
+                      <stat.icon size={18} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{stat.label}</p>
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">{stat.status}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div 
+              key="view"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <button 
+                  onClick={() => setView("root")} 
+                  className="w-10 h-10 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-400 hover:text-primary transition-all shadow-sm"
+                >
+                  <Undo2 size={18} />
+                </button>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white leading-none">
+                    {SECTIONS.find(s => s.id === view)?.label}
+                  </h3>
+                  <div className="w-8 h-1 bg-primary rounded-full mt-2" />
+                </div>
+              </div>
 
-      {/* Sticky Save Bar */}
+              <div className="pb-20">
+                    {view === "general" && (
+                      <GeneralSettings
+                        settings={generalSettings}
+                        brandingSettings={brandingSettings}
+                        onUpdate={(data: any) => {
+                          setGeneralSettings({ ...generalSettings, ...data });
+                          setHasChanges(true);
+                        }}
+                        onBrandingUpdate={(field: string, val: any) => {
+                          setBrandingSettings({ ...brandingSettings, [field]: val });
+                          setHasChanges(true);
+                        }}
+                      />
+                    )}
+
+                    {view === "homepage" && (
+                      <HomepageSettings
+                        settings={designSettings}
+                        onUpdate={(data: any) => {
+                          setDesignSettings({ ...designSettings, ...data });
+                          setHasChanges(true);
+                        }}
+                      />
+                    )}
+
+                    {view === "header" && (
+                      <NavigationSettings
+                        settings={navigationSettings}
+                        onUpdate={(data: any) => {
+                          setNavigationSettings({ ...navigationSettings, ...data });
+                          setHasChanges(true);
+                        }}
+                      />
+                    )}
+
+                    {view === "footer" && (
+                      <FooterSettings
+                        settings={footerSettings || {}}
+                        onUpdate={(data: any) => {
+                          setFooterSettings({ ...footerSettings, ...data });
+                          setHasChanges(true);
+                        }}
+                      />
+                    )}
+
+                    {view === "code" && (
+                      <CodeInjectionSettings
+                        settings={generalSettings as any}
+                        onUpdate={(data: any) => {
+                          setGeneralSettings({ ...generalSettings, ...data });
+                          setHasChanges(true);
+                        }}
+                      />
+                    )}
+                  </div>
+                </motion.div>
+              )}
+        </AnimatePresence>
+      </main>
+
+      {/* Sticky Publication Bar - High Contrast Elite */}
       <AnimatePresence>
         {hasChanges && (
           <motion.div
-            initial={{ y: 80, opacity: 0 }}
+            initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 80, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="flex-shrink-0 bg-slate-900 text-white px-6 py-4 flex items-center justify-between gap-4 border-t border-white/10"
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-8 py-5 flex items-center justify-between gap-12 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-[100] border border-white/10 dark:border-slate-200 min-w-[600px]"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                <AlertTriangle size={15} className="text-amber-400" />
+            <div className="flex items-center gap-5">
+              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                <Sparkles size={20} className="text-primary animate-pulse" />
               </div>
-              <div>
-                <p className="text-sm font-black">⚠️ সেভ না করা পরিবর্তন আছে</p>
-                <p className="text-[10px] text-slate-400">পাবলিশ না করলে পরিবর্তন হারিয়ে যাবে</p>
+              <div className="space-y-0.5">
+                <p className="text-[13px] font-black uppercase tracking-tight">
+                  {isBn ? "অপ্রকাশিত পরিবর্তন" : "Unpublished Design Changes"}
+                </p>
+                <p className="text-[10px] opacity-60 font-medium uppercase tracking-[0.1em]">
+                  {isBn ? "সেভ না করলে পরিবর্তনগুলো স্টোরে দেখা যাবে না" : "Changes are staged. Click publish to go live."}
+                </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+
+            <div className="flex items-center gap-4">
               <button
                 onClick={handleDiscard}
-                className="px-4 py-2 text-slate-300 text-[11px] font-black uppercase tracking-widest hover:text-white rounded-xl hover:bg-white/10 transition-all"
+                className="h-12 px-6 text-[11px] font-bold uppercase tracking-widest hover:bg-white/5 dark:hover:bg-slate-100 rounded-xl transition-all"
               >
-                বাতিল
-              </button>
-              <button className="px-4 py-2 text-slate-300 text-[11px] font-black uppercase tracking-widest rounded-xl border border-white/20 hover:bg-white/10 transition-all">
-                ড্রাফট সেভ
+                {isBn ? "বাতিল" : "Discard"}
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-6 py-2 bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-500 transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/30 disabled:opacity-50"
+                className="h-12 px-10 bg-primary text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 flex items-center gap-3 disabled:opacity-50"
               >
-                {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-                পাবলিশ করুন
+                {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                {saving ? (isBn ? "সেভ হচ্ছে..." : "Saving...") : (isBn ? "পাবলিশ করুন" : "Publish Now")}
               </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
-  );
-}
-
-function Section({ title, icon: Icon, children }: { title: string; icon: React.ComponentType<any>; children: React.ReactNode }) {
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <div className="w-5 h-5 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-center justify-center">
-          <Icon size={11} className="text-emerald-600" />
-        </div>
-        <h3 className="text-[11px] font-black text-slate-700 dark:text-white uppercase tracking-wider">{title}</h3>
-      </div>
-      <div className="space-y-3">
-        {children}
-      </div>
     </div>
   );
 }

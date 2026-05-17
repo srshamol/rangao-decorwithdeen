@@ -2,6 +2,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/integrations/supabase/client";
+import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useState, useEffect, useMemo, Suspense, Fragment } from "react";
 import { 
   Search, Download, RefreshCw, 
@@ -18,6 +19,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { FraudChecker, FraudMiniScore, FraudSummaryPanel } from "@/components/admin/FraudChecker";
 import { useLanguage } from "@/lib/language-context";
+import { useSettings } from "@/lib/useSettings";
 import { toast } from "sonner";
 import { formatDate, formatOrderDate } from "@/lib/date-utils";
 
@@ -45,6 +47,9 @@ interface Order {
   created_at: string;
   courier_name: string | null;
   status_history: { status: string; time: string }[];
+  risk_score?: number;
+  risk_badge?: string;
+  otp_verified?: boolean;
 }
 
 type StaffRole = 'super_admin' | 'admin' | 'moderator' | 'production';
@@ -64,7 +69,8 @@ function AdminOrdersContent() {
     { id: "delivered", label: t("delivered"), icon: Package, color: "text-primary" },
     { id: "cancelled", label: t("cancelled"), icon: Ban, color: "text-rose-500" },
     { id: "return", label: t("returned"), icon: RefreshCw, color: "text-indigo-400" },
-    { id: "on_hold", label: t("on_hold"), icon: Pause, color: "text-orange-500" },
+    { id: "on-hold", label: t("on_hold"), icon: Pause, color: "text-orange-500" },
+    { id: "risk", label: bnLocale ? "রিস্ক ট্রায়াজ" : "Risk Triage", icon: Zap, color: "text-amber-500" },
   ];
   
   const [orders, setOrders] = useState<Order[]>([]);
@@ -75,6 +81,8 @@ function AdminOrdersContent() {
   const [adminNote, setAdminNote] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [isCourierCenterOpen, setIsCourierCenterOpen] = useState(false);
+  const [realtimeStatus, setRealtimeStatus] = useState<'connected' | 'connecting' | 'error'>('connecting');
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [selectedCourier, setSelectedCourier] = useState('steadfast');
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
@@ -93,14 +101,15 @@ function AdminOrdersContent() {
   const isAdmin = role === 'admin' || role === 'super_admin';
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }: any) => {
       if (session) {
         setCurrentUser(session.user as SupabaseUser);
         // Hard override for primary owner
         if (session.user.email === 'rangao.bd@gmail.com') {
           setRole('super_admin');
         } else {
-          supabase.from('user_roles').select('role').eq('user_id', session.user.id).single().then(({ data }) => {
+          supabase.from('user_roles').select('role').eq('user_id', session.user.id).single().then(({ data, error }: any) => {
+            if (error) console.error("Error fetching role:", error);
             if (data) setRole(data.role as StaffRole);
           });
         }
@@ -130,19 +139,58 @@ function AdminOrdersContent() {
     return () => window.removeEventListener('open-fraud-checker', handleOpenFraud);
   }, []);
 
+  const { settings } = useSettings();
+  const showRiskTab = settings?.advanced_settings?.otp?.show_risk_tab !== false;
+  
+  const TABS = useMemo(() => {
+    return showRiskTab ? STATUS_TABS : STATUS_TABS.filter(t => t.id !== 'risk');
+  }, [STATUS_TABS, showRiskTab]);
+
   const currentStatus = searchParams.get('status') || "all";
 
   const loadOrders = async () => {
     setLoading(true);
     const { data, error } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
-    if (error) toast.error(t("failed_load_orders"));
-    else setOrders(data || []);
+    if (error) {
+      console.error("Order Fetch Error:", error);
+      toast.error(language === 'bn' ? `অর্ডার লোড করতে সমস্যা হয়েছে: ${error.message}` : `Failed to load orders: ${error.message}`);
+    } else {
+      setOrders(data || []);
+      setLastUpdate(new Date());
+    }
     setLoading(false);
   };
 
   useEffect(() => { 
     loadOrders(); 
-    const channel = supabase.channel('order-updates').on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => loadOrders()).subscribe();
+    
+    // Listen for ALL changes (INSERT, UPDATE, DELETE) to keep counts and status accurate
+    const channel = supabase.channel('order-updates')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'orders' 
+      }, (payload) => {
+        // Only show toast for actual new inserts
+        if (payload.eventType === 'INSERT') {
+          const newOrder = payload.new as Order;
+          toast.success(
+            language === 'bn' 
+              ? `নতুন অর্ডার এসেছে: ${newOrder.order_number || '#' + newOrder.id.slice(0, 8)}` 
+              : `New Order Received: ${newOrder.order_number || '#' + newOrder.id.slice(0, 8)}`,
+            { icon: '🛍️', duration: 5000 }
+          );
+        }
+        
+        setLastUpdate(new Date());
+        loadOrders();
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') setRealtimeStatus('connected');
+        else if (status === 'CLOSED' || status === 'TIMED_OUT') setRealtimeStatus('connecting');
+        else if (status === 'CHANNEL_ERROR') setRealtimeStatus('error');
+      });
+
     return () => { supabase.removeChannel(channel); };
   }, []);
 
@@ -155,11 +203,17 @@ function AdminOrdersContent() {
     delivered: orders.filter((o: Order) => o.status === 'delivered').length,
     cancelled: orders.filter((o: Order) => o.status === 'cancelled').length,
     return: orders.filter((o: Order) => o.status === 'return').length,
+    'on-hold': orders.filter((o: Order) => o.status === 'on-hold').length,
+    risk: orders.filter((o: Order) => o.status === 'on-hold' || o.risk_badge === 'COD Risk').length,
   }), [orders]);
 
   const filteredOrders = useMemo(() => {
     let result = orders;
-    if (currentStatus !== "all") result = result.filter((o: Order) => o.status === currentStatus);
+    if (currentStatus === "risk") {
+      result = result.filter((o: Order) => o.status === 'on-hold' || o.risk_badge === 'COD Risk');
+    } else if (currentStatus !== "all") {
+      result = result.filter((o: Order) => o.status === currentStatus);
+    }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter((o: Order) => 
@@ -293,114 +347,150 @@ function AdminOrdersContent() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-amber-50 text-gold dark:bg-gold/10';
-      case 'confirmed': return 'bg-blue-50 text-blue-600 dark:bg-blue-500/10';
-      case 'processing': return 'bg-purple-50 text-purple-600 dark:bg-purple-500/10';
-      case 'shipped': return 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10';
-      case 'delivered': return 'bg-emerald-50 text-primary dark:bg-primary/10';
-      case 'cancelled': return 'bg-rose-50 text-rose-600 dark:bg-rose-500/10';
-      case 'return': return 'bg-slate-50 text-slate-600 dark:bg-white/10';
-      case 'on_hold': return 'bg-orange-50 text-orange-600 dark:bg-orange-500/10';
-      default: return 'bg-slate-50 text-slate-600 dark:bg-white/10';
+      case 'pending': return 'bg-amber-50 text-amber-600';
+      case 'confirmed': return 'bg-blue-50 text-blue-600';
+      case 'processing': return 'bg-purple-50 text-purple-600';
+      case 'shipped': return 'bg-indigo-50 text-indigo-600';
+      case 'delivered': return 'bg-emerald-50 text-emerald-600';
+      case 'cancelled': return 'bg-rose-50 text-rose-600';
+      case 'return': return 'bg-slate-100 text-slate-600';
+      case 'on_hold': return 'bg-orange-50 text-orange-600';
+      default: return 'bg-slate-100 text-slate-600';
     }
   };
 
   if (loading) return (
-    <div className="space-y-8 pb-32 max-w-[1400px] mx-auto animate-pulse">
-      <div className="h-32 bg-slate-100 dark:bg-white/3 rounded-xl" />
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">{[...Array(8)].map((_,i)=><div key={i} className="h-24 bg-slate-100 dark:bg-white/3 rounded-xl"/>)}</div>
-      <div className="h-96 bg-slate-100 dark:bg-white/3 rounded-xl" />
+    <div className="space-y-6 pb-32 max-w-[1400px] mx-auto animate-pulse">
+      <div className="h-24 bg-slate-100 rounded-xl" />
+      <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-8 gap-2">{[...Array(8)].map((_,i)=><div key={i} className="h-16 bg-slate-100 rounded-xl"/>)}</div>
+      <div className="h-64 bg-slate-100 rounded-xl" />
     </div>
   );
 
   return (
-    <div className="space-y-8 pb-32 max-w-[1400px] mx-auto selection:bg-primary/20">
+    <div className="space-y-6 pb-32 max-w-[1400px] mx-auto selection:bg-primary/20">
       {/* Header Banner */}
-      <div className="bg-linear-to-r from-primary to-emerald-700 rounded-xl p-7 text-white relative overflow-hidden shadow-lg shadow-primary/20">
-        <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-white/10 rounded-xl blur-3xl" />
+      <div className="bg-primary rounded-xl p-6 text-white relative overflow-hidden">
         <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <div className="flex items-center gap-4 mb-1">
-              <h1 className="text-3xl font-black tracking-tighter uppercase">{t("order_management")} 📂</h1>
-              <div className="flex items-center gap-1.5 px-4 py-1.5 bg-white/20 rounded-xl text-xs font-black backdrop-blur-md border border-white/10">
-                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-xl font-bold">{t("order_management")}</h1>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/15 rounded-xl text-xs font-medium">
+                <div className="w-1.5 h-1.5 bg-white rounded-xl animate-pulse" />
                 {orders.length} <span className="opacity-70">{t("total_label")}</span>
               </div>
             </div>
-            <p className="text-sm font-bold text-white/80 uppercase tracking-widest">{t("live_transaction_stream")}</p>
+            <p className="text-xs text-white/60 flex items-center gap-2">
+              {t("live_transaction_stream")} 
+              <span className="w-1 h-1 rounded-full bg-white/30" />
+              <span className="opacity-70">
+                {language === 'bn' ? 'শেষ আপডেট: ' : 'Last Sync: '} 
+                {lastUpdate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </span>
+            </p>
           </div>
-          <div className="flex gap-3">
-             <button onClick={exportCSV} className="px-4 py-2 bg-white/15 hover:bg-white/20 text-white rounded-xl text-xs font-semibold flex items-center gap-2 backdrop-blur-sm transition-all border border-white/10">
+          <div className="flex gap-2">
+             <button onClick={exportCSV} className="px-3 py-2 bg-white/15 hover:bg-white/25 text-white rounded-xl text-xs font-medium flex items-center gap-2 transition-all">
                <Download size={14} /> {t("export")}
              </button>
              {!isProduction && (
-               <button onClick={() => setIsCourierCenterOpen(true)} className="px-4 py-2 bg-white text-slate-900 rounded-xl text-xs font-bold hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 shadow-lg">
+               <button onClick={() => setIsCourierCenterOpen(true)} className="px-3 py-2 bg-white text-primary rounded-xl text-xs font-semibold hover:bg-white/90 transition-all flex items-center gap-2">
                  <Truck size={14} /> {t("dispatch")}
                </button>
              )}
-             <button onClick={loadOrders} className="w-10 h-10 bg-white/15 hover:bg-white/20 text-white rounded-xl flex items-center justify-center backdrop-blur-sm transition-all border border-white/10">
-               <RefreshCw size={14} />
+             <button 
+               onClick={async () => {
+                 const tId = toast.loading("কুরিয়ার থেকে আপডেট আনা হচ্ছে...");
+                 try {
+                   const res = await fetch("/api/admin/orders/sync", { method: "POST" });
+                   const data = await res.json();
+                   if (data.success) {
+                     toast.success(data.message || "সবগুলো অর্ডার আপডেট করা হয়েছে", { id: tId });
+                     loadOrders();
+                   } else {
+                     toast.error(data.message || "সিঙ্ক করতে সমস্যা হয়েছে", { id: tId });
+                   }
+                 } catch (err) {
+                   toast.error("Network error", { id: tId });
+                 }
+               }}
+               className="px-3 py-2 bg-white/15 hover:bg-white/25 text-white rounded-xl text-xs font-medium flex items-center gap-2 transition-all border border-white/10"
+               title="Sync all orders with courier status"
+             >
+               <RefreshCw size={14} className={isUpdating ? "animate-spin" : ""} /> {language === 'bn' ? "সিঙ্ক করুন" : "Sync All"}
+             </button>
+
+             <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-xl border border-white/10 ml-1">
+                <div className={`w-2 h-2 rounded-full animate-pulse ${
+                  realtimeStatus === 'connected' ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]' : 
+                  realtimeStatus === 'error' ? 'bg-rose-400' : 'bg-amber-400'
+                }`} />
+                <span className="text-[10px] font-black uppercase tracking-widest text-white/70">
+                  {realtimeStatus === 'connected' ? 'Live' : 'Syncing'}
+                </span>
+             </div>
+
+             <button onClick={loadOrders} className="w-9 h-9 bg-white/15 hover:bg-white/25 text-white rounded-xl flex items-center justify-center transition-all">
+               <RotateCcw size={14} className={loading ? 'animate-spin' : ''} />
              </button>
           </div>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2">
-        {STATUS_TABS.map((tab, i) => (
-          <div key={i} className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl p-2.5 shadow-sm hover:shadow-md transition-all cursor-default group flex items-center gap-2.5">
-            <div className={`w-8 h-8 rounded-lg ${tab.color.replace('text-', 'bg-')}/10 flex items-center justify-center shrink-0`}>
-              <tab.icon size={16} className={tab.color} />
+      <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
+        {TABS.map((tab, i) => (
+          <div key={i} className="bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 rounded-xl p-3 hover:shadow-sm transition-all cursor-default">
+            <div className={`w-7 h-7 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center mb-2`}>
+              <tab.icon size={13} className={tab.color} />
             </div>
-            <div className="min-w-0">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter truncate leading-none mb-1">{tab.label}</p>
-              <p className="text-lg font-black text-slate-900 dark:text-white leading-none">{statusCounts[tab.id as keyof typeof statusCounts] || 0}</p>
-            </div>
+            <p className="text-[9px] font-medium text-slate-400 truncate mb-0.5">{tab.label}</p>
+            <p className="text-base font-bold text-slate-900 dark:text-white">{statusCounts[tab.id as keyof typeof statusCounts] || 0}</p>
           </div>
         ))}
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="space-y-4">
-        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-2 rounded-xl border border-slate-200/80 dark:border-white/5 shadow-xl flex items-center gap-1 overflow-x-auto no-scrollbar">
-          {STATUS_TABS.map((tab) => (
+      <div className="space-y-2">
+        <div className="bg-white dark:bg-white/[0.03] p-1.5 rounded-xl border border-slate-200 dark:border-white/5 flex items-center gap-1 overflow-x-auto no-scrollbar">
+          {TABS.map((tab) => (
             <button 
               key={tab.id} 
               onClick={() => { const params = new URLSearchParams(searchParams); if (tab.id === 'all') params.delete('status'); else params.set("status", tab.id); router.push(`?${params.toString()}`); }} 
-              className={`px-4 py-2 rounded-xl text-[11px] font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${currentStatus === tab.id ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"}`}
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${currentStatus === tab.id ? "bg-primary text-white" : "text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5"}`}
             >
-              <tab.icon size={14} /> {tab.label}
+              <tab.icon size={11} /> {tab.label}
             </button>
           ))}
         </div>
 
-        <div className="bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200/80 dark:border-white/5 p-4 shadow-sm flex flex-col md:flex-row items-center gap-4">
-            <div className="relative group flex-1 w-full">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+        <div className="bg-white dark:bg-white/[0.03] rounded-xl border border-slate-200 dark:border-white/5 p-3 flex flex-col sm:flex-row items-center gap-3">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
               <input 
                 type="text" 
                 placeholder={t("search_orders")} 
                 value={searchQuery} 
                 onChange={(e) => setSearchQuery(e.target.value)} 
-                className="w-full h-11 pl-10 pr-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
+                className="w-full h-9 pl-9 pr-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" 
               />
             </div>
-            <div className="flex items-center gap-3 w-full md:w-auto">
-               <select className="h-11 px-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl text-xs font-semibold outline-none flex-1 md:flex-none" onChange={(e) => setFilters({...filters, paymentType: e.target.value})}>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+               <select className="h-9 px-3 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl text-xs font-medium outline-none dark:text-slate-300" onChange={(e) => setFilters({...filters, paymentType: e.target.value})}>
                  <option value="all">{t("all_payments")}</option>
                  <option value="cod">{t("cod")}</option>
                  <option value="bkash">{t("bkash")}</option>
                </select>
                {isAdmin && (
                  <div className="relative group">
-                   <button className="h-11 px-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-2 transition-all">
-                     <ListFilter size={14} /> {selectedOrders.length > 0 ? `${selectedOrders.length} ${t("selected")}` : t("bulk_actions")} <ChevronDown size={12} />
+                   <button className="h-9 px-3 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2 transition-all">
+                     <ListFilter size={12} /> {selectedOrders.length > 0 ? `${selectedOrders.length} ${t("selected")}` : t("bulk_actions")} <ChevronDown size={10} />
                    </button>
-                   <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all z-50 p-2">
-                      <button onClick={() => handleBulkStatusUpdate('confirmed')} className="w-full text-left px-3 py-2 text-xs font-medium hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2">{t("confirm_selected")}</button>
-                      <button onClick={() => handleBulkStatusUpdate('processing')} className="w-full text-left px-3 py-2 text-xs font-medium hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2">{t("processing_selected")}</button>
+                   <div className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-1">
+                      <button onClick={() => handleBulkStatusUpdate('confirmed')} className="w-full text-left px-3 py-2 text-xs font-medium hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl">{t("confirm_selected")}</button>
+                      <button onClick={() => handleBulkStatusUpdate('processing')} className="w-full text-left px-3 py-2 text-xs font-medium hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl">{t("processing_selected")}</button>
                       <div className="h-px bg-slate-100 dark:bg-white/5 my-1" />
-                      <button onClick={handleBulkDelete} className="w-full text-left px-3 py-2 text-xs font-medium hover:bg-rose-50 text-rose-600 rounded-xl flex items-center gap-2">{t("delete_selected")}</button>
+                      <button onClick={handleBulkDelete} className="w-full text-left px-3 py-2 text-xs font-medium hover:bg-rose-50 text-rose-600 rounded-xl">{t("delete_selected")}</button>
                    </div>
                  </div>
                )}
@@ -408,118 +498,132 @@ function AdminOrdersContent() {
         </div>
       </div>
 
-      {/* Main Table */}
-      <div className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto max-h-[800px] no-scrollbar">
-          <table className="w-full border-separate border-spacing-0">
-            <thead className="sticky top-0 z-20">
-              <tr className="bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-white/5">
-                <th className="px-6 py-5 text-left w-12 border-b border-slate-100 dark:border-white/5">
-                   <input type="checkbox" checked={selectedOrders.length === filteredOrders.length && filteredOrders.length > 0} onChange={() => { if (selectedOrders.length === filteredOrders.length) setSelectedOrders([]); else setSelectedOrders(filteredOrders.map((o: Order) => o.id)); }} className="rounded border-slate-300" />
+{/* Main Table */}
+      <div className="bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="sticky top-0 z-10">
+              <tr className="bg-slate-50 dark:bg-white/[0.03] border-b border-slate-200 dark:border-white/5">
+                <th className="px-4 py-3 text-left w-10">
+                   <input type="checkbox" checked={selectedOrders.length === filteredOrders.length && filteredOrders.length > 0} onChange={() => { if (selectedOrders.length === filteredOrders.length) setSelectedOrders([]); else setSelectedOrders(filteredOrders.map((o: Order) => o.id)); }} className="rounded-xl border-slate-300" />
                 </th>
-                <th className="px-6 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5">{t("order")}</th>
-                <th className="px-6 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5">{t("customer")}</th>
-                <th className="px-6 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5">{t("phone_number_label")}</th>
-                <th className="px-6 py-3.5 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5">{t("product_label")}</th>
-                <th className="px-6 py-3.5 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5">{t("total_label")}</th>
-                <th className="px-6 py-3.5 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5">{t("status")}</th>
-                <th className="px-6 py-3.5 text-right text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5">{t("action")}</th>
+                <th className="px-4 py-3 text-left text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase">{t("order")}</th>
+                <th className="px-4 py-3 text-left text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase">{t("customer")}</th>
+                <th className="px-4 py-3 text-left text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase">{t("phone_number_label")}</th>
+                <th className="px-4 py-3 text-left text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase">{t("product_label")}</th>
+                <th className="px-4 py-3 text-left text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase">{t("total_label")}</th>
+                <th className="px-4 py-3 text-left text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase">{t("status")}</th>
+                <th className="px-4 py-3 text-right text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase">{t("action")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
               {filteredOrders.map((o: Order) => (
                 <Fragment key={o.id}>
-                  <tr className="hover:bg-slate-50 dark:hover:bg-white/2 transition-colors group">
-                    <td className="px-6 py-3.5">
-                      <input type="checkbox" checked={selectedOrders.includes(o.id)} onChange={() => { if (selectedOrders.includes(o.id)) setSelectedOrders(selectedOrders.filter((id: string) => id !== o.id)); else setSelectedOrders([...selectedOrders, o.id]); }} className="rounded border-slate-300" />
+                    <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
+                    <td className="px-4 py-3">
+                      <input type="checkbox" checked={selectedOrders.includes(o.id)} onChange={() => { if (selectedOrders.includes(o.id)) setSelectedOrders(selectedOrders.filter((id: string) => id !== o.id)); else setSelectedOrders([...selectedOrders, o.id]); }} className="rounded-xl border-slate-300" />
                     </td>
-                    <td className="px-6 py-3.5">
+                    <td className="px-4 py-3">
                       <button 
                         onClick={() => router.push(`/admin/orders/${o.id}`)}
-                        className="text-xs font-black text-primary tracking-tighter hover:underline decoration-primary/30 text-left"
+                        className="text-xs font-semibold text-primary hover:underline"
                       >
                         {o.order_number || `#${o.id.split('-')[0].toUpperCase()}`}
                       </button>
-                      <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">{formatDate(o.created_at, 'MMM dd, yyyy', language)}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{formatDate(o.created_at, 'MMM dd', language)}</p>
                     </td>
-                    <td className="px-6 py-3.5">
-                      <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">{o.customer_name}</p>
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{o.district}</p>
+                    <td className="px-4 py-3">
+                      <p className="text-xs font-medium text-slate-900 dark:text-white">{o.customer_name}</p>
+                      <p className="text-[10px] text-slate-400">{o.district}</p>
                     </td>
-                    <td className="px-6 py-3.5">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2 group">
-                           <p className="text-xs font-black text-slate-700 dark:text-slate-300 font-mono tracking-tighter">{o.phone}</p>
-                           <button 
-                             onClick={() => { 
-                               const newSet = new Set(expandedFraudRows);
-                               if (newSet.has(o.id)) newSet.delete(o.id);
-                               else newSet.add(o.id);
-                               setExpandedFraudRows(newSet);
-                             }}
-                             className={`p-1 rounded-xl transition-all ${expandedFraudRows.has(o.id) ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-400 hover:text-primary'}`}
-                             title="Fraud Check"
-                           >
-                             <ShieldCheck size={12} />
-                           </button>
-                        </div>
-                        <FraudMiniScore phone={o.phone} />
-                      </div>
+                    <td className="px-4 py-3">
+                       <div className="flex flex-col gap-1">
+                         <div className="flex items-center gap-1.5">
+                            <p className="text-xs font-mono text-slate-700 dark:text-slate-300">{o.phone}</p>
+                            {(o.risk_badge || o.otp_verified) && (
+                              <div className="flex items-center gap-1">
+                                {o.risk_badge && (
+                                  <div className={`px-1.5 py-0.5 rounded-xl text-[8px] font-black uppercase tracking-tight ${
+                                    o.risk_badge === 'Trusted Buyer' ? 'bg-emerald-500/10 text-emerald-600' :
+                                    o.risk_badge === 'Manual Verified Buyer' ? 'bg-blue-500/10 text-blue-600' :
+                                    o.risk_badge === 'COD Risk' ? 'bg-amber-500/10 text-amber-600' :
+                                    'bg-rose-500/10 text-rose-600'
+                                  }`}>
+                                    {o.risk_badge === 'Trusted Buyer' ? 'Trusted' : o.risk_badge === 'Manual Verified Buyer' ? 'Verified' : o.risk_badge}
+                                  </div>
+                                )}
+                                {o.otp_verified && (
+                                  <div className="w-4 h-4 rounded-xl bg-emerald-500 text-white flex items-center justify-center" title="OTP Verified">
+                                    <Check size={8} strokeWidth={4} />
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            <button 
+                              onClick={() => { 
+                                const newSet = new Set(expandedFraudRows);
+                                if (newSet.has(o.id)) newSet.delete(o.id);
+                                else newSet.add(o.id);
+                                setExpandedFraudRows(newSet);
+                              }}
+                              className={`p-1 rounded-xl transition-all ${expandedFraudRows.has(o.id) ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-primary'}`}
+                              title="Fraud Check"
+                            >
+                              <ShieldCheck size={10} />
+                            </button>
+                         </div>
+                         <FraudMiniScore phone={o.phone} />
+                       </div>
                     </td>
-                    <td className="px-6 py-3.5">
-                       <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 overflow-hidden border border-slate-200 dark:border-white/10 p-1 flex-shrink-0 group-hover:scale-110 transition-transform">
-                            {o.items?.[0]?.image ? <img src={o.items[0].image} alt="" className="w-full h-full object-cover rounded-xl" /> : <Package size={14} className="m-auto h-full text-slate-300" />}
+                    <td className="px-4 py-3">
+                       <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-xl bg-slate-100 dark:bg-white/5 overflow-hidden shrink-0">
+                            {o.items?.[0]?.image ? <img src={o.items[0].image} alt="" className="w-full h-full object-cover" /> : <Package size={12} className="m-auto text-slate-300" />}
                           </div>
                           <div className="min-w-0">
-                             <p className="text-[11px] font-bold text-slate-900 dark:text-white truncate max-w-[120px] uppercase tracking-tight">{o.items?.[0]?.name || 'N/A'}</p>
-                             <p className="text-[9px] font-medium text-slate-400">Qty: {o.items?.[0]?.qty || o.items?.[0]?.quantity || 1}</p>
+                             <p className="text-[10px] font-medium text-slate-900 dark:text-white truncate max-w-[90px]">{o.items?.[0]?.name || 'N/A'}</p>
+                             <p className="text-[9px] text-slate-400">Qty: {o.items?.[0]?.qty || o.items?.[0]?.quantity || 1}</p>
                           </div>
                        </div>
                     </td>
-                    <td className="px-6 py-3.5"><span className="text-xs font-black text-slate-950 dark:text-white tracking-tighter">৳{(Number(o.total)||0).toLocaleString()}</span></td>
-                    <td className="px-6 py-3.5"><span className={`px-3 py-1.5 rounded-xl text-[9px] font-black tracking-widest ${getStatusColor(o.status)}`}>{t(o.status)}</span></td>
-                    <td className="px-6 py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="px-4 py-3"><span className="text-xs font-bold text-slate-900 dark:text-white">৳{(Number(o.total)||0).toLocaleString()}</span></td>
+                    <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-xl text-[9px] font-medium ${getStatusColor(o.status)}`}>{t(o.status)}</span></td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
                          {o.status === 'pending' && (
                            <>
-                             <button onClick={() => setConfirmOrder(o)} className="px-3 py-2 bg-primary text-white rounded-xl text-[10px] font-black flex items-center gap-1.5 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"><Check size={12} strokeWidth={3}/> {t("confirm_order")}</button>
-                             <button onClick={() => setCancelOrder(o)} className="px-3 py-2 bg-rose-500 text-white rounded-xl text-[10px] font-black flex items-center gap-1.5 shadow-lg shadow-rose-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"><X size={12} strokeWidth={3}/> {t("cancel_btn")}</button>
+                             <button onClick={() => setConfirmOrder(o)} className="px-2.5 py-1.5 bg-primary text-white rounded-xl text-[10px] font-medium flex items-center gap-1 hover:bg-primary/90 transition-all"><Check size={10} /> {t("confirm_order")}</button>
+                             <button onClick={() => setCancelOrder(o)} className="px-2.5 py-1.5 bg-rose-500 text-white rounded-xl text-[10px] font-medium flex items-center gap-1 hover:bg-rose-600 transition-all"><X size={10} /> {t("cancel_btn")}</button>
                            </>
                          )}
                          
-                         {o.status === 'confirmed' && (
-                           <>
-                             <div className="relative group">
-                               <button 
-                                 onClick={() => router.push(`/admin/orders/${o.id}?print=true`)}
-                                 className="px-3 py-2 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-[10px] font-black flex items-center gap-1.5 shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all"
-                               >
-                                 <Printer size={12} strokeWidth={3}/> {t("print")}
-                               </button>
-                               <div className="absolute left-full ml-4 px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[9px] font-black uppercase tracking-widest rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-100 shadow-2xl">
-                                 {t("print_invoice")}
-                               </div>
-                             </div>
-                             {isProduction && (
-                               <button 
-                                 onClick={async () => {
-                                   setIsUpdating(true);
-                                   const { error } = await supabase.from('orders').update({ status: 'processing' }).eq('id', o.id);
-                                   if (!error) {
-                                     toast.success("Order marked as Packing/Processing");
-                                     logActivity("pack_order", `Marked order ${o.order_number || '#' + o.id.split('-')[0]} as processing`);
-                                     loadOrders();
-                                   }
-                                   setIsUpdating(false);
-                                 }}
-                                 className="px-3 py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-black flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                               >
-                                 <Package size={12} strokeWidth={3}/> {t("pack_order")}
-                               </button>
-                             )}
-                             {!isProduction && (
-                               <Popover>
+{o.status === 'confirmed' && (
+                            <>
+                              <button 
+                                onClick={() => router.push(`/admin/orders/${o.id}?print=true`)}
+                                className="px-2.5 py-1.5 bg-slate-900 text-white rounded-xl text-[10px] font-medium flex items-center gap-1 hover:bg-slate-800 transition-all"
+                              >
+                                <Printer size={10} /> {t("print")}
+                              </button>
+                              {isProduction && (
+                                <button 
+                                  onClick={async () => {
+                                    setIsUpdating(true);
+                                    const { error } = await supabase.from('orders').update({ status: 'processing' }).eq('id', o.id);
+                                    if (!error) {
+                                      toast.success("Order marked as Packing/Processing");
+                                      logActivity("pack_order", `Marked order ${o.order_number || '#' + o.id.split('-')[0]} as processing`);
+                                      loadOrders();
+                                    }
+                                    setIsUpdating(false);
+                                  }}
+                                  className="px-2.5 py-1.5 bg-emerald-600 text-white rounded-xl text-[10px] font-medium flex items-center gap-1 hover:bg-emerald-700 transition-all"
+                                >
+                                  <Package size={10} /> {t("pack_order")}
+                                </button>
+                              )}
+                              {!isProduction && (
+                                <Popover>
                                  <PopoverTrigger asChild>
                                    <button className="px-3 py-2 bg-blue-600 text-white rounded-xl text-[10px] font-black flex items-center gap-1.5 shadow-lg shadow-blue-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
                                      <Send size={12} strokeWidth={3}/> {t("send_to_courier")}

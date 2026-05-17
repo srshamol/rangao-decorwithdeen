@@ -9,7 +9,7 @@ import {
   MapPin, Printer, Phone, MessageSquare, X, 
   CheckCircle2, Clock, History, LayoutDashboard,
   ExternalLink, Copy, Bell, RotateCcw, Pencil,
-  AlertCircle, Send, Check, Save
+  AlertCircle, Send, Check, Save, ShieldCheck
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -482,6 +482,16 @@ export default function OrderDetailPage() {
             <Badge className={`px-4 py-1.5 rounded-xl text-[10px] font-black tracking-widest border uppercase ${getStatusColor(order.status)}`}>
               {order.status}
             </Badge>
+            {(order.risk_badge || fraudResult?.risk_badge) && (
+              <Badge className={`px-4 py-1.5 rounded-xl text-[10px] font-black tracking-widest border uppercase ${
+                (order.risk_badge || fraudResult?.risk_badge) === 'Trusted Buyer' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
+                (order.risk_badge || fraudResult?.risk_badge) === 'Manual Verified Buyer' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
+                (order.risk_badge || fraudResult?.risk_badge) === 'COD Risk' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
+                'bg-rose-500/10 text-rose-600 border-rose-500/20'
+              }`}>
+                {order.risk_badge || fraudResult?.risk_badge}
+              </Badge>
+            )}
           </div>
           <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
             <Clock size={14} />
@@ -531,7 +541,7 @@ export default function OrderDetailPage() {
               <TabsTrigger
                 key={tab.id}
                 value={tab.id}
-                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-0 text-sm font-bold text-slate-500 transition-all gap-2"
+                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-xl h-12 px-0 text-sm font-bold text-slate-500 transition-all gap-2"
               >
                 <tab.icon size={16} />
                 {tab.label}
@@ -572,6 +582,95 @@ export default function OrderDetailPage() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Risk Analysis */}
+                <Card className="lg:col-span-1 border-slate-100 dark:border-white/5 rounded-xl shadow-xl shadow-slate-100/50 overflow-hidden relative">
+                  {(order.risk_score || fraudResult?.risk_score) !== undefined && (
+                    <div className="absolute top-0 right-0 p-6">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm shadow-inner ${
+                        (order.risk_score || fraudResult?.risk_score) >= 80 ? 'bg-emerald-500/10 text-emerald-600' :
+                        (order.risk_score || fraudResult?.risk_score) >= 50 ? 'bg-amber-500/10 text-amber-600' :
+                        'bg-rose-500/10 text-rose-600'
+                      }`}>
+                        {order.risk_score || fraudResult?.risk_score}%
+                      </div>
+                    </div>
+                  )}
+                  <CardContent className="p-8 space-y-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center text-white">
+                        <ShieldCheck size={24} />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black tracking-tight">রিস্ক এনালাইসিস</h3>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Courier Success Profile</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-100 dark:border-white/5 space-y-1">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">মোট ডেলিভারি</p>
+                        <p className="text-lg font-black text-slate-900 dark:text-white">
+                          {fraudResult?.details?.delivered_orders ?? (order.risk_score ? 'N/A' : '...')}
+                        </p>
+                      </div>
+                      <div className="p-4 bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-100 dark:border-white/5 space-y-1">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">ক্যান্সেল/রিটার্ন</p>
+                        <p className="text-lg font-black text-slate-900 dark:text-white">
+                          {fraudResult?.details ? (fraudResult.details.cancelled_orders + fraudResult.details.returned_orders) : (order.risk_score ? 'N/A' : '...')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">OTP ভেরিফিকেশন</p>
+                        {order.otp_verified ? (
+                          <span className="flex items-center gap-1.5 text-[10px] font-black text-emerald-600 uppercase">
+                            <Check size={12} strokeWidth={3} /> Verified
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase">
+                            <X size={12} strokeWidth={3} /> Not Verified
+                          </span>
+                        )}
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Success Probability</p>
+                          <span className="text-[10px] font-black text-slate-900 dark:text-white">{order.risk_score || fraudResult?.risk_score || 0}%</span>
+                        </div>
+                        <div className="h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${order.risk_score || fraudResult?.risk_score || 0}%` }}
+                            className={`h-full ${
+                              (order.risk_score || fraudResult?.risk_score) >= 80 ? 'bg-emerald-500' :
+                              (order.risk_score || fraudResult?.risk_score) >= 50 ? 'bg-amber-500' :
+                              'bg-rose-500'
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {order.system_recommendation && (
+                      <div className={`mt-6 p-4 rounded-xl border ${
+                        order.system_recommendation.includes('TRUSTED') 
+                          ? 'bg-emerald-50 border-emerald-100 text-emerald-800 dark:bg-emerald-500/5 dark:border-emerald-500/10 dark:text-emerald-400' 
+                          : order.system_recommendation.includes('ALERT') || order.system_recommendation.includes('RISK')
+                          ? 'bg-rose-50 border-rose-100 text-rose-800 dark:bg-rose-500/5 dark:border-rose-500/10 dark:text-rose-400'
+                          : 'bg-amber-50 border-amber-100 text-amber-800 dark:bg-amber-500/5 dark:border-amber-500/10 dark:text-amber-400'
+                      }`}>
+                        <div className="flex items-center gap-3 mb-1">
+                          <Zap size={14} className="animate-pulse" />
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em]">System Recommendation</p>
+                        </div>
+                        <p className="text-xs font-bold leading-relaxed">{order.system_recommendation}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
                 {/* Customer Info */}
                 <Card className="lg:col-span-1 border-slate-100 dark:border-white/5 rounded-xl shadow-xl shadow-slate-100/50">
                   <CardContent className="p-8 space-y-6">
@@ -610,6 +709,26 @@ export default function OrderDetailPage() {
                       <div className="space-y-1">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ঠিকানা</p>
                         <p className="text-sm font-medium text-slate-600 dark:text-slate-400">{order.address}</p>
+                      </div>
+
+                      <div className="pt-6 border-t border-slate-100 dark:border-white/5 space-y-4">
+                        <div className="flex items-center gap-3">
+                           <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-600">
+                              <Globe size={18} />
+                           </div>
+                           <div className="flex-1">
+                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Device Intelligence</p>
+                              <p className="text-xs font-black text-slate-900 dark:text-white truncate max-w-[200px]">
+                                 {order.ip_address || "No IP logged"}
+                              </p>
+                           </div>
+                        </div>
+                        <div className="p-4 bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-100 dark:border-white/5">
+                           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">User Agent</p>
+                           <p className="text-[10px] font-medium text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2">
+                              {order.user_agent || "No device metadata available"}
+                           </p>
+                        </div>
                       </div>
 
                       {/* Fraud Check Result Badge */}

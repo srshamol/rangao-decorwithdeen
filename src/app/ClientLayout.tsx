@@ -269,30 +269,51 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
   const [showDeferred, setShowDeferred] = React.useState(false);
 
   useEffect(() => {
-    // Delay non-critical components by 1s to prioritize initial render
     const timer = setTimeout(() => setShowDeferred(true), 1500);
     return () => clearTimeout(timer);
   }, []);
 
+  if (isAdmin) return <>{children}</>;
+
   return (
-    <>
+    <div className="min-h-screen flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
+      {/* Custom Code Injection */}
+      {settings?.general_settings?.custom_css && (
+        <style id="custom-css" dangerouslySetInnerHTML={{ __html: settings.general_settings.custom_css }} />
+      )}
+      {settings?.general_settings?.custom_js && (
+        <script id="custom-js" dangerouslySetInnerHTML={{ __html: settings.general_settings.custom_js }} />
+      )}
+
       <ScrollProgress />
-      {showDeferred && <VisitorTracker />}
-      <Suspense fallback={null}>
-        <CartRecoveryHandler />
-      </Suspense>
-      {!isAdmin && <Header />}
-      <main className={isAdmin ? "" : "min-h-screen"}>
-        {children}
+      <Header />
+      <SearchOverlay />
+      
+      <main className="flex-1 overflow-hidden">
+        <Suspense fallback={<div className="h-screen" />}>
+          <CartRecoveryHandler />
+        </Suspense>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={pathname}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
-      {!isAdmin && <Footer />}
-      {showDeferred && !isAdmin && (
+
+      <Footer />
+      {showDeferred && (
         <>
-          <WhatsAppButton />
           <BottomNav />
-          <SearchOverlay />
+          <WhatsAppButton />
+          <VisitorTracker />
         </>
       )}
-    </>
+    </div>
   );
 }

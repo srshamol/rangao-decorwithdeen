@@ -27,6 +27,7 @@ export function ProductCard({ id, name, name_bn, price, old_price, images, badge
   const { addItem } = useCart();
   const { language, t } = useLanguage();
   const [isHovered, setIsHovered] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const displayName = language === "bn" ? name_bn : name;
 
@@ -34,6 +35,12 @@ export function ProductCard({ id, name, name_bn, price, old_price, images, badge
     e.preventDefault();
     e.stopPropagation();
     addItem({ id, name, name_bn, price, image: images[0] || "" });
+  };
+
+  const handleBuyNow = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsCheckoutOpen(true);
   };
 
   const discount = old_price ? Math.round(((old_price - price) / old_price) * 100) : 0;
@@ -76,14 +83,14 @@ export function ProductCard({ id, name, name_bn, price, old_price, images, badge
             
             {/* Discount Badge */}
             {discount > 0 && (
-              <div className="absolute top-3 left-3 bg-[#0F3D2E] text-white text-[11px] font-black px-2.5 py-1 rounded-md shadow-lg z-10">
+              <div className="absolute top-3 left-3 bg-[#0F3D2E] text-white text-[11px] font-black px-2.5 py-1 rounded-xl shadow-lg z-10">
                 -{discount}%
               </div>
             )}
 
             {/* Wishlist Button */}
             <button 
-              className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center text-slate-400 hover:text-rose-500 hover:scale-110 transition-all shadow-md z-10"
+              className="absolute top-3 right-3 w-8 h-8 bg-white rounded-xl flex items-center justify-center text-slate-400 hover:text-rose-500 hover:scale-110 transition-all shadow-md z-10"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -118,14 +125,10 @@ export function ProductCard({ id, name, name_bn, price, old_price, images, badge
             {/* Action Buttons */}
             <div className="mt-auto flex items-center gap-2">
               <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleQuickAdd(e);
-                }}
+                onClick={handleBuyNow}
                 className="flex-1 h-9 md:h-10 bg-[#0F3D2E] hover:bg-[#0F3D2E]/90 text-white rounded-xl flex items-center justify-center text-[11px] md:text-[13px] font-black transition-all duration-300 shadow-md active:scale-[0.98]"
               >
-                {language === 'bn' ? 'অ্যাড করুন' : 'Add'}
+                {t("buy_now")}
               </button>
               <Button 
                 onClick={handleQuickAdd}
@@ -138,6 +141,12 @@ export function ProductCard({ id, name, name_bn, price, old_price, images, badge
           </div>
         </div>
       </Link>
+      <CheckoutModal 
+        isOpen={isCheckoutOpen} 
+        onClose={() => setIsCheckoutOpen(false)} 
+        items={[{ id, name, name_bn, price, image: images[0] || "", quantity: 1 }]} 
+        total={price}
+      />
     </motion.div>
   );
 }

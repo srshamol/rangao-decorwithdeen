@@ -45,7 +45,7 @@ export function MobileSideMenu({ isOpen, onClose }: MobileSideMenuProps) {
              {homeSettings.show_logo !== false && (gen.logo ? (
                 <img src={gen.logo} alt={gen.store_name || "Rangao"} className="h-14 w-auto object-contain mx-auto" />
              ) : (
-                <div className="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-emerald-600/20 mx-auto">
+                <div className="w-14 h-14 bg-emerald-600 rounded-xl flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-emerald-600/20 mx-auto">
                   {(gen.store_name || "Rangao").charAt(0).toUpperCase()}
                 </div>
              ))}
@@ -61,7 +61,7 @@ export function MobileSideMenu({ isOpen, onClose }: MobileSideMenuProps) {
                  key={link.href} 
                  href={link.href} 
                  onClick={onClose}
-                 className="flex items-center justify-between p-4 rounded-2xl text-slate-700 hover:bg-slate-50 hover:text-primary transition-all group"
+                 className="flex items-center justify-between p-4 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-primary transition-all group"
                >
                  <span className="font-bold text-[15px]">{bn ? link.label_bn : link.label_en}</span>
                  <ChevronRight size={16} className="text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all" />
@@ -73,7 +73,7 @@ export function MobileSideMenu({ isOpen, onClose }: MobileSideMenuProps) {
              <p className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("settings_title")}</p>
              <button 
                onClick={() => { setLanguage(bn ? 'en' : 'bn'); onClose(); }}
-               className="w-full flex items-center justify-between p-4 rounded-2xl text-slate-700 hover:bg-slate-50 transition-all group"
+               className="w-full flex items-center justify-between p-4 rounded-xl text-slate-700 hover:bg-slate-50 transition-all group"
              >
                <div className="flex items-center gap-3">
                  <Globe size={18} className="text-slate-400" />
@@ -84,7 +84,7 @@ export function MobileSideMenu({ isOpen, onClose }: MobileSideMenuProps) {
              <Link 
                href="/account" 
                onClick={onClose}
-               className="flex items-center justify-between p-4 rounded-2xl text-slate-700 hover:bg-slate-50 transition-all group"
+               className="flex items-center justify-between p-4 rounded-xl text-slate-700 hover:bg-slate-50 transition-all group"
              >
                <div className="flex items-center gap-3">
                  <User size={18} className="text-slate-400" />
@@ -96,8 +96,8 @@ export function MobileSideMenu({ isOpen, onClose }: MobileSideMenuProps) {
         </div>
 
         <div className="p-6 border-t border-slate-50 space-y-4">
-           <div className="bg-slate-50 rounded-2xl p-4 flex items-center gap-4 border border-slate-100">
-              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+           <div className="bg-slate-50 rounded-xl p-4 flex items-center gap-4 border border-slate-100">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
                  <Phone size={18} />
               </div>
               <div>
@@ -106,7 +106,7 @@ export function MobileSideMenu({ isOpen, onClose }: MobileSideMenuProps) {
               </div>
            </div>
            
-           <Button asChild className="w-full h-14 rounded-2xl bg-[#25D366] hover:bg-[#1fb355] text-white font-black text-sm gap-2 shadow-lg shadow-[#25D366]/20">
+           <Button asChild className="w-full h-14 rounded-xl bg-[#25D366] hover:bg-[#1fb355] text-white font-black text-sm gap-2 shadow-lg shadow-[#25D366]/20">
               <a href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer">
                  <MessageCircle size={20} />
                  {t("whatsapp_chat")}

@@ -28,6 +28,7 @@ export function Hero() {
               alt="Islamic Home Decor Lifestyle"
               fill
               priority
+              sizes="(max-width: 1024px) 100vw, 0vw"
               className="object-cover"
               style={{ objectPosition: 'center' }}
             />
@@ -54,6 +55,7 @@ export function Hero() {
               alt="Islamic Home Decor Lifestyle"
               fill
               priority
+              sizes="(max-width: 1024px) 0vw, 50vw"
               className="object-cover"
             />
             {/* Extended soft blending gradient matching the background */}

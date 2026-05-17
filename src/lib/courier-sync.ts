@@ -7,20 +7,22 @@ import { checkRedxStatus } from "@/lib/redx";
 function mapExternalStatus(externalStatus: string): string | null {
   const s = externalStatus.toLowerCase();
   if (s.includes('delivered')) return 'delivered';
-  if (s.includes('cancelled') || s.includes('rejected')) return 'cancelled';
+  if (s.includes('cancelled') || s.includes('rejected') || s.includes('failed')) return 'cancelled';
   if (s.includes('return')) return 'return';
+  if (s.includes('shipped') || s.includes('transit') || s.includes('picked up') || s.includes('dispatched') || s.includes('out for delivery')) return 'shipped';
   return null;
 }
 
 /**
- * Synchronizes all shipped orders with their external courier statuses.
+ * Synchronizes all active orders with their external courier statuses.
  */
 export async function syncOrdersStatus() {
   try {
+    // Check both 'processing' and 'shipped' orders
     const { data: orders, error } = await supabase
       .from("orders")
       .select("*")
-      .eq("status", "shipped")
+      .in("status", ["processing", "shipped"])
       .not("tracking_id", "is", null)
       .not("courier_name", "is", null);
 
@@ -41,6 +43,7 @@ export async function syncOrdersStatus() {
 
         if (externalStatus) {
           const newInternalStatus = mapExternalStatus(externalStatus);
+          // Only update if the status has actually changed
           if (newInternalStatus && newInternalStatus !== order.status) {
             const existingTimeline = Array.isArray(order.timeline) ? order.timeline : [];
             updates.push({
@@ -62,15 +65,25 @@ export async function syncOrdersStatus() {
     }
 
     if (updates.length > 0) {
+      // Use individual updates for now to ensure timeline consistency
       for (const update of updates) {
         await supabase
           .from("orders")
-          .update({ status: update.status, timeline: update.timeline as any })
+          .update({ 
+            status: update.status, 
+            timeline: update.timeline as any 
+          })
           .eq("id", update.id);
       }
     }
 
-    return { success: true, synced: syncedCount, message: `Synchronization complete. ${syncedCount} orders updated.` };
+    return { 
+      success: true, 
+      synced: syncedCount, 
+      message: syncedCount > 0 
+        ? `সফলভাবে ${syncedCount} টি অর্ডারের স্ট্যাটাস আপডেট করা হয়েছে।` 
+        : "সবগুলো অর্ডারের স্ট্যাটাস ইতিমধ্যে আপ-টু-ডেট আছে।" 
+    };
   } catch (error: any) {
     console.error("Sync Error:", error);
     return { success: false, message: error.message };

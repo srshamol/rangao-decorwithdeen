@@ -73,12 +73,12 @@ export function WhyChoose() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1, duration: 0.5 }}
-                className="bg-white rounded-2xl p-8 border border-slate-100 flex flex-col items-center text-center hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-shadow duration-300"
+                className="bg-white rounded-xl p-8 border border-slate-100 flex flex-col items-center text-center hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-shadow duration-300"
               >
                 {/* Icon with light green blob background */}
                 <div className="relative mb-6">
                   {/* Abstract blob shape background */}
-                  <div className="absolute inset-0 bg-[#E8F3EB] rounded-[40%_60%_70%_30%/40%_50%_60%_50%] scale-150 transform transition-transform duration-500 hover:rotate-12" />
+                  <div className="absolute inset-0 bg-[#E8F3EB] rounded-xl scale-150 transform transition-transform duration-500 hover:rotate-12" />
                   <div className="relative z-10 w-16 h-16 flex items-center justify-center text-[#2F6B4A]">
                     <Icon size={32} strokeWidth={1.5} />
                   </div>

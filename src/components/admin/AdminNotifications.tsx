@@ -146,15 +146,15 @@ export function AdminNotifications() {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-400 hover:text-primary transition-all group relative bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10"
+        className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-primary transition-all group relative bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10"
       >
         <Bell size={18} className="relative z-10 group-hover:scale-110 transition-transform" />
         {unreadCount > 0 && (
-          <span className="absolute -top-2 -right-2 min-w-[20px] h-[20px] px-1 bg-rose-500 rounded-full border-2 border-white dark:border-[#0c0c0c] z-20 flex items-center justify-center text-[10px] font-black text-white shadow-lg shadow-rose-500/20 animate-in zoom-in duration-300">
+          <span className="absolute -top-2 -right-2 min-w-[20px] h-[20px] px-1 bg-rose-500 rounded-xl border-2 border-white dark:border-[#0c0c0c] z-20 flex items-center justify-center text-[10px] font-black text-white shadow-lg shadow-rose-500/20 animate-in zoom-in duration-300">
             {unreadCount}
           </span>
         )}
-        <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" />
+        <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
       </button>
 
       <AnimatePresence>
@@ -177,7 +177,7 @@ export function AdminNotifications() {
               </div>
               <button 
                 onClick={clearAll}
-                className="px-3 py-1.5 flex items-center gap-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-all text-[10px] font-bold uppercase tracking-wider border border-transparent hover:border-rose-100 dark:hover:border-rose-500/20"
+                className="px-3 py-1.5 flex items-center gap-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-all text-[10px] font-bold uppercase tracking-wider border border-transparent hover:border-rose-100 dark:hover:border-rose-500/20"
                 title={t("clear_all")}
               >
                 <CheckCircle2 size={12} />
@@ -201,7 +201,7 @@ export function AdminNotifications() {
                       }}
                       className="flex gap-4 p-4 hover:bg-slate-50 dark:hover:bg-white/3 transition-all group relative border-b border-slate-50 dark:border-white/2 last:border-0"
                     >
-                      <div className={`w-12 h-12 shrink-0 rounded-lg ${notif.bg} flex items-center justify-center ${notif.color} group-hover:scale-110 transition-transform`}>
+                      <div className={`w-12 h-12 shrink-0 rounded-xl ${notif.bg} flex items-center justify-center ${notif.color} group-hover:scale-110 transition-transform`}>
                         <notif.icon size={20} />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -225,7 +225,7 @@ export function AdminNotifications() {
                         e.preventDefault();
                         markAsRead(notif.id);
                       }}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-100 dark:hover:border-rose-500/20 opacity-0 group-hover/item:opacity-100 transition-all shadow-sm z-10"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-100 dark:hover:border-rose-500/20 opacity-0 group-hover/item:opacity-100 transition-all shadow-sm z-10"
                       title={t("dismiss")}
                     >
                       <X size={14} />
@@ -234,7 +234,7 @@ export function AdminNotifications() {
                 ))
               ) : (
                 <div className="py-20 flex flex-col items-center justify-center text-center px-10">
-                  <div className="w-16 h-16 bg-slate-50 dark:bg-white/5 rounded-lg flex items-center justify-center text-slate-300 dark:text-slate-600 mb-4  font-black text-4xl">!</div>
+                  <div className="w-16 h-16 bg-slate-50 dark:bg-white/5 rounded-xl flex items-center justify-center text-slate-300 dark:text-slate-600 mb-4  font-black text-4xl">!</div>
                   <p className="text-sm font-bold text-slate-900 dark:text-white">{t("no_notifications")}</p>
                   <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mt-1 ">
                     {t("smooth_running")}
@@ -248,7 +248,7 @@ export function AdminNotifications() {
               <Link 
                 href="/admin/notifications" 
                 onClick={() => setIsOpen(false)}
-                className="w-full h-11 flex items-center justify-center gap-2 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all  group"
+                className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all  group"
               >
                 {t("view_all")}
                 <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />

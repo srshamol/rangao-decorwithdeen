@@ -5,75 +5,31 @@ import {
   Settings, Globe, Layout, ShieldAlert, Smartphone,
   MessageSquare, Truck, BarChart3, Database, Megaphone,
   Zap, Save, Loader2, AlertTriangle, Check, X,
-  ChevronRight, Flame, Info, Bell, Menu
+  ChevronRight, Flame, Info, Bell, Menu, Palette, RefreshCw
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/lib/language-context";
+import { AdminSettings as AdminSettingsType, OrderNotifications, LowStockAlerts, CustomerNotification } from "@/types/admin";
 
 // Settings sub-components
-import { GeneralSettings } from "@/components/admin/settings/GeneralSettings";
-import { HomepageSettings } from "@/components/admin/settings/HomepageSettings";
 import { OrderControlSettings } from "@/components/admin/settings/OrderControlSettings";
-import { OTPSettings } from "@/components/admin/settings/OTPSettings";
-import { SMSGatewaySettings } from "@/components/admin/settings/SMSGatewaySettings";
 import { CourierSettings } from "@/components/admin/settings/CourierSettings";
-import { FacebookCAPISettings } from "@/components/admin/settings/FacebookCAPISettings";
-import { FirebaseSettings } from "@/components/admin/settings/FirebaseSettings";
 import { MarketingSettings } from "@/components/admin/settings/MarketingSettings";
 import { AutomationSettings } from "@/components/admin/settings/AutomationSettings";
+import { FacebookCAPISettings } from "@/components/admin/settings/FacebookCAPISettings";
 import { NotificationSettings } from "@/components/admin/settings/NotificationSettings";
-import { NavigationSettings } from "@/components/admin/settings/NavigationSettings";
+import { OTPSettings } from "@/components/admin/settings/OTPSettings";
+import { SMSGatewaySettings } from "@/components/admin/settings/SMSGatewaySettings";
+import { FirebaseSettings } from "@/components/admin/settings/FirebaseSettings";
+import { APISettings } from "@/components/admin/settings/APISettings";
 
 const getSettingsTabs = (t: (key: string) => string) => [
-  { id: "general", label: t("general"), icon: Globe, desc: t("company_info"), color: "text-primary", bg: "bg-emerald-50 dark:bg-primary/10" },
-  { id: "homepage", label: t("homepage"), icon: Layout, desc: t("frontend_control"), color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-500/10" },
-  { id: "order_control", label: t("order_control"), icon: ShieldAlert, desc: t("anti_fraud"), color: "text-rose-600", bg: "bg-rose-50 dark:bg-rose-500/10" },
-  { id: "otp", label: t("otp_sms"), icon: Smartphone, desc: t("verification"), color: "text-gold", bg: "bg-amber-50 dark:bg-gold/10" },
-  { id: "courier", label: t("courier"), icon: Truck, desc: t("logistics"), color: "text-indigo-600", bg: "bg-indigo-50 dark:bg-indigo-500/10" },
-  { id: "capi", label: t("facebook_capi"), icon: BarChart3, desc: t("tracking"), color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-500/10" },
-  { id: "firebase", label: t("firebase"), icon: Database, desc: t("infrastructure"), color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-500/10" },
-  { id: "marketing", label: t("marketing"), icon: Megaphone, desc: t("growth_engine"), color: "text-purple-600", bg: "bg-purple-50 dark:bg-purple-500/10", badge: "NEW" },
-  { id: "automation", label: t("automation"), icon: Flame, desc: t("cart_recovery"), color: "text-pink-600", bg: "bg-pink-50 dark:bg-pink-500/10" },
-  { id: "notifications", label: t("notifications"), icon: Bell, desc: t("alert_settings"), color: "text-red-600", bg: "bg-red-50 dark:bg-red-500/10" },
-  { id: "navigation", label: t("navigation"), icon: Menu, desc: t("header_menu_control"), color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
+  { id: "operations", label: t("ops_logistics") || "Operations & Logistics", icon: Truck, desc: t("ops_desc") || "Orders, Shipping, Fraud", color: "text-indigo-600", bg: "bg-indigo-50 dark:bg-indigo-500/10" },
+  { id: "growth", label: t("growth_marketing") || "Growth & Marketing", icon: Megaphone, desc: t("growth_desc") || "Campaigns, CAPI, Recovery", color: "text-purple-600", bg: "bg-purple-50 dark:bg-purple-500/10" },
+  { id: "infrastructure", label: t("tech_infra") || "Technical Infrastructure", icon: Database, desc: t("infra_desc") || "OTP, Firebase, Security", color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-500/10" },
 ];
-
-interface GeneralSettingsData {
-  site_name?: string;
-  site_tagline?: string;
-  contact_email?: string;
-  contact_phone?: string;
-  office_address?: string;
-  logo_url?: string;
-  favicon_url?: string;
-}
-
-interface DesignSettingsData {
-  hero_slides: any[];
-  home_banners: any[];
-  home_cta: any;
-  trust_badges: any[];
-  show_categories: boolean;
-  show_featured: boolean;
-  show_combo: boolean;
-  show_logo: boolean;
-  show_name: boolean;
-  show_tagline: boolean;
-  featured_product_ids: string[];
-  combo_product_ids: string[];
-  selected_categories: string[];
-  hero_text: any;
-  categories_text: any;
-  featured_text: any;
-  why_choose_text: any;
-  combo_text: any;
-  gallery_text: any;
-  reviews_text: any;
-  quote_text: any;
-  cta_text: any;
-}
 
 interface AdvancedSettingsData {
   order: any;
@@ -95,25 +51,17 @@ interface AdvancedSettingsData {
 }
 
 export default function AdminSettings() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isBn = language === "bn";
   const SETTINGS_TABS = getSettingsTabs(t);
-  const [activeTab, setActiveTab] = useState("general");
+  const [activeTab, setActiveTab] = useState<string>("operations");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const initialDataRef = useRef<string>("");
 
   // State for all settings
-  const [generalSettings, setGeneralSettings] = useState<GeneralSettingsData>({});
-  const [designSettings, setDesignSettings] = useState<DesignSettingsData>({
-    hero_slides: [], home_banners: [], home_cta: {}, trust_badges: [],
-    show_categories: true, show_featured: true, show_combo: true,
-    show_logo: true, show_name: true, show_tagline: true,
-    featured_product_ids: [], combo_product_ids: [], selected_categories: [],
-    hero_text: {}, categories_text: {}, featured_text: {}, why_choose_text: {},
-    combo_text: {}, gallery_text: {}, reviews_text: {}, quote_text: {}, cta_text: {}
-  });
-  const [integrations, setIntegrations] = useState<any[]>([]);
+  const [integrations, setIntegrations] = useState<any[]>([]); // Keep any[] for generic integrations for now, but better than implicit any
   const [courierSettings, setCourierSettings] = useState<{
     steadfast_key: string;
     steadfast_secret: string;
@@ -129,9 +77,9 @@ export default function AdminSettings() {
   const [advancedSettings, setAdvancedSettings] = useState<AdvancedSettingsData>({
     order: {},
     otp: {
-      mode: "disabled", threshold: 50,
+      otp_mode: "disabled", otp_threshold: 50,
       template: "আপনার OTP কোড: {otp}। {expiry} মিনিট কার্যকর। - {site_name}",
-      popup: { heading: "নম্বর যাচাই করুন", subheading: "আপনার ফোনে ৪-ডিজিটের কোড পাঠানো হয়েছে", button: "যাচাই করুন ও অর্ডার দিন" }
+      popup: { heading: "নম্বর যাচাই করুন", subheading: "আপনার ফোনে ৬-ডিজিটের কোড পাঠানো হয়েছে", button: "যাচাই করুন ও অর্ডার দিন" }
     },
     capi: { enabled: false, strict_tracking: true, pixel_id: "", access_token: "", test_code: "" },
     firebase: {},
@@ -155,35 +103,37 @@ export default function AdminSettings() {
     audiences: []
   });
   const [notificationSettings, setNotificationSettings] = useState<{
-    order_notifications: { enabled: boolean; admin_emails: string[]; admin_phones: string[]; channels: string[] };
-    low_stock_alerts: { enabled: boolean; threshold: number };
-    customer_notifications: Record<string, { sms: boolean; email: boolean; template: string }>;
+    order_notifications: OrderNotifications;
+    low_stock_alerts: LowStockAlerts;
+    customer_notifications: Record<string, CustomerNotification>;
   }>({
-    order_notifications: { enabled: true, admin_emails: [], admin_phones: [], channels: ["email", "sms"] },
+    order_notifications: { enabled: true, admin_emails: [], admin_phones: [], channels: ['email'] },
     low_stock_alerts: { enabled: true, threshold: 5 },
     customer_notifications: {
       order_placed: { sms: true, email: true, template: "আসসালামু আলাইকুম {customer_name}! আপনার অর্ডার #{order_id} গ্রহণ করা হয়েছে। অর্ডারটি কনফার্ম করতে আমরা কল করবো। ধন্যবাদ।" },
       order_confirmed: { sms: true, email: false, template: "অভিনন্দন {customer_name}! আপনার অর্ডার #{order_id} কনফার্ম করা হয়েছে। শীঘ্রই এটি শিপড হবে।" },
       order_shipped: { sms: true, email: false, template: "সুসংবাদ {customer_name}! আপনার অর্ডার #{order_id} শিপড হয়েছে। ট্র্যাকিং আইডি: {tracking_id}। বিস্তারিত: {checkout_url}" },
       out_for_delivery: { sms: true, email: false, template: "হ্যালো {customer_name}, আপনার অর্ডার #{order_id} আজ ডেলিভারি হতে পারে। রাইডার আপনাকে কল করবে।" },
-      order_delivered: { sms: true, email: false, template: "আলহামদুলিল্লাহ! আপনার অর্ডার #{order_id} সফলভাবে ডেলিভারি হয়েছে। রাঙাও এর সাথে থাকার জন্য ধন্যবাদ।" },
-      order_cancelled: { sms: true, email: false, template: "দুঃখিত, আপনার অর্ডার #{order_id} বাতিল করা হয়েছে। বিস্তারিত জানতে আমাদের কল করুন।" }
+      order_delivered: { sms: true, email: true, template: "আপনার অর্ডার #{order_id} ডেলিভারি করা হয়েছে। ধন্যবাদ!" },
+      order_cancelled: { sms: true, email: true, template: "দুঃখিত, আপনার অর্ডার #{order_id} বাতিল করা হয়েছে।" },
+      order_returned: { sms: true, email: true, template: "আমরা আপনার রিটার্ন করা অর্ডার #{order_id} পেয়েছি।" }
     }
   });
-  const [navigationSettings, setNavigationSettings] = useState<{
-    header_links: any[];
-    show_categories: boolean;
-    promo_badge: { text_bn: string; text_en: string; href: string; enabled: boolean };
-  }>({
-    header_links: [],
-    show_categories: true,
-    promo_badge: { text_bn: "", text_en: "", href: "", enabled: false }
+  const [coupons, setCoupons] = useState<any[]>([]);
+  const [blockedData, setBlockedData] = useState({ ips: [], numbers: [] });
+  const [activeSubTabs, setActiveSubTabs] = useState<Record<string, string>>({
+    operations: "logic",
+    growth: "marketing",
+    infrastructure: "otp"
   });
 
   // Get current state snapshot for change detection
   const getStateSnapshot = useCallback(() => {
-    return JSON.stringify({ generalSettings, designSettings, integrations, courierSettings, advancedSettings, notificationSettings, navigationSettings, marketingData });
-  }, [generalSettings, designSettings, integrations, courierSettings, advancedSettings, notificationSettings, navigationSettings, marketingData]);
+    return JSON.stringify({ 
+      courierSettings, advancedSettings, notificationSettings, 
+      marketingData 
+    });
+  }, [courierSettings, advancedSettings, notificationSettings, marketingData]);
 
   // Detect unsaved changes
   useEffect(() => {
@@ -227,30 +177,44 @@ export default function AdminSettings() {
       ]);
 
       if (configsRes.data) {
-        const design: DesignSettingsData = { ...designSettings };
-        configsRes.data.forEach((item) => {
-          if (item.id === "general_settings") setGeneralSettings((item.value as GeneralSettingsData) || {});
-          if (item.id === "hero_slides") design.hero_slides = (item.value as any[]) || [];
-          if (item.id === "home_banners") design.home_banners = (item.value as any[]) || [];
-          if (item.id === "home_cta") design.home_cta = (item.value as any) || {};
-          if (item.id === "trust_badges") design.trust_badges = (item.value as any[]) || [];
-          if (item.id === "homepage_config") Object.assign(design, (item.value as any) || {});
+        const deepMerge = (target: any, source: any) => {
+          if (!source) return target;
+          const output = { ...target };
+          Object.keys(source).forEach(key => {
+            if (source[key] !== null && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+              output[key] = deepMerge(target[key] || {}, source[key]);
+            } else {
+              output[key] = source[key];
+            }
+          });
+          return output;
+        };
+
+        configsRes.data.forEach((item: any) => {
           if (item.id === "integrations") setIntegrations((item.value as any[]) || []);
-          if (item.id === "courier_settings") setCourierSettings((prev: any) => ({ ...prev, ...((item.value as any) || {}) }));
-          if (item.id === "advanced_settings") setAdvancedSettings((prev: AdvancedSettingsData) => ({ ...prev, ...((item.value as any) || {}) }));
-          if (item.id === "marketing_data") setMarketingData((prev: any) => ({ ...prev, ...((item.value as any) || {}) }));
-          if (item.id === "notification_settings") setNotificationSettings((item.value as any) || {});
-          if (item.id === "navigation_settings") setNavigationSettings((item.value as any) || { header_links: [], show_categories: true, promo_badge: { text_bn: "", text_en: "", href: "", enabled: false } });
+          if (item.id === "courier_settings") setCourierSettings(prev => deepMerge(prev, item.value));
+          if (item.id === "advanced_settings") setAdvancedSettings(prev => deepMerge(prev, item.value));
+          if (item.id === "marketing_data") setMarketingData(prev => deepMerge(prev, item.value));
+          if (item.id === "notification_settings") setNotificationSettings(prev => deepMerge(prev, item.value));
         });
-        setDesignSettings(design);
       }
+
+      // Fetch Blacklist Data
+      const { data: bIps } = await supabase.from("blocked_ips").select("*");
+      const { data: bNumbers } = await supabase.from("blocked_numbers").select("*");
+      const { data: cData } = await supabase.from("coupons").select("*");
+
+      if (bIps || bNumbers) setBlockedData({ ips: bIps || [], numbers: bNumbers || [] });
+      if (cData) setCoupons(cData);
 
       // Set initial snapshot after data loads
       setTimeout(() => {
         initialDataRef.current = JSON.stringify({
-          generalSettings, designSettings, integrations, courierSettings, advancedSettings, notificationSettings, navigationSettings, marketingData
+          integrations, 
+          courierSettings, advancedSettings, notificationSettings, 
+          marketingData
         });
-      }, 100);
+      }, 150);
     } catch (err) {
       toast.error(t("settings_load_failed"));
     } finally {
@@ -263,37 +227,11 @@ export default function AdminSettings() {
     const toastId = toast.loading(t("saving_changes"));
     try {
       const updates = [
-        supabase.from("store_configs").upsert({ id: "general_settings", value: generalSettings }),
-        supabase.from("store_configs").upsert({ id: "hero_slides", value: designSettings.hero_slides }),
-        supabase.from("store_configs").upsert({ id: "home_banners", value: designSettings.home_banners }),
-        supabase.from("store_configs").upsert({ id: "home_cta", value: designSettings.home_cta }),
-        supabase.from("store_configs").upsert({ id: "trust_badges", value: designSettings.trust_badges }),
-        supabase.from("store_configs").upsert({ id: "homepage_config", value: {
-          show_categories: designSettings.show_categories,
-          show_featured: designSettings.show_featured,
-          show_combo: designSettings.show_combo,
-          show_logo: designSettings.show_logo,
-          show_name: designSettings.show_name,
-          show_tagline: designSettings.show_tagline,
-          featured_product_ids: designSettings.featured_product_ids,
-          combo_product_ids: designSettings.combo_product_ids,
-          selected_categories: designSettings.selected_categories,
-          hero_text: designSettings.hero_text,
-          categories_text: designSettings.categories_text,
-          featured_text: designSettings.featured_text,
-          why_choose_text: designSettings.why_choose_text,
-          combo_text: designSettings.combo_text,
-          gallery_text: designSettings.gallery_text,
-          reviews_text: designSettings.reviews_text,
-          quote_text: designSettings.quote_text,
-          cta_text: designSettings.cta_text,
-        }}),
         supabase.from("store_configs").upsert({ id: "integrations", value: integrations }),
         supabase.from("store_configs").upsert({ id: "courier_settings", value: courierSettings }),
         supabase.from("store_configs").upsert({ id: "advanced_settings", value: advancedSettings }),
         supabase.from("store_configs").upsert({ id: "marketing_data", value: marketingData }),
         supabase.from("store_configs").upsert({ id: "notification_settings", value: notificationSettings }),
-        supabase.from("store_configs").upsert({ id: "navigation_settings", value: navigationSettings }),
       ];
 
       await Promise.all(updates);
@@ -307,274 +245,312 @@ export default function AdminSettings() {
     }
   };
 
-  // Skeleton loader
-  if (loading) {
-    return (
-      <div className="space-y-8 pb-32 max-w-[1400px] mx-auto animate-pulse">
-        <div className="h-10 w-64 bg-slate-200 dark:bg-white/5 rounded-xl" />
-        <div className="h-5 w-96 bg-slate-100 dark:bg-white/3 rounded-xl" />
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 mt-8">
-          <div className="space-y-3">
-            {[...Array(9)].map((_, i) => (
-              <div key={i} className="h-14 bg-slate-100 dark:bg-white/3 rounded-xl" />
-            ))}
-          </div>
-          <div className="space-y-6">
-            <div className="h-16 bg-slate-100 dark:bg-white/3 rounded-xl" />
-            <div className="h-64 bg-slate-100 dark:bg-white/3 rounded-xl" />
-            <div className="h-48 bg-slate-100 dark:bg-white/3 rounded-xl" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (role !== 'admin' && role !== 'super_admin') {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-10 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-white/5 shadow-xl">
-        <div className="w-20 h-20 bg-rose-500/10 rounded-xl flex items-center justify-center text-rose-500 mb-6">
-          <ShieldAlert size={40} />
-        </div>
-        <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2">Access Denied</h2>
-        <p className="text-slate-500 text-sm font-medium max-w-md">
-          This section is restricted to Administrators only. Please contact the system owner if you believe this is an error.
-        </p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const currentData = JSON.stringify({
+      advanced: advancedSettings.order,
+      otp: advancedSettings.otp,
+      capi: advancedSettings.capi,
+      firebase: advancedSettings.firebase,
+      recovery: advancedSettings.recovery,
+      courier: courierSettings,
+      marketing: marketingData,
+      notifications: notificationSettings,
+      integrations: integrations
+    });
+    setHasUnsavedChanges(currentData !== initialDataRef.current);
+  }, [advancedSettings, courierSettings, marketingData, notificationSettings, integrations]);
 
   const activeTabData = SETTINGS_TABS.find(t => t.id === activeTab);
 
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
+        <div className="relative">
+          <div className="w-20 h-20 border-4 border-emerald-500/10 border-t-emerald-500 rounded-xl animate-spin" />
+          <Settings className="absolute inset-0 m-auto text-emerald-500 animate-pulse" size={24} />
+        </div>
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 animate-pulse">Initializing Studio...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8 pb-40 max-w-[1400px] mx-auto selection:bg-primary/20">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Settings size={20} className="text-primary" />
+    <div className="max-w-[1400px] mx-auto space-y-8 pb-32 selection:bg-primary/20">
+      
+      {/* Header Banner - Standard Admin Style */}
+      <div className="bg-primary rounded-xl p-6 text-white relative overflow-hidden">
+        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-xl font-bold">{isBn ? "সেটিংস স্টুডিও" : "Settings Studio"}</h1>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/15 rounded-xl text-xs font-medium uppercase">
+                <Zap size={12} className="text-white animate-pulse" />
+                System v4.2
+              </div>
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-              {t("settings")}
-            </h1>
+            <p className="text-xs text-white/60">{isBn ? "আপনার স্টোরের অপারেশন এবং ইনফ্রাস্ট্রাকচার ম্যানেজ করুন" : "Manage store operations, technical infrastructure, and security protocols"}</p>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 ml-[52px]">
-            {t("manage_store_config")}
-          </p>
+          
+          <div className="flex items-center gap-3">
+             <div className="h-10 px-4 bg-white/10 rounded-xl flex items-center gap-2 border border-white/5 shadow-inner">
+               <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+               <span className="text-[10px] font-bold uppercase tracking-widest text-white/80">System Ready</span>
+             </div>
+          </div>
         </div>
       </div>
 
-      {/* Main Layout: Sidebar + Content */}
       <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 items-start">
-
-        {/* Sidebar Navigation */}
-        <nav className="sticky top-28 space-y-1.5 bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl p-3 shadow-sm">
+        {/* Simplified Sidebar */}
+        <nav className="sticky top-24 space-y-2 bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-xl p-3 shadow-sm">
           {SETTINGS_TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-left transition-all duration-200 group relative ${
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 group ${
                   isActive
                     ? "bg-primary text-white shadow-lg shadow-primary/20"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/3"
+                    : "text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5"
                 }`}
               >
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all shrink-0 ${
-                  isActive ? "bg-white/20" : tab.bg
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all shrink-0 ${
+                  isActive ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-white/5 text-slate-400"
                 }`}>
-                  <tab.icon size={18} className={isActive ? "text-white" : tab.color} />
+                  <tab.icon size={16} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[13px] font-semibold truncate ${isActive ? "text-white" : ""}`}>
-                      {tab.label}
-                    </span>
-                    {tab.badge && (
-                      <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded-xl ${
-                        isActive ? "bg-white/20 text-white" : "bg-amber-100 dark:bg-gold/20 text-amber-700 dark:text-amber-400"
-                      }`}>
-                        {tab.badge}
-                      </span>
-                    )}
-                  </div>
-                  <p className={`text-[11px] truncate ${isActive ? "text-white/70" : "text-slate-400 dark:text-slate-500"}`}>
-                    {tab.desc}
-                  </p>
+                   <span className="text-xs font-bold block">
+                     {tab.label}
+                   </span>
                 </div>
-                {isActive && (
-                  <motion.div
-                    layoutId="activeSettingsTab"
-                    className="absolute right-3 w-1.5 h-1.5 bg-white rounded-xl"
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                )}
+                {isActive && <ChevronRight size={14} className="text-white/60" />}
               </button>
             );
           })}
         </nav>
 
-        {/* Content Area */}
-        <div className="min-h-[600px]">
-          {/* Tab Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              {activeTabData && (
-                <div className={`w-10 h-10 rounded-xl ${activeTabData.bg} flex items-center justify-center`}>
-                  <activeTabData.icon size={20} className={activeTabData.color} />
-                </div>
-              )}
-              <div>
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                  {activeTabData?.label}
-                </h2>
-                <p className="text-xs text-slate-400">{activeTabData?.desc}</p>
-              </div>
+        {/* Simplified Content Area */}
+        <div className="min-h-[600px] animate-in fade-in duration-500">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-sm">
+               {activeTabData && <activeTabData.icon size={24} />}
+            </div>
+            <div>
+               <h2 className="text-xl font-bold text-slate-900 dark:text-white leading-none">
+                 {activeTabData?.label}
+               </h2>
+               <p className="text-xs text-slate-500 font-medium mt-2">{activeTabData?.desc}</p>
             </div>
           </div>
 
-          {/* Animated Content */}
+          {/* Animated Module Transition */}
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+              className="space-y-10"
             >
-              {activeTab === "general" && (
-                <GeneralSettings
-                  settings={generalSettings}
-                  onUpdate={(data: Partial<GeneralSettingsData>) => setGeneralSettings({ ...generalSettings, ...data })}
-                />
+              {activeTab === "operations" && (
+                <div className="space-y-6">
+                  <div className="flex p-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/5 w-fit shadow-inner">
+                    {[
+                      { id: "logic", label: "Checkout Logic", icon: Zap },
+                      { id: "courier", label: "Logistics Hub", icon: Truck }
+                    ].map(sub => (
+                      <button
+                        key={sub.id}
+                        onClick={() => setActiveSubTabs({ ...activeSubTabs, operations: sub.id })}
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all relative whitespace-nowrap ${
+                          activeSubTabs.operations === sub.id 
+                          ? "bg-white dark:bg-slate-800 text-primary shadow-sm" 
+                          : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                        }`}
+                      >
+                        <sub.icon size={14} />
+                        {sub.label}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <div className="animate-in fade-in duration-300">
+                    {activeSubTabs.operations === "logic" && (
+                      <OrderControlSettings
+                        settings={advancedSettings.order || {}}
+                        onUpdate={(data: any) => setAdvancedSettings({ ...advancedSettings, order: { ...advancedSettings.order, ...data } })}
+                      />
+                    )}
+                    {activeSubTabs.operations === "courier" && (
+                      <CourierSettings
+                        settings={courierSettings}
+                        onUpdate={(newSettings: any) => setCourierSettings(newSettings)}
+                      />
+                    )}
+                  </div>
+                </div>
               )}
 
-              {activeTab === "homepage" && (
-                <HomepageSettings
-                  settings={designSettings}
-                  onUpdate={(data: Partial<DesignSettingsData>) => setDesignSettings({ ...designSettings, ...data })}
-                />
+              {activeTab === "growth" && (
+                <div className="space-y-6">
+                  <div className="flex p-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/5 w-fit shadow-inner overflow-x-auto no-scrollbar">
+                    {[
+                      { id: "marketing", label: "Marketing", icon: Megaphone },
+                      { id: "capi", label: "F-CAPI", icon: BarChart3 },
+                      { id: "recovery", label: "Recovery", icon: RefreshCw },
+                      { id: "notifications", label: "Alerts", icon: Bell }
+                    ].map(sub => (
+                      <button
+                        key={sub.id}
+                        onClick={() => setActiveSubTabs({ ...activeSubTabs, growth: sub.id })}
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all relative whitespace-nowrap ${
+                          activeSubTabs.growth === sub.id 
+                          ? "bg-white dark:bg-slate-800 text-primary shadow-sm" 
+                          : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                        }`}
+                      >
+                        <sub.icon size={14} />
+                        {sub.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="animate-in fade-in duration-300">
+                    {activeSubTabs.growth === "marketing" && (
+                      <MarketingSettings
+                        data={marketingData}
+                        integrations={integrations}
+                        onUpdate={(data: any) => setMarketingData({ ...marketingData, ...data })}
+                      />
+                    )}
+                    {activeSubTabs.growth === "capi" && (
+                      <FacebookCAPISettings
+                        settings={advancedSettings.capi || {}}
+                        onUpdate={(data: any) => setAdvancedSettings({ ...advancedSettings, capi: { ...advancedSettings.capi, ...data } })}
+                      />
+                    )}
+                    {activeSubTabs.growth === "recovery" && (
+                      <AutomationSettings
+                        settings={advancedSettings.recovery || {}}
+                        integrations={integrations}
+                        onUpdate={(data: any) => setAdvancedSettings({ ...advancedSettings, recovery: { ...advancedSettings.recovery, ...data } })}
+                      />
+                    )}
+                    {activeSubTabs.growth === "notifications" && (
+                      <NotificationSettings
+                        settings={notificationSettings}
+                        onUpdate={(data: any) => setNotificationSettings({ ...notificationSettings, ...data })}
+                      />
+                    )}
+                  </div>
+                </div>
               )}
 
-              {activeTab === "order_control" && (
-                <OrderControlSettings
-                  settings={advancedSettings.order || {}}
-                  onUpdate={(data: any) => setAdvancedSettings({ ...advancedSettings, order: { ...advancedSettings.order, ...data } })}
-                />
-              )}
+              {activeTab === "infrastructure" && (
+                <div className="space-y-6">
+                  <div className="flex p-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/5 w-fit shadow-inner overflow-x-auto no-scrollbar">
+                    {[
+                      { id: "otp", label: "OTP Portal", icon: Smartphone },
+                      { id: "sms", label: "SMS Hub", icon: MessageSquare },
+                      { id: "firebase", label: "Firebase", icon: Database },
+                      { id: "security", label: "Security", icon: ShieldAlert }
+                    ].map(sub => (
+                      <button
+                        key={sub.id}
+                        onClick={() => setActiveSubTabs({ ...activeSubTabs, infrastructure: sub.id })}
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all relative whitespace-nowrap ${
+                          activeSubTabs.infrastructure === sub.id 
+                          ? "bg-white dark:bg-slate-800 text-primary shadow-sm" 
+                          : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                        }`}
+                      >
+                        <sub.icon size={14} />
+                        {sub.label}
+                      </button>
+                    ))}
+                  </div>
 
-              {activeTab === "otp" && (
-                <OTPSettings
-                  settings={advancedSettings.otp || {}}
-                  integrations={integrations}
-                  onUpdate={(data: any) => setAdvancedSettings({ ...advancedSettings, otp: { ...advancedSettings.otp, ...data } })}
-                  onUpdateIntegrations={(val: any[]) => setIntegrations(val)}
-                />
-              )}
-
-              {activeTab === "courier" && (
-                <CourierSettings
-                  settings={courierSettings}
-                  onUpdate={(newSettings: any) => setCourierSettings(newSettings)}
-                />
-              )}
-
-              {activeTab === "capi" && (
-                <FacebookCAPISettings
-                  settings={advancedSettings.capi || {}}
-                  onUpdate={(data: any) => setAdvancedSettings({ ...advancedSettings, capi: { ...advancedSettings.capi, ...data } })}
-                />
-              )}
-
-              {activeTab === "firebase" && (
-                <FirebaseSettings
-                  settings={advancedSettings.firebase || {}}
-                  onUpdate={(data: any) => setAdvancedSettings({ ...advancedSettings, firebase: { ...advancedSettings.firebase, ...data } })}
-                />
-              )}
-
-              {activeTab === "marketing" && (
-                <MarketingSettings
-                  data={marketingData}
-                  integrations={integrations}
-                  onUpdate={(data: any) => setMarketingData({ ...marketingData, ...data })}
-                />
-              )}
-
-              {activeTab === "automation" && (
-                <AutomationSettings
-                  settings={advancedSettings.recovery || {}}
-                  integrations={integrations}
-                  onUpdate={(data: any) => setAdvancedSettings({ ...advancedSettings, recovery: { ...advancedSettings.recovery, ...data } })}
-                />
-              )}
-
-              {activeTab === "notifications" && (
-                <NotificationSettings
-                  settings={notificationSettings}
-                  onUpdate={(data: any) => setNotificationSettings({ ...notificationSettings, ...data })}
-                />
-              )}
-              
-              {activeTab === "navigation" && (
-                <NavigationSettings
-                  settings={navigationSettings}
-                  onUpdate={(data: any) => setNavigationSettings({ ...navigationSettings, ...data })}
-                />
+                  <div className="animate-in fade-in duration-300">
+                    {activeSubTabs.infrastructure === "otp" && (
+                      <OTPSettings
+                        settings={advancedSettings.otp || {}}
+                        integrations={integrations}
+                        onUpdate={(data: any) => setAdvancedSettings({ ...advancedSettings, otp: { ...advancedSettings.otp, ...data } })}
+                        onUpdateIntegrations={(val: any[]) => setIntegrations(val)}
+                      />
+                    )}
+                    {activeSubTabs.infrastructure === "sms" && (
+                      <SMSGatewaySettings
+                        integrations={integrations}
+                        onUpdate={(val: any[]) => setIntegrations(val)}
+                      />
+                    )}
+                    {activeSubTabs.infrastructure === "firebase" && (
+                      <FirebaseSettings
+                        settings={advancedSettings.firebase || {}}
+                        onUpdate={(data: any) => setAdvancedSettings({ ...advancedSettings, firebase: { ...advancedSettings.firebase, ...data } })}
+                      />
+                    )}
+                    {activeSubTabs.infrastructure === "security" && (
+                      <APISettings
+                        integrations={integrations}
+                        coupons={coupons}
+                        blockedData={blockedData}
+                        advancedSettings={advancedSettings}
+                        onUpdateIntegrations={(data) => setIntegrations(data)}
+                        onUpdateAdvanced={(data) => setAdvancedSettings(data)}
+                        onRefresh={fetchSettings}
+                      />
+                    )}
+                  </div>
+                </div>
               )}
             </motion.div>
           </AnimatePresence>
         </div>
       </div>
 
-      {/* Sticky Save Bar */}
+      {/* Sticky Publication Bar - High Contrast Elite */}
       <AnimatePresence>
         {hasUnsavedChanges && (
           <motion.div
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="fixed bottom-0 left-0 right-0 z-50 p-4"
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-8 py-5 flex items-center justify-between gap-12 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-[100] border border-white/10 dark:border-slate-200 min-w-[600px]"
           >
-            <div className="max-w-[800px] mx-auto bg-slate-900 dark:bg-slate-800 text-white rounded-xl shadow-2xl shadow-slate-900/30 border border-white/10 px-6 py-4 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-gold/20 flex items-center justify-center shrink-0">
-                  <AlertTriangle size={16} className="text-amber-400" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">
-                    {t("unsaved_changes")}
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    {t("save_discard_msg")}
-                  </p>
-                </div>
+            <div className="flex items-center gap-5">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 dark:bg-emerald-500/10 flex items-center justify-center">
+                <Flame size={20} className="text-emerald-400 animate-pulse" />
               </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    fetchSettings();
-                    setHasUnsavedChanges(false);
-                  }}
-                  className="px-5 py-2.5 text-sm font-medium text-slate-300 hover:text-white rounded-xl hover:bg-white/10 transition-all"
-                >
-                  {t("discard")}
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-xl shadow-lg shadow-primary/30 flex items-center gap-2 transition-all disabled:opacity-50 active:scale-95"
-                >
-                  {saving ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    <Save size={16} />
-                  )}
-                  {t("save_changes")}
-                </button>
+              <div className="space-y-0.5">
+                <p className="text-[13px] font-black uppercase tracking-tight">
+                  {isBn ? "অপ্রকাশিত পরিবর্তন" : "Staging: Unsaved Config"}
+                </p>
+                <p className="text-[10px] opacity-60 font-medium uppercase tracking-[0.1em]">
+                  {isBn ? "সেভ না করলে পরিবর্তনগুলো কার্যকর হবে না" : "Configuration changes are staged but not active"}
+                </p>
               </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => { fetchSettings(); setHasUnsavedChanges(false); }}
+                className="h-12 px-6 text-[11px] font-black uppercase tracking-widest hover:bg-white/5 dark:hover:bg-slate-100 rounded-xl transition-all"
+              >
+                {t("discard")}
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="h-12 px-10 bg-emerald-600 dark:bg-emerald-50 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-emerald-500 dark:hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-500/20 flex items-center gap-3 disabled:opacity-50"
+              >
+                {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                {t("save_changes")}
+              </button>
             </div>
           </motion.div>
         )}

@@ -34,7 +34,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               <SheetTitle className="text-xl font-black text-slate-900 flex items-center gap-2">
                 <ShoppingCart size={20} className="text-primary" />
                 {t("shopping_cart")}
-                <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full ml-1">
+                <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-xl ml-1">
                   {totalItems}
                 </span>
               </SheetTitle>
@@ -44,7 +44,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
             {items.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-60 py-20">
-                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
+                <div className="w-20 h-20 bg-slate-50 rounded-xl flex items-center justify-center text-slate-300">
                   <ShoppingCart size={40} />
                 </div>
                 <div>
@@ -81,7 +81,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       )}
                     </div>
                     <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center bg-slate-50 rounded-lg border border-slate-100 p-0.5">
+                      <div className="flex items-center bg-slate-50 rounded-xl border border-slate-100 p-0.5">
                         <button 
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
                           className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-primary transition-colors"

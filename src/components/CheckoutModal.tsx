@@ -10,6 +10,11 @@ import { trackEvent, TRACKING_EVENTS } from "@/lib/tracking";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useLanguage } from "@/lib/language-context";
+import { useSettings } from "@/lib/useSettings";
+import { checkCustomerFraud } from "@/lib/fraud-check";
+import { sendSMSServer } from "@/lib/sms";
+import { notifyAdminOfRiskOrder } from "@/lib/notifications";
+import { EliteOTPModal } from "./EliteOTPModal";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -61,6 +66,16 @@ export function CheckoutModal({
   const [error, setError] = useState("");
   const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
 
+  // OTP and Fraud States
+  const [showOTP, setShowOTP] = useState(false);
+  const [isVerifyingOTP, setIsVerifyingOTP] = useState(false);
+  const [isResendingOTP, setIsResendingOTP] = useState(false);
+  const [otpRetryCount, setOtpRetryCount] = useState(0);
+  const [otpFailed, setOtpFailed] = useState(false);
+  const [generatedOTP, setGeneratedOTP] = useState("");
+  const [fraudData, setFraudData] = useState<any>(null);
+  const [otpVerified, setOtpVerified] = useState(false);
+
   const isCombo = fixedProduct?.is_combo || items.some(i => i.is_combo || i.id === 'p6');
   const deliveryCharge = isCombo ? 0 : shippingMethod.price;
   const total = subtotal + deliveryCharge;
@@ -107,6 +122,8 @@ export function CheckoutModal({
     return () => clearTimeout(debounceTimer);
   }, [form.name, form.phone, form.address, shippingMethod, isOpen, items, total, success, submitting]);
 
+  const [metadata, setMetadata] = useState({ ip: "", ua: "" });
+
   // Load saved info on mount
   useEffect(() => {
     const savedInfo = localStorage.getItem("rangao_customer_info");
@@ -127,34 +144,60 @@ export function CheckoutModal({
 
   useEffect(() => {
     if (isOpen) {
-      setSuccess(false);
-      setError("");
-      setCurrentOrderId(null); // Reset for new session
+      setMetadata(prev => ({ ...prev, ua: navigator.userAgent }));
+      fetch("https://api.ipify.org?format=json")
+        .then(res => res.json())
+        .then(data => setMetadata(prev => ({ ...prev, ip: data.ip })))
+        .catch(() => console.warn("Failed to fetch IP"));
     }
   }, [isOpen]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isNameValid || !isPhoneValid || !isAddressValid) {
-      setError(t("fill_all_fields"));
-      return;
+  useEffect(() => {
+    if (isOpen) {
+      setSuccess(false);
+      setError("");
+      setCurrentOrderId(null);
+      setShowOTP(false);
+      setOtpVerified(false);
     }
+  }, [isOpen]);
 
+  const { settings } = useSettings();
+  const advanced = settings?.advanced_settings || {};
+  const otpSettings = advanced.otp || { otp_mode: "disabled", otp_threshold: 50 };
+  const whatsapp = settings?.general_settings?.whatsapp || "8801540707024";
+
+  const handleOTPSend = async () => {
+    const otp = Math.floor(100000 + Math.random() * 899999).toString();
+    setGeneratedOTP(otp);
+    
+    const message = (otpSettings.template || "আপনার OTP কোড: {otp}।")
+      .replace("{otp}", otp)
+      .replace("{expiry}", "5")
+      .replace("{site_name}", "Rangao");
+      
+    setIsResendingOTP(true);
+    const res = await sendSMSServer({ number: form.phone.trim(), message });
+    setIsResendingOTP(false);
+    
+    if (res.success) {
+      setShowOTP(true);
+      return true;
+    } else {
+      toast.error(res.message);
+      return false;
+    }
+  };
+
+  const processOrder = async () => {
     setSubmitting(true);
-    setError("");
-
-    // Save recent info for next time
-    localStorage.setItem("rangao_customer_info", JSON.stringify({
-      name: form.name.trim(),
-      phone: form.phone.trim(),
-      address: form.address.trim()
-    }));
-
+    
     const orderItems = items.map((i) => ({ 
       id: i.id, 
       name: i.name, 
       qty: i.quantity || 1, 
-      price: i.price 
+      price: i.price,
+      image: i.image || (i.images && i.images[0])
     }));
 
     const orderData = {
@@ -167,17 +210,52 @@ export function CheckoutModal({
       delivery_charge: deliveryCharge,
       total,
       payment_method: "cod",
-      status: "pending",
+      status: otpFailed ? "on-hold" : "pending",
       coupon_code: form.coupon.trim() || null,
+      admin_note: (() => {
+        let note = fraudData ? `Fraud Score: ${fraudData.summary?.success_ratio}% | Risk: ${fraudData.risk_level}` : '';
+        if (otpVerified) note += " | Badge: Manual Verified Buyer";
+        else if (otpFailed) note += ` | FAILED OTP Verification (Retries: ${otpRetryCount}) - Requires Manual Review`;
+        else if (fraudData && Number(fraudData.summary?.success_ratio) >= (otpSettings.otp_threshold || 50)) note += " | Badge: Trusted Buyer";
+        return note;
+      })(),
+      risk_score: fraudData ? Number(fraudData.summary?.success_ratio) : null,
+      risk_badge: (() => {
+        const score = fraudData ? Number(fraudData.summary?.success_ratio) : 100;
+        const milestone = otpSettings.otp_threshold || 50;
+        if (otpVerified) return "Manual Verified Buyer";
+        if (otpFailed) return "Blocked Customer";
+        if (score >= milestone) return "Trusted Buyer";
+        if (score < milestone) return "COD Risk";
+        return null;
+      })(),
+      otp_verified: otpVerified,
+      ip_address: metadata.ip,
+      user_agent: metadata.ua,
+      device_metadata: {
+        screen: `${window.screen.width}x${window.screen.height}`,
+        platform: navigator.platform,
+        language: navigator.language
+      },
+      fraud_signals: {
+        weighted_risk: fraudData?.weighted_risk,
+        courier_blacklist: fraudData?.reports?.some((r: any) => r.severity === 'high'),
+        history_length: items.length
+      },
+      system_recommendation: (() => {
+        const score = fraudData ? Number(fraudData.summary?.success_ratio) : 100;
+        const threshold = otpSettings.otp_threshold || 50;
+        if (otpVerified) return "Manual Verified Buyer. Authenticated via SMS/WA.";
+        if (otpFailed) return "SECURITY ALERT: Failed OTP verification. Manual review MANDATORY.";
+        if (score >= threshold) return "TRUSTED: High delivery success rate. Safe to confirm.";
+        if (score < threshold) return "RISK: Low delivery success rate. Verify before booking.";
+        return "Evaluation Pending";
+      })(),
       order_number: await (async () => {
         const now = new Date();
         const ddmmyy = format(now, 'ddMMyy');
-        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-        const { count } = await supabase
-          .from("orders")
-          .select("*", { count: 'exact', head: true })
-          .gte("created_at", startOfDay);
-        const sequence = (count || 0) + 1;
+        const { data: count } = await supabase.rpc('get_daily_order_count');
+        const sequence = (Number(count) || 0) + 1;
         return `Order # ${ddmmyy}-${String(sequence).padStart(4, '0')}`;
       })()
     };
@@ -186,13 +264,16 @@ export function CheckoutModal({
       const { error: dbError } = await supabase.from("orders").insert(orderData);
 
       if (dbError) {
-        console.error("Supabase Order Error:", dbError);
-        setError(language === 'bn' ? `অর্ডার সাবমিট করতে সমস্যা হয়েছে: ${dbError.message}` : `Error submitting order: ${dbError.message}`);
+        toast.error(dbError.message);
         setSubmitting(false);
         return;
       }
 
-      // Mark abandoned cart as recovered
+      // Notify admin if order is on hold
+      if (orderData.status === "on-hold") {
+        await notifyAdminOfRiskOrder(orderData);
+      }
+
       await supabase
         .from("abandoned_carts")
         .update({ is_recovered: true })
@@ -205,51 +286,128 @@ export function CheckoutModal({
       trackEvent(TRACKING_EVENTS.PURCHASE, {
         content_ids: items.map(i => i.id),
         value: total,
-        currency: "BDT",
-        num_items: items.length,
+        currency: "BDT"
       });
-
-      if (onSuccess) onSuccess();
-      // Auto close modal if not direct checkout
-      if (!directCheckout) {
-        setTimeout(() => {
-          onClose();
-        }, 5000);
-      }
+      
+      window.location.href = `/order-success?orderNumber=${encodeURIComponent(orderData.order_number)}`;
     } catch (err: any) {
-      console.error("Order Submit Crash:", err);
-      setError(language === 'bn' ? "সিস্টেমে সমস্যা হয়েছে। আবার চেষ্টা করুন।" : "System error. Please try again.");
+      console.error("Checkout Final Error:", err);
+      setError(language === 'bn' ? "অর্ডার সম্পন্ন করতে সমস্যা হয়েছে।" : "Error completing order.");
       setSubmitting(false);
     }
   };
 
+  const handleOTPVerify = async (inputOtp: string) => {
+    setIsVerifyingOTP(true);
+    const retryLimit = otpSettings.otp_retry_limit || 3;
+
+    if (inputOtp === generatedOTP) {
+      setOtpVerified(true);
+      setShowOTP(false);
+      toast.success(language === 'bn' ? "নম্বর যাচাই করা হয়েছে" : "Phone verified successfully");
+      await processOrder();
+    } else {
+      const nextCount = otpRetryCount + 1;
+      setOtpRetryCount(nextCount);
+      
+      if (nextCount >= retryLimit) {
+        if (otpSettings.hold_on_failure !== false) {
+          toast.error(language === 'bn' ? "যাচাইকরণ ব্যর্থ হয়েছে। অর্ডারটি ম্যানুয়াল রিভিউতে পাঠানো হচ্ছে।" : "Verification failed. Order sent for manual review.");
+          setOtpFailed(true);
+          setShowOTP(false);
+          await processOrder();
+        } else {
+          toast.error(language === 'bn' ? "যাচাইকরণ ব্যর্থ হয়েছে। তবুও আপনার অর্ডারটি গ্রহণ করা হয়েছে।" : "Verification failed. Order accepted for manual review.");
+          setShowOTP(false);
+          await processOrder();
+        }
+      } else {
+        toast.error(language === 'bn' ? `ভুল কোড, ${retryLimit - nextCount} বার চেষ্টা করতে পারবেন` : `Invalid code, ${retryLimit - nextCount} attempts remaining`);
+      }
+    }
+    setIsVerifyingOTP(false);
+  };
+
   const updateField = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isNameValid || !isPhoneValid || !isAddressValid) {
+      setError(t("fill_all_fields"));
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+
+    localStorage.setItem("rangao_customer_info", JSON.stringify({
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      address: form.address.trim()
+    }));
+
+    // 1. Check Fraud with BDCourier
+    const fraudResult = await checkCustomerFraud(form.phone.trim());
+    setFraudData(fraudResult);
+    const successScore = Number(fraudResult?.summary?.success_ratio || 100);
+    const totalParcels = Number(fraudResult?.summary?.total_parcel || 0);
+
+    // 1.5 RULE 1: First Order Advance Payment
+    // If customer has 0 history and setting is ON
+    const isNewCustomer = !fraudResult?.summary || totalParcels === 0;
+    if (otpSettings.first_order_advance !== false && isNewCustomer) {
+      toast.error(language === 'bn' 
+        ? "প্রথম অর্ডারের জন্য অগ্রিম পেমেন্ট প্রযোজ্য। আমাদের পেজে ইনবক্স করুন।" 
+        : "Advance payment required for first-time orders. Please contact support.");
+      setSubmitting(false);
+      return;
+    }
+
+    // 2. Determine if OTP is needed (Refined Rule 3)
+    const needsOTP = 
+      otpSettings.otp_mode === "all" || 
+      (otpSettings.otp_mode === "conditional" && otpSettings.otp_low_score !== false && successScore < (otpSettings.otp_threshold || 50));
+
+    if (needsOTP && !otpVerified) {
+      const sent = await handleOTPSend();
+      if (sent) {
+        setSubmitting(false);
+        return;
+      }
+    }
+
+    // 3. Check for Auto Block COD Risk
+    if (otpSettings.auto_block_cod !== false && fraudResult?.risk_level === 'high') {
+      toast.error(language === 'bn' ? "দুঃখিত, আপনার জন্য ক্যাশ অন ডেলিভারি এই মুহূর্তে প্রযোজ্য নয়।" : "Sorry, COD is currently unavailable for your profile due to risk flags.");
+      setSubmitting(false);
+      return;
+    }
+
+    // 4. Process Order
+    await processOrder();
+  };
 
   if (directCheckout) {
     return (
       <div id="checkout-form" className="w-full scroll-mt-24">
         <AnimatePresence mode="wait">
-          {success ? (
-            <motion.div 
-              key="success-direct"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="py-12 text-center space-y-6"
-            >
-              <div className="w-20 h-20 bg-primary text-white rounded-xl flex items-center justify-center mx-auto shadow-2xl shadow-primary/20">
-                <CheckCircle size={40} strokeWidth={3} />
+          <motion.div 
+            key="form-direct"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            {showOTP ? (
+              <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xl">
+                <OTPVerification
+                  phone={form.phone.trim()}
+                  onVerify={handleOTPVerify}
+                  onResend={handleOTPSend}
+                  isVerifying={isVerifyingOTP}
+                  isResending={isResendingOTP}
+                  language={language as "bn" | "en"}
+                />
               </div>
-              <div className="space-y-2">
-                <h2 className="text-2xl font-black font-heading text-slate-900">{t("order_placed_success")}</h2>
-                <p className="text-sm text-slate-500 font-medium">{t("order_success_msg")}</p>
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div 
-              key="form-direct"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
+            ) : (
               <form onSubmit={handleSubmit} className="space-y-8">
               {fixedProduct && (
                 <div className="bg-slate-50 p-5 rounded-xl border border-slate-100 flex items-center gap-4">
@@ -347,70 +505,50 @@ export function CheckoutModal({
                   </div>
                 </div>
               </form>
+            )}
             </motion.div>
-          )}
         </AnimatePresence>
       </div>
     );
   }
 
-  return (
+    return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden rounded-xl border-none shadow-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl">
         <VisuallyHidden>
           <DialogTitle>Checkout</DialogTitle>
           <DialogDescription>Enter your shipping details to complete your order</DialogDescription>
         </VisuallyHidden>
+        
+        <EliteOTPModal 
+          isOpen={showOTP}
+          onClose={() => setShowOTP(false)}
+          phone={form.phone.trim()}
+          onVerify={handleOTPVerify}
+          onResend={handleOTPSend}
+          isVerifying={isVerifyingOTP}
+          isResending={isResendingOTP}
+          language={language as "bn" | "en"}
+        />
+
         <AnimatePresence mode="wait">
-          {success ? (
-            <motion.div
-              key="success"
-              initial={{ opacity: 0, scale: 0.9, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: -10 }}
-              className="py-20 text-center px-10 bg-white/50 dark:bg-slate-900/50"
-            >
-              <motion.div 
-                initial={{ scale: 0, rotate: -45 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.2 }}
-                className="w-24 h-24 bg-primary/10 dark:bg-primary/20 rounded-xl flex items-center justify-center mx-auto mb-8 relative"
-              >
-                <CheckCircle size={48} className="text-primary" />
-                <motion.div 
-                   animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
-                   transition={{ duration: 2, repeat: Infinity }}
-                   className="absolute inset-0 rounded-xl bg-primary/20"
-                />
-              </motion.div>
-              <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-3 font-heading">{t("thank_you")}</h2>
-              <p className="text-lg font-medium text-slate-600 dark:text-slate-300 mb-6 font-body">
-                {t("order_received")}
-              </p>
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-body">
-                  {t("rep_contact")}
-                </p>
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="form"
+          <motion.div
+            key="form"
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="max-h-[92vh] overflow-y-auto custom-scrollbar"
+              className="flex flex-col max-h-[92vh]"
             >
-              {/* Header */}
-              <div className="p-6 border-b border-slate-100 dark:border-slate-800/50 flex flex-col items-center bg-white/50 dark:bg-slate-800/30 sticky top-0 z-10 backdrop-blur-md">
+              {/* Header - Fixed at the top of the modal */}
+              <div className="p-6 border-b border-slate-100 dark:border-slate-800/50 flex flex-col items-center bg-white dark:bg-slate-900 relative z-10 shadow-sm">
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-3">
                   <ShoppingBag className="text-primary" size={24} />
                 </div>
-                <h2 className="text-xl font-bold text-slate-800 dark:text-white font-heading">
+                <h2 className="text-xl font-bold text-slate-800 dark:text-white font-heading text-center">
                   {t("confirm_order")}
                 </h2>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 font-body">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 font-body text-center">
                   {t("cod_info")}
                 </p>
                 <button 
@@ -421,14 +559,16 @@ export function CheckoutModal({
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                {/* Security Badge */}
-                <div className="flex items-center justify-center gap-2 py-2 px-4 bg-emerald-50/50 dark:bg-primary/5 rounded-xl border border-emerald-100/50 dark:border-primary/10">
-                  <ShieldCheck size={14} className="text-primary" />
-                  <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
-                    {t("secure_checkout")}
-                  </span>
-                </div>
+              {/* Scrollable Form Area */}
+              <div className="overflow-y-auto custom-scrollbar flex-1">
+                  <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                  {/* Security Badge */}
+                  <div className="flex items-center justify-center gap-2 py-2 px-4 bg-emerald-50/50 dark:bg-primary/5 rounded-xl border border-emerald-100/50 dark:border-primary/10">
+                    <ShieldCheck size={14} className="text-primary" />
+                    <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
+                      {t("secure_checkout")}
+                    </span>
+                  </div>
 
                 {/* Customer Info Section */}
                 <div className="space-y-4">
@@ -558,7 +698,7 @@ export function CheckoutModal({
                 </div>
 
                 {/* Order Summary Card */}
-                <div className="rounded-[2rem] bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 p-5 space-y-4">
+                <div className="rounded-xl bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 p-5 space-y-4">
                   <div className="space-y-3">
                     {items.map((item) => (
                       <div key={item.id} className="flex items-center justify-between gap-4">
@@ -651,7 +791,7 @@ export function CheckoutModal({
                     </p>
                     
                     <a 
-                      href="https://wa.me/880123456789" 
+                      href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}`} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-xs font-bold text-primary hover:text-emerald-700 transition-colors bg-emerald-50 dark:bg-primary/5 px-4 py-2 rounded-xl"
@@ -662,12 +802,12 @@ export function CheckoutModal({
                   </div>
                 </div>
               </form>
-            </motion.div>
-          )}
+            </div>
+          </motion.div>
         </AnimatePresence>
       </DialogContent>
     </Dialog>
-  );
+    );
 }
 
 const Package = ({ size, className }: { size?: number, className?: string }) => (

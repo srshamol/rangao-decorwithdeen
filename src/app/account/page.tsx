@@ -63,7 +63,7 @@ export default function AccountPage() {
               ))}
             </div>
 
-            <div className="mt-12 p-10 rounded-[2rem] border border-dashed border-slate-200 text-center">
+            <div className="mt-12 p-10 rounded-xl border border-dashed border-slate-200 text-center">
               <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <ShoppingBag size={24} className="text-slate-300" />
               </div>

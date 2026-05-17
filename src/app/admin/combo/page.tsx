@@ -139,7 +139,7 @@ export default function AdminComboPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-6 animate-in fade-in duration-500">
         <div className="relative">
-          <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
+          <div className="absolute inset-0 bg-primary/20 rounded-xl blur-2xl animate-pulse" />
           <Loader2 className="w-16 h-16 animate-spin text-primary relative z-10 opacity-40" />
           <Package className="w-8 h-8 text-primary absolute inset-0 m-auto animate-bounce relative z-20" />
         </div>
@@ -157,7 +157,7 @@ export default function AdminComboPage() {
       <div className="bg-[#064e3b] dark:bg-emerald-950 rounded-xl p-8 md:p-10 shadow-2xl shadow-emerald-900/20 relative overflow-hidden group">
         {/* Abstract background pattern/gradient */}
         <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-emerald-800/20 to-transparent pointer-events-none" />
-        <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-emerald-800/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-emerald-800/10 rounded-xl blur-3xl pointer-events-none" />
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
           <div className="flex items-center gap-6">
@@ -167,7 +167,7 @@ export default function AdminComboPage() {
             <div className="space-y-1">
               <h1 className="text-3xl font-black text-white tracking-tight">{t("combo_management")}</h1>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <div className="w-2 h-2 rounded-xl bg-emerald-400 animate-pulse" />
                 <p className="text-emerald-100/70 text-sm font-bold tracking-wide uppercase">
                   {t("total_bundles_listed").replace("{count}", combos.length.toString())}
                 </p>
@@ -179,7 +179,7 @@ export default function AdminComboPage() {
             onClick={() => setShowCreateModal(true)}
             className="h-16 px-10 bg-white text-[#064e3b] rounded-xl text-sm font-black uppercase tracking-[0.15em] flex items-center justify-center gap-3 hover:bg-emerald-50 active:scale-[0.98] transition-all shadow-xl group/btn"
           >
-            <div className="w-6 h-6 bg-emerald-100 rounded-lg flex items-center justify-center text-[#064e3b] group-hover/btn:rotate-90 transition-transform duration-500">
+            <div className="w-6 h-6 bg-emerald-100 rounded-xl flex items-center justify-center text-[#064e3b] group-hover/btn:rotate-90 transition-transform duration-500">
               <Plus size={18} strokeWidth={3} />
             </div>
             {t("new_combo")}

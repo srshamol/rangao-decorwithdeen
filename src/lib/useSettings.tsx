@@ -38,9 +38,8 @@ export function invalidateSettingsCache() {
 }
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const cachedData = getFromCache();
-  const [settings, setSettings] = useState<any>(cachedData || {});
-  const [loading, setLoading] = useState(!cachedData);
+  const [settings, setSettings] = useState<any>({});
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 

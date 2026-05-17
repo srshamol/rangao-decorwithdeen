@@ -1,279 +1,258 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Plus, Trash2, GripVertical, Link as LinkIcon, 
   ExternalLink, Sparkles, Layout, Eye, EyeOff,
-  Type, Hash, Move
+  Type, Hash, Menu as MenuIcon, ChevronRight, Monitor, Smartphone,
+  Settings, Info, PlusCircle, Save, Layers, Copy, Search,
+  ChevronDown, ArrowLeft
 } from "lucide-react";
-import { motion, Reorder } from "framer-motion";
-import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/lib/language-context";
-import { AdminSettings, HeaderLink } from "@/types/admin";
+import { AdminSettings, MenuConfig, HeaderLink } from "@/types/admin";
+import { MenuBuilder } from "./MenuBuilder";
+import { toast } from "sonner";
 
 interface Props {
   settings: AdminSettings;
   onUpdate: (data: Partial<AdminSettings>) => void;
 }
 
+const MENU_LOCATIONS = [
+  { id: 'header', label_en: 'Header Menu', label_bn: 'হেডার মেনু', icon: Layout },
+  { id: 'mobile', label_en: 'Mobile Menu', label_bn: 'মোবাইল মেনু', icon: Smartphone },
+  { id: 'footer', label_en: 'Footer Menu', label_bn: 'ফুটার মেনু', icon: Layers },
+  { id: 'category', label_en: 'Category Menu', label_bn: 'ক্যাটাগরি মেনু', icon: MenuIcon },
+  { id: 'mega', label_en: 'Mega Menu', label_bn: 'মেগা মেনু', icon: Sparkles },
+  { id: 'sticky', label_en: 'Sticky Menu', label_bn: 'স্টিকি মেনু', icon: Monitor },
+  { id: 'topbar', label_en: 'Top Bar Menu', label_bn: 'টপ বার মেনু', icon: Info },
+];
+
 export function NavigationSettings({ settings, onUpdate }: Props) {
-  const { t, language } = useLanguage();
-  const bn = language === 'bn';
-  const [links, setLinks] = useState<HeaderLink[]>(settings.header_links || []);
+  const { language } = useLanguage();
+  const isBn = language === "bn";
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [menus, setMenus] = useState<MenuConfig[]>(settings.menus || []);
 
-  const update = (field: keyof AdminSettings, value: any) => onUpdate({ [field]: value });
+  useEffect(() => {
+    if (settings.menus) setMenus(settings.menus);
+  }, [settings.menus]);
 
-  const addLink = () => {
-    const newLink = { label_bn: t("add_link"), label_en: "New Link", href: "/shop" };
-    const updated = [...links, newLink];
-    setLinks(updated);
-    update("header_links", updated);
+  const updateParent = (newMenus: MenuConfig[]) => {
+    setMenus(newMenus);
+    onUpdate({ menus: newMenus });
   };
 
-  const removeLink = (index: number) => {
-    const updated = links.filter((_, i) => i !== index);
-    setLinks(updated);
-    update("header_links", updated);
-  };
-
-  const updateLink = (index: number, field: keyof HeaderLink, value: string) => {
-    const updated = [...links];
-    updated[index] = { ...updated[index], [field]: value };
-    setLinks(updated);
-    onUpdate({ header_links: updated });
-  };
-
-  const handleReorder = (newOrder: any[]) => {
-    setLinks(newOrder);
-    onUpdate({ header_links: newOrder });
-  };
-
-  const updatePromoBadge = (field: string, value: any) => {
-    const currentBadge = settings.promo_badge || {
-      enabled: false,
-      text_bn: "",
-      text_en: "",
-      href: ""
+  const createMenu = (locationId: string) => {
+    const newMenu: MenuConfig = {
+      id: `menu-${Date.now()}`,
+      name: `New ${locationId.charAt(0).toUpperCase() + locationId.slice(1)} Menu`,
+      slug: `${locationId}-menu-${Date.now()}`,
+      location: locationId as any,
+      status: 'draft',
+      items: []
     };
-    
-    onUpdate({
-      promo_badge: {
-        ...currentBadge,
-        [field]: value
-      }
-    });
+    const updated = [...menus, newMenu];
+    updateParent(updated);
+    setActiveMenuId(newMenu.id);
   };
 
-  return (
-    <div className="space-y-8 pb-10">
-      {/* Configuration Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Toggle Settings */}
-        <div className="bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-xl p-6 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600">
-              <Layout size={20} />
-            </div>
+  const deleteMenu = (id: string) => {
+    const updated = menus.filter(m => m.id !== id);
+    updateParent(updated);
+    if (activeMenuId === id) setActiveMenuId(null);
+    toast.success(isBn ? "মেনু মুছে ফেলা হয়েছে" : "Menu deleted successfully");
+  };
+
+  const updateActiveMenu = (updates: Partial<MenuConfig>) => {
+    const updated = menus.map(m => m.id === activeMenuId ? { ...m, ...updates } : m);
+    updateParent(updated);
+  };
+
+  const activeMenu = menus.find(m => m.id === activeMenuId);
+
+  if (activeMenuId && activeMenu) {
+    return (
+      <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-500">
+        <button 
+          onClick={() => setActiveMenuId(null)}
+          className="flex items-center gap-2 text-slate-400 hover:text-emerald-500 transition-colors font-black text-[10px] uppercase tracking-widest"
+        >
+          <ArrowLeft size={16} />
+          {isBn ? "মেনু তালিকায় ফিরে যান" : "Back to Menus"}
+        </button>
+
+        <div className="bg-white dark:bg-[#0c0c0c] border border-slate-200 dark:border-white/5 rounded-xl p-10 shadow-sm space-y-10">
+          <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">
-                {t("menu_visibility")}
-              </h3>
-              <p className="text-[11px] text-slate-500">
-                {t("control_header_desc")}
-              </p>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                  <MenuIcon size={16} />
+                </div>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500">Editor Workspace</h3>
+              </div>
+              <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{activeMenu.name}</h2>
+            </div>
+            <div className="flex items-center gap-4">
+               <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10">
+                  <span className={`w-2 h-2 rounded-xl ${activeMenu.status === 'published' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    {activeMenu.status}
+                  </span>
+               </div>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-white/2 rounded-xl border border-slate-100 dark:border-white/5">
-              <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${settings.show_categories ? "bg-primary/10 text-primary" : "bg-slate-200 text-slate-400"}`}>
-                  {settings.show_categories ? <Eye size={16} /> : <EyeOff size={16} />}
-                </div>
-                <div>
-                  <p className="text-[13px] font-bold text-slate-800 dark:text-slate-200">
-                    {t("all_categories_menu")}
-                  </p>
-                  <p className="text-[10px] text-slate-500">
-                    {t("show_category_dropdown_desc")}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => onUpdate({ show_categories: !settings.show_categories })}
-                className={`w-12 h-6 rounded-full transition-all relative ${settings.show_categories ? 'bg-primary shadow-[0_0_10px_rgba(var(--primary),0.3)]' : 'bg-slate-300 dark:bg-white/10'}`}
+          <div className="grid grid-cols-2 gap-8 pt-8 border-t border-slate-100 dark:border-white/5">
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Menu Name</label>
+              <input 
+                type="text" 
+                value={activeMenu.name}
+                onChange={(e) => updateActiveMenu({ name: e.target.value })}
+                className="w-full h-14 px-6 bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold focus:ring-8 focus:ring-emerald-500/10 transition-all"
+              />
+            </div>
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Menu Status</label>
+              <select 
+                value={activeMenu.status}
+                onChange={(e) => updateActiveMenu({ status: e.target.value as any })}
+                className="w-full h-14 px-6 bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold focus:ring-8 focus:ring-emerald-500/10 transition-all outline-none"
               >
-                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.show_categories ? 'left-7' : 'left-1'}`} />
-              </button>
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+              </select>
             </div>
           </div>
         </div>
 
-        {/* Promo Badge Settings */}
-        <div className="bg-white dark:bg-white/2 border border-slate-200 dark:border-white/5 rounded-xl p-6 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center text-amber-600">
-              <Sparkles size={20} />
-            </div>
-            <div>
-              <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">
-                {t("promo_badge_offer")}
-              </h3>
-              <p className="text-[11px] text-slate-500">
-                {t("promo_badge_desc")}
-              </p>
-            </div>
-          </div>
+        <div className="bg-white dark:bg-[#0c0c0c] border border-slate-200 dark:border-white/5 rounded-xl p-10 shadow-sm min-h-[600px]">
+          <MenuBuilder 
+            items={activeMenu.items} 
+            onChange={(items) => updateActiveMenu({ items })} 
+          />
+        </div>
+      </div>
+    );
+  }
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-[12px] font-bold text-slate-600">
-                {t("enable_badge")}
-              </span>
-              <button
-                onClick={() => updatePromoBadge('enabled', !settings.promo_badge?.enabled)}
-                className={`w-12 h-6 rounded-full transition-all relative ${settings.promo_badge?.enabled ? 'bg-primary shadow-[0_0_10px_rgba(var(--primary),0.3)]' : 'bg-slate-300 dark:bg-white/10'}`}
-              >
-                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.promo_badge?.enabled ? 'left-7' : 'left-1'}`} />
-              </button>
+  return (
+    <div className="w-full space-y-12 animate-in fade-in duration-700">
+      
+      {/* Configuration Hub Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-10 bg-white dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 rounded-xl shadow-sm">
+        <div>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+              <MenuIcon size={16} />
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Labels (BN)</label>
-                <input 
-                  type="text" 
-                  value={settings.promo_badge?.text_bn || ""}
-                  onChange={(e) => updatePromoBadge('text_bn', e.target.value)}
-                  placeholder="রমজান অফার"
-                  className="w-full h-9 bg-slate-50 dark:bg-white/2 border border-slate-200 dark:border-white/5 rounded-lg px-3 text-[12px] font-medium focus:outline-none focus:ring-1 focus:ring-primary/30"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Labels (EN)</label>
-                <input 
-                  type="text" 
-                  value={settings.promo_badge?.text_en || ""}
-                  onChange={(e) => updatePromoBadge('text_en', e.target.value)}
-                  placeholder="Ramadan Offer"
-                  className="w-full h-9 bg-slate-50 dark:bg-white/2 border border-slate-200 dark:border-white/5 rounded-lg px-3 text-[12px] font-medium focus:outline-none focus:ring-1 focus:ring-primary/30"
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Target Link</label>
-              <div className="relative">
-                <input 
-                  type="text" 
-                  value={settings.promo_badge?.href || ""}
-                  onChange={(e) => updatePromoBadge('href', e.target.value)}
-                  placeholder="/shop?offers=true"
-                  className="w-full h-9 bg-slate-50 dark:bg-white/2 border border-slate-200 dark:border-white/5 rounded-lg pl-8 pr-3 text-[12px] font-medium focus:outline-none focus:ring-1 focus:ring-primary/30"
-                />
-                <LinkIcon size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              </div>
-            </div>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500">Navigation Architecture</h3>
           </div>
+          <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Menu Studio</h2>
+          <p className="text-xs text-slate-400 font-medium mt-2">Design, organize and orchestrate navigation across all platforms.</p>
         </div>
       </div>
 
-      {/* Header Links Management */}
-      <div className="bg-white dark:bg-white/2 border border-slate-200 dark:border-white/5 rounded-xl p-8 shadow-sm">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600">
-              <GripVertical size={24} />
-            </div>
-            <div>
-              <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                {t("header_menu_links")}
-              </h3>
-              <p className="text-xs text-slate-500">
-                {t("organize_menu_desc")}
-              </p>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left Sidebar: Quick Access & Stats */}
+        <div className="lg:col-span-4 space-y-6">
+          <div className="bg-white dark:bg-[#0c0c0c] border border-slate-200 dark:border-white/5 rounded-xl p-8 shadow-sm">
+            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Create New Architecture</h4>
+            <div className="grid grid-cols-1 gap-3">
+              {MENU_LOCATIONS.map((loc) => (
+                <button
+                  key={loc.id}
+                  onClick={() => createMenu(loc.id)}
+                  className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 hover:border-emerald-500/30 hover:bg-white dark:hover:bg-white/5 transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-white dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-emerald-500 shadow-sm transition-colors">
+                    <loc.icon size={18} />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[11px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-tight">{isBn ? loc.label_bn : loc.label_en}</p>
+                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Build now</p>
+                  </div>
+                  <Plus size={14} className="ml-auto text-slate-300 opacity-0 group-hover:opacity-100 transition-all" />
+                </button>
+              ))}
             </div>
           </div>
-          <button 
-            onClick={addLink}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#064e3b] text-white rounded-xl text-[13px] font-bold hover:bg-[#053F30] transition-all shadow-lg shadow-emerald-900/10"
-          >
-            <Plus size={18} />
-            {t("add_link")}
-          </button>
         </div>
 
-        <Reorder.Group axis="y" values={links} onReorder={handleReorder} className="space-y-3">
-          {links.map((link, index) => (
-            <Reorder.Item 
-              key={link.label_en + index} 
-              value={link}
-              className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-white/2 border border-slate-100 dark:border-white/5 rounded-xl group transition-all hover:border-primary/20"
-            >
-              <div className="cursor-grab active:cursor-grabbing text-slate-300 group-hover:text-slate-500 transition-colors">
-                <Move size={20} />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                    <Type size={12} />
-                    <span>Label (BN)</span>
-                  </div>
-                  <input 
-                    type="text" 
-                    value={link.label_bn}
-                    onChange={(e) => updateLink(index, 'label_bn', e.target.value)}
-                    className="w-full h-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg px-4 text-[13px] font-bold focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                    <Type size={12} />
-                    <span>Label (EN)</span>
-                  </div>
-                  <input 
-                    type="text" 
-                    value={link.label_en}
-                    onChange={(e) => updateLink(index, 'label_en', e.target.value)}
-                    className="w-full h-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg px-4 text-[13px] font-bold focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                    <Hash size={12} />
-                    <span>URL Path</span>
-                  </div>
-                  <div className="relative">
-                    <input 
-                      type="text" 
-                      value={link.href}
-                      onChange={(e) => updateLink(index, 'href', e.target.value)}
-                      className="w-full h-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg pl-4 pr-10 text-[13px] font-bold focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    />
-                    <ExternalLink size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300" />
-                  </div>
-                </div>
-              </div>
-
-              <button 
-                onClick={() => removeLink(index)}
-                className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm"
-              >
-                <Trash2 size={18} />
-              </button>
-            </Reorder.Item>
-          ))}
-          
-          {links.length === 0 && (
-            <div className="text-center py-12 bg-slate-50 dark:bg-white/[0.01] rounded-xl border-2 border-dashed border-slate-200 dark:border-white/5">
-              <div className="w-16 h-16 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-                <LinkIcon size={32} />
-              </div>
-              <p className="text-sm font-bold text-slate-500">{t("no_links_msg")}</p>
-              <p className="text-[11px] text-slate-400 mt-1">{t("add_links_instruction")}</p>
+        {/* Main Content: Existing Menus List */}
+        <div className="lg:col-span-8 space-y-6">
+          <div className="flex items-center justify-between px-4">
+            <div className="flex items-center gap-3">
+               <Layers size={18} className="text-emerald-500" />
+               <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Active Orchestrations</h3>
             </div>
-          )}
-        </Reorder.Group>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{menus.length} Menus Configured</span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6">
+            <AnimatePresence>
+              {menus.length === 0 ? (
+                <div className="p-20 border-2 border-dashed border-slate-100 dark:border-white/5 rounded-xl flex flex-col items-center justify-center text-center gap-4">
+                   <div className="w-20 h-20 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-300">
+                      <MenuIcon size={40} />
+                   </div>
+                   <div>
+                      <h4 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">Studio is Empty</h4>
+                      <p className="text-xs text-slate-400 font-medium mt-2">Start by creating a menu from the quick access panel.</p>
+                   </div>
+                </div>
+              ) : (
+                menus.map((menu) => {
+                  const location = MENU_LOCATIONS.find(l => l.id === menu.location);
+                  return (
+                    <motion.div
+                      key={menu.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="group bg-white dark:bg-[#0c0c0c] border border-slate-200 dark:border-white/5 rounded-xl p-8 hover:border-emerald-500/20 transition-all hover:shadow-2xl hover:shadow-emerald-500/5"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-6">
+                          <div className="w-16 h-16 rounded-xl bg-emerald-500/5 text-emerald-500 flex items-center justify-center shadow-inner">
+                            {location ? <location.icon size={28} /> : <MenuIcon size={28} />}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-3 mb-1">
+                              <h4 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">{menu.name}</h4>
+                              <span className={`px-3 py-1 rounded-xl text-[8px] font-black uppercase tracking-widest ${menu.status === 'published' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'}`}>
+                                {menu.status}
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-2">
+                              {location?.label_en} <span className="w-1 h-1 rounded-xl bg-slate-300" /> {menu.items.length} Items
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button 
+                            onClick={() => setActiveMenuId(menu.id)}
+                            className="h-12 px-8 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl active:scale-95"
+                          >
+                            Configure
+                          </button>
+                          <button 
+                            onClick={() => deleteMenu(menu.id)}
+                            className="w-12 h-12 rounded-xl text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center justify-center transition-all"
+                          >
+                            <Trash2 size={20} />
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
     </div>
   );

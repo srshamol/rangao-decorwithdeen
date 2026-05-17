@@ -116,26 +116,26 @@ export function FraudChecker({ phone: initialPhone, onClose }: { phone?: string,
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {!initialPhone && (
-        <div className="p-4 bg-slate-50 dark:bg-white/1 border-b border-slate-100 dark:border-white/5">
-          <div className="relative max-w-md mx-auto">
-            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input 
-              type="text" 
-              placeholder={t("enter_phone")} 
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && checkFraud(phone)}
-              className="w-full pl-10 pr-28 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none shadow-sm"
-            />
-            <button 
-              onClick={() => checkFraud(phone)}
-              disabled={loading || !phone}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg text-[9px] font-black uppercase tracking-widest disabled:opacity-50 transition-all shadow-md hover:opacity-90"
-            >
-              {loading ? <Loader2 className="animate-spin" size={14} /> : t("search")}
-            </button>
-          </div>
-        </div>
+<div className="px-[2%] sm:px-4 bg-slate-50 dark:bg-white/1 border-b border-slate-100 dark:border-white/5">
+           <div className="relative max-w-md mx-auto">
+             <Phone className="absolute left-[1.5%] sm:left-4 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+             <input 
+               type="text" 
+               placeholder={t("enter_phone")} 
+               value={phone}
+               onChange={(e) => setPhone(e.target.value)}
+               onKeyDown={(e) => e.key === 'Enter' && checkFraud(phone)}
+               className="w-full min-h-[2.5rem] sm:h-10 pl-[2.5%] sm:pl-10 pr-28 py-1 sm:py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-[clamp(11px,2.5vw,14px)] font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none shadow-sm"
+             />
+             <button 
+               onClick={() => checkFraud(phone)}
+               disabled={loading || !phone}
+               className="absolute right-[1%] sm:right-1.5 top-1/2 -translate-y-1/2 min-h-[1.5rem] sm:h-6 px-[1.5%] sm:px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-[clamp(7px,2vw,9px)] font-black uppercase tracking-widest disabled:opacity-50 transition-all shadow-md hover:opacity-90"
+             >
+               {loading ? <Loader2 className="animate-spin" size={13} /> : t("search")}
+             </button>
+           </div>
+         </div>
       )}
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar pr-2">
@@ -148,7 +148,7 @@ export function FraudChecker({ phone: initialPhone, onClose }: { phone?: string,
               exit={{ opacity: 0 }}
               className="h-48 flex flex-col items-center justify-center space-y-3"
             >
-              <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-lg animate-spin" />
+              <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-xl animate-spin" />
               <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">{t("searching_networks")}</p>
             </motion.div>
           ) : error ? (
@@ -171,24 +171,24 @@ export function FraudChecker({ phone: initialPhone, onClose }: { phone?: string,
               <div className="flex flex-col lg:flex-row gap-4 items-stretch">
                 {/* Left: Total Score Hub - Ultra Compact Premium */}
                 <div className="lg:w-[260px] shrink-0 w-full">
-                  <div className="bg-[#0f172a] rounded-3xl p-6 text-white relative overflow-hidden flex flex-col shadow-2xl border border-white/5 h-full">
+                  <div className="bg-[#0f172a] rounded-xl p-6 text-white relative overflow-hidden flex flex-col shadow-2xl border border-white/5 h-full">
                      {/* Decorative background elements */}
-                     <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[100px] -mr-32 -mt-32" />
+                     <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-xl blur-[100px] -mr-32 -mt-32" />
                      
                      <div className="relative z-10 flex flex-col h-full justify-between">
                         {/* Header Area */}
                         <div>
                            <div className="flex items-start justify-between mb-6">
                               <div className="flex flex-col gap-2">
-                                 <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#052e16] border border-emerald-500/20 rounded-full w-fit">
-                                    <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                                 <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#052e16] border border-emerald-500/20 rounded-xl w-fit">
+                                    <div className="w-1.5 h-1.5 bg-emerald-400 rounded-xl animate-pulse" />
                                     <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Live Intel</span>
                                  </div>
                                  <h3 className="text-sm font-black text-white uppercase tracking-wider ml-1">Overall Hub</h3>
                               </div>
                               <div className="text-right">
                                  <p className={`text-4xl font-black tracking-tighter ${(summary?.success_ratio || 0) > 80 ? 'text-emerald-400' : (summary?.success_ratio || 0) < 40 ? 'text-rose-400' : 'text-amber-400'}`}>{(summary?.success_ratio || 0)}%</p>
-                                 <div className={`mt-1 inline-block px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${(summary?.success_ratio || 0) > 80 ? 'bg-emerald-500/20 text-emerald-400' : (summary?.success_ratio || 0) < 40 ? 'bg-rose-500/20 text-rose-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                                 <div className={`mt-1 inline-block px-2 py-0.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${(summary?.success_ratio || 0) > 80 ? 'bg-emerald-500/20 text-emerald-400' : (summary?.success_ratio || 0) < 40 ? 'bg-rose-500/20 text-rose-400' : 'bg-amber-500/20 text-amber-400'}`}>
                                     {(summary?.success_ratio || 0) > 80 ? t('Safe') : (summary?.success_ratio || 0) < 40 ? t('Risk') : t('Caution')}
                                  </div>
                               </div>
@@ -210,7 +210,7 @@ export function FraudChecker({ phone: initialPhone, onClose }: { phone?: string,
                               
                               <button 
                                  onClick={() => checkFraud(phone, true)}
-                                 className="absolute -right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover/hub:opacity-100 p-1.5 bg-white/10 hover:bg-white/20 rounded-md transition-all text-white backdrop-blur-sm border border-white/10 z-20"
+                                 className="absolute -right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover/hub:opacity-100 p-1.5 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-white backdrop-blur-sm border border-white/10 z-20"
                               >
                                  <RefreshCcw size={12} />
                               </button>
@@ -219,7 +219,7 @@ export function FraudChecker({ phone: initialPhone, onClose }: { phone?: string,
 
                         <div className="flex items-center justify-between">
                            <div className="flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-xl shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                               <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Live Sync Active</span>
                            </div>
                            <Activity size={12} className="text-slate-700" />
@@ -231,7 +231,7 @@ export function FraudChecker({ phone: initialPhone, onClose }: { phone?: string,
                 {/* Right: Courier Matrix - No stretch */}
                 <div className="flex-1 space-y-4">
                   <div className="flex items-center gap-2 px-1">
-                     <div className="w-1 h-2.5 bg-slate-300 dark:bg-white/10 rounded-full" />
+                     <div className="w-1 h-2.5 bg-slate-300 dark:bg-white/10 rounded-xl" />
                      <h3 className="text-[9px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em]">{t("courier_intelligence")}</h3>
                   </div>
                   
@@ -248,12 +248,12 @@ export function FraudChecker({ phone: initialPhone, onClose }: { phone?: string,
                            initial={{ opacity: 0, y: 5 }}
                            animate={{ opacity: 1, y: 0 }}
                            transition={{ delay: idx * 0.03 }}
-                           className="bg-white dark:bg-[#0d0d0e] rounded-3xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-md transition-all group/card relative overflow-hidden flex flex-col h-full min-h-[160px]"
+                           className="bg-white dark:bg-[#0d0d0e] rounded-xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-md transition-all group/card relative overflow-hidden flex flex-col h-full min-h-[160px]"
                         >
                            <div className="p-6 flex flex-col h-full justify-between">
                             <div className="flex items-start justify-between mb-6">
                               <div className="flex items-center gap-3">
-                                 <div className="w-11 h-11 rounded-2xl bg-slate-50 dark:bg-white/2 border border-slate-100 dark:border-white/5 flex items-center justify-center p-2 shadow-inner">
+                                 <div className="w-11 h-11 rounded-xl bg-slate-50 dark:bg-white/2 border border-slate-100 dark:border-white/5 flex items-center justify-center p-2 shadow-inner">
                                     <img src={value.logo} alt={value.name} className="w-full h-full object-contain grayscale group-hover/card:grayscale-0 transition-all opacity-80 group-hover/card:opacity-100" />
                                  </div>
                                  <div>
@@ -309,7 +309,7 @@ export function FraudChecker({ phone: initialPhone, onClose }: { phone?: string,
                     {result.reports.map((report) => (
                       <div key={report.id} className="p-4 rounded-xl bg-rose-500/2 border border-rose-500/10 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-rose-500/5 transition-all">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-900 p-1.5 shadow-sm border border-slate-100 dark:border-white/5">
+                          <div className="w-8 h-8 rounded-xl bg-white dark:bg-slate-900 p-1.5 shadow-sm border border-slate-100 dark:border-white/5">
                             <img src={report.courierLogo} alt={report.courierName} className="w-full h-full object-contain" />
                           </div>
                           <div>
@@ -404,15 +404,15 @@ export function FraudMiniScore({ phone }: { phone: string }) {
       animate={{ opacity: 1, y: 0 }}
       className="flex items-center gap-1 mt-1.5"
     >
-       <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+       <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10">
           <Package size={7} className="text-slate-500" />
           <span className="text-[8px] font-black text-slate-500 leading-none">{data.total_parcel}</span>
        </div>
-       <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
+       <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
           <Check size={7} className="text-emerald-500" />
           <span className="text-[8px] font-black text-emerald-400 leading-none">{data.success_parcel}</span>
        </div>
-       <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-rose-500/5 border border-rose-500/20">
+       <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-xl bg-rose-500/5 border border-rose-500/20">
           <X size={7} className="text-rose-500" />
           <span className="text-[8px] font-black text-rose-500 leading-none">{data.cancelled_parcel}</span>
        </div>
@@ -490,27 +490,19 @@ export function FraudSummaryPanel({ phone }: { phone: string }) {
       className="space-y-6"
     >
        {summary.success_ratio < 40 && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="mx-1 p-2.5 rounded-xl bg-rose-500 text-white flex items-center justify-between shadow-lg shadow-rose-500/20"
-          >
-             <div className="flex items-center gap-2.5">
-                <AlertTriangle size={16} className="animate-bounce" />
-                <div>
-                   <p className="text-[10px] font-black uppercase tracking-wider">{t("high_risk_customer")}</p>
-                   <p className="text-[8px] font-bold opacity-80 uppercase tracking-widest">{t("low_success_rate")}</p>
-                </div>
-             </div>
-             <div className="px-2.5 py-1 bg-white/20 rounded-lg text-[9px] font-black tracking-widest">
-                {summary.success_ratio}%
-             </div>
-          </motion.div>
+<motion.div 
+               initial={{ opacity: 0, scale: 0.95 }}
+               animate={{ opacity: 1, scale: 1 }}
+               className="p-[2%] sm:p-8 rounded-xl bg-rose-500/5 border border-rose-500/10 text-center space-y-3"
+             >
+               <AlertTriangle className="mx-auto text-rose-400" size={28} />
+               <p className="text-[clamp(11px,2.5vw,14px)] font-bold text-rose-500">{error}</p>
+             </motion.div>
        )}
        
        <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2.5">
-             <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+             <div className="w-7 h-7 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                 <ShieldCheck size={16} />
              </div>
              <div>
@@ -525,13 +517,13 @@ export function FraudSummaryPanel({ phone }: { phone: string }) {
                    navigator.clipboard.writeText(reportText);
                    toast.success("Report copied");
                 }}
-                className="p-2 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-primary transition-all border border-slate-200/50 dark:border-white/5"
+                className="p-2 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-primary transition-all border border-slate-200/50 dark:border-white/5"
              >
                 <RefreshCcw size={12} />
              </button>
              <button 
                 onClick={() => window.dispatchEvent(new CustomEvent('open-fraud-checker', { detail: phone }))}
-                className="px-3 py-1.5 bg-primary text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg shadow-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-1.5"
+                className="px-3 py-1.5 bg-primary text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-1.5"
              >
                 <ExternalLink size={12} /> {t("full_intel")}
              </button>
@@ -542,14 +534,14 @@ export function FraudSummaryPanel({ phone }: { phone: string }) {
           <div className="flex flex-col lg:flex-row gap-4 items-stretch">
              {/* Total Score Hub - Panel Version */}
              <div className="lg:w-[260px] shrink-0 w-full">
-                <div className="bg-[#0f172a] rounded-3xl p-6 text-white relative overflow-hidden flex flex-col shadow-2xl border border-white/5 h-full">
-                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-emerald-500/10 rounded-full blur-[100px] -mt-32" />
+                <div className="bg-[#0f172a] rounded-xl p-6 text-white relative overflow-hidden flex flex-col shadow-2xl border border-white/5 h-full">
+                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-emerald-500/10 rounded-xl blur-[100px] -mt-32" />
                    
                    <div className="relative z-10 flex flex-col h-full items-center text-center">
                       {/* Header Area - Vertical Stack */}
                       <div className="mb-6 w-full flex flex-col items-center">
-                         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#052e16] border border-emerald-500/20 rounded-full w-fit mb-4">
-                            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#052e16] border border-emerald-500/20 rounded-xl w-fit mb-4">
+                            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-xl animate-pulse" />
                             <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Live Intel</span>
                          </div>
                          
@@ -602,7 +594,7 @@ export function FraudSummaryPanel({ phone }: { phone: string }) {
              {/* Courier Grid - right side - No Stretch */}
              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {['steadfast', 'carrybee', 'redx', 'pathao', 'paperfly', 'parceldex'].map((key, idx) => {
-                   const value = result.data[key as keyof typeof result.data];
+                   const value: any = result.data[key as keyof typeof result.data];
                    if (!value || typeof value !== 'object' || !value.name) return null;
                    const isSafe = value.success_ratio > 80;
                    const isRisk = value.success_ratio < 40;
@@ -613,7 +605,7 @@ export function FraudSummaryPanel({ phone }: { phone: string }) {
                          initial={{ opacity: 0, y: 5 }}
                          animate={{ opacity: 1, y: 0 }}
                          transition={{ delay: idx * 0.03 }}
-                         className="bg-white dark:bg-[#0d0d0e] rounded-3xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-md transition-all group/card relative overflow-hidden flex flex-col h-full"
+                         className="bg-white dark:bg-[#0d0d0e] rounded-xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-md transition-all group/card relative overflow-hidden flex flex-col h-full"
                       >
                          <div className="p-4 flex flex-col">
                             <div className="flex items-start justify-between mb-4">
@@ -674,7 +666,7 @@ export function FraudSummaryPanel({ phone }: { phone: string }) {
                 {result.reports.slice(0, 4).map((report) => (
                    <div key={report.id} className="p-3 rounded-xl bg-rose-500/2 border border-rose-500/10 flex items-center justify-between gap-3 hover:bg-rose-500/5 transition-all group/report">
                       <div className="flex items-center gap-2.5">
-                         <div className="w-7 h-7 rounded-lg bg-white dark:bg-slate-900 p-1 shadow-sm border border-slate-100 dark:border-white/5 group-hover/report:scale-110 transition-transform">
+                         <div className="w-7 h-7 rounded-xl bg-white dark:bg-slate-900 p-1 shadow-sm border border-slate-100 dark:border-white/5 group-hover/report:scale-110 transition-transform">
                             <img src={report.courierLogo} alt={report.courierName} className="w-full h-full object-contain" />
                          </div>
                          <div>

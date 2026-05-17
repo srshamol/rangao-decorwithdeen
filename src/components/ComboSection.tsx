@@ -18,7 +18,7 @@ export function ComboSection() {
       className="w-full py-16 px-6 bg-white"
     >
       <div className="container mx-auto max-w-7xl">
-        <div className="relative rounded-2xl border border-slate-200 overflow-hidden bg-[#FDFBF7] shadow-sm group min-h-[400px] flex items-center">
+        <div className="relative rounded-xl border border-slate-200 overflow-hidden bg-[#FDFBF7] shadow-sm group min-h-[400px] flex items-center">
           {/* Full-width Image with Fade Overlay to avoid hard edges */}
           <div className="absolute inset-0 w-full h-full">
             <Image 
@@ -42,7 +42,7 @@ export function ComboSection() {
               {language === 'bn' ? (data.heading_bn || '6% ডিসকাউন্ট') : (data.heading_en || '6% Discount')}
             </h2>
 
-            <div className="bg-[#E8F3EB] px-6 py-3 rounded-lg border border-emerald-100 mb-8 inline-block">
+            <div className="bg-[#E8F3EB] px-6 py-3 rounded-xl border border-emerald-100 mb-8 inline-block">
               <p className="text-[#0F3D2E] font-bold text-base md:text-lg">
                 {language === 'bn' ? (data.coupon_label_bn || 'কুপন কোড:') : (data.coupon_label_en || 'Coupon Code:')} <span className="font-black tracking-wider ml-1">{data.coupon_code || 'RANGAO5'}</span>
               </p>
@@ -50,7 +50,7 @@ export function ComboSection() {
 
             <Button 
               asChild
-              className="bg-[#0F3D2E] hover:bg-[#0F3D2E]/90 text-white rounded-lg px-8 h-12 font-bold transition-all hover:-translate-y-0.5 shadow-md shadow-emerald-900/10"
+              className="bg-[#0F3D2E] hover:bg-[#0F3D2E]/90 text-white rounded-xl px-8 h-12 font-bold transition-all hover:-translate-y-0.5 shadow-md shadow-emerald-900/10"
             >
               <Link href="/shop">
                 {language === 'bn' ? (data.btn_text || 'এখনই শপ করুন') : (data.btn_text || 'Shop Now')}

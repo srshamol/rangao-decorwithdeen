@@ -252,7 +252,7 @@ function CourierManagementContent() {
                        <p className="text-[9px] font-bold uppercase tracking-widest text-white/40">Liquid Settlement</p>
                        <div className="flex items-baseline gap-2">
                           <span className="text-4xl font-black tracking-tighter text-primary">৳{deliveryStats.steadfast.balance.toLocaleString()}</span>
-                          <span className="text-[8px] font-bold text-primary uppercase tracking-widest bg-primary/10 px-2 py-0.5 rounded border border-primary/20">Live</span>
+                          <span className="text-[8px] font-bold text-primary uppercase tracking-widest bg-primary/10 px-2 py-0.5 rounded-xl border border-primary/20">Live</span>
                        </div>
                        <button className="flex items-center gap-2 text-[9px] font-black text-white/60 uppercase tracking-[0.2em] hover:text-white transition-all">
                           <RefreshCw size={10} /> Sync Ledger
@@ -366,15 +366,15 @@ function CourierManagementContent() {
                    <div className="p-8 rounded-xl bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 flex flex-col justify-between shadow-sm">
                       <div className="space-y-4">
                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500"><CheckCircle2 size={16}/></div>
+                            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500"><CheckCircle2 size={16}/></div>
                             <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300">Advanced Fraud Scoring</p>
                          </div>
                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500"><CheckCircle2 size={16}/></div>
+                            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500"><CheckCircle2 size={16}/></div>
                             <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300">Carrier Network Sync</p>
                          </div>
                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500"><CheckCircle2 size={16}/></div>
+                            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500"><CheckCircle2 size={16}/></div>
                             <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300">Real-time Risk Metrics</p>
                          </div>
                       </div>

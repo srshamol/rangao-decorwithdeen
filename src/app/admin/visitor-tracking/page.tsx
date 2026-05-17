@@ -143,7 +143,7 @@ function VisitorTrackingContent() {
       for (let i = 0; i < 24; i++) {
         hours[`${i.toString().padStart(2, '0')}:00`] = 0;
       }
-      chartSessions.forEach((s) => {
+      chartSessions.forEach((s: any) => {
         const hour = new Date(s.created_at).getHours();
         const label = `${hour.toString().padStart(2, '0')}:00`;
         hours[label] = (hours[label] || 0) + 1;
@@ -151,7 +151,7 @@ function VisitorTrackingContent() {
       return Object.entries(hours).map(([name, visitors]) => ({ name, visitors }));
     } else {
       const days: Record<string, number> = {};
-      chartSessions.forEach((s) => {
+      chartSessions.forEach((s: any) => {
         const date = new Date(s.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' });
         days[date] = (days[date] || 0) + 1;
       });
@@ -161,9 +161,9 @@ function VisitorTrackingContent() {
 
   const stats = useMemo(() => {
     const activeThreshold = new Date(Date.now() - 60000).toISOString();
-    const liveSessions = sessions.filter((s) => s.last_active > activeThreshold && s.is_active);
+    const liveSessions = sessions.filter((s: any) => s.last_active > activeThreshold && s.is_active);
     const liveCount = liveSessions.length;
-    const todayCount = sessions.filter((s) => s.created_at.startsWith(new Date().toISOString().split('T')[0])).length;
+    const todayCount = sessions.filter((s: any) => s.created_at.startsWith(new Date().toISOString().split('T')[0])).length;
     
     // Calculate conversion rate: (Orders Today / Visitors Today) * 100
     const conversionRate = todayCount > 0 ? ((ordersCount / todayCount) * 100).toFixed(1) : "0.0";
@@ -176,7 +176,7 @@ function VisitorTrackingContent() {
       todayCount,
       conversionRate,
       maxLoadTime,
-      chartData: sessions.slice(0, 24).map((s, i) => ({
+      chartData: sessions.slice(0, 24).map((s: any, i: number) => ({
         name: new Date(s.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         visitors: Math.floor(Math.random() * 50) + 10 + i,
       })).reverse()
@@ -198,7 +198,7 @@ function VisitorTrackingContent() {
     enabled: !!selectedVisitor,
   });
 
-  const filteredSessions = sessions.filter((s) => 
+  const filteredSessions = sessions.filter((s: any) => 
     s.ip_address?.includes(searchQuery) || 
     s.city?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -219,7 +219,7 @@ function VisitorTrackingContent() {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-xl font-bold tracking-tight">Signal Intelligence 🛰️</h1>
-              <div className="flex items-center gap-1.5 px-3 py-0.5 bg-white/15 rounded-lg text-[9px] font-bold backdrop-blur-sm">
+              <div className="flex items-center gap-1.5 px-3 py-0.5 bg-white/15 rounded-xl text-[9px] font-bold backdrop-blur-sm">
                 <div className="w-1.5 h-1.5 bg-emerald-300 rounded-xl animate-pulse" />
                 Live Network
               </div>
@@ -227,10 +227,10 @@ function VisitorTrackingContent() {
             <p className="text-xs text-white/70">Real-time behavioral vectors and traffic orchestration.</p>
           </div>
           <div className="flex gap-2">
-             <button onClick={() => queryClient.invalidateQueries({ queryKey: ['visitor-sessions'] })} className="w-9 h-9 bg-white/15 hover:bg-white/20 text-white rounded-lg flex items-center justify-center backdrop-blur-sm transition-all border border-white/10">
+             <button onClick={() => queryClient.invalidateQueries({ queryKey: ['visitor-sessions'] })} className="w-9 h-9 bg-white/15 hover:bg-white/20 text-white rounded-xl flex items-center justify-center backdrop-blur-sm transition-all border border-white/10">
                <RefreshCw size={14} className={loadingSessions ? "animate-spin" : ""} />
              </button>
-             <button className="px-4 py-2 bg-white text-slate-900 rounded-lg text-[10px] font-bold hover:bg-white/90 transition-all flex items-center gap-2 shadow-lg">
+             <button className="px-4 py-2 bg-white text-slate-900 rounded-xl text-[10px] font-bold hover:bg-white/90 transition-all flex items-center gap-2 shadow-lg">
                 <ShieldAlert size={14}/> Security Hub
              </button>
           </div>
@@ -246,7 +246,7 @@ function VisitorTrackingContent() {
           { label: "Max Loading Time", value: `${stats.maxLoadTime}s`, icon: Timer, color: "text-amber-500", bg: "bg-amber-500/10" },
         ].map((stat, i) => (
           <div key={i} className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl p-4 shadow-sm hover:shadow-md transition-all group flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-lg ${stat.bg} flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform`}>
+            <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform`}>
               <stat.icon size={20} className={`${stat.color} ${stat.pulse ? 'animate-pulse' : ''}`} />
             </div>
             <div className="min-w-0">
@@ -263,7 +263,7 @@ function VisitorTrackingContent() {
          {/* Main Analytics - Moved to Left */}
          <div className="lg:col-span-8 space-y-4">
             <div className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl p-6 shadow-sm relative overflow-hidden">
-               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] -mr-32 -mt-32" />
+               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-xl blur-[100px] -mr-32 -mt-32" />
                
                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 relative z-10">
                   <div>
@@ -273,7 +273,7 @@ function VisitorTrackingContent() {
                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Behavioral density over time-space continuum</p>
                   </div>
                   
-                  <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/5">
+                  <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/5">
                     {[
                       { id: 'today', label: 'Today' },
                       { id: '7d', label: '7 Days' },
@@ -283,7 +283,7 @@ function VisitorTrackingContent() {
                       <button
                         key={range.id}
                         onClick={() => setTimeRange(range.id as any)}
-                        className={`px-3 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${timeRange === range.id ? 'bg-white dark:bg-slate-800 text-primary shadow-sm ring-1 ring-slate-200 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                        className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${timeRange === range.id ? 'bg-white dark:bg-slate-800 text-primary shadow-sm ring-1 ring-slate-200 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
                       >
                         {range.label}
                       </button>
@@ -292,7 +292,7 @@ function VisitorTrackingContent() {
                </div>
 
                {timeRange === 'custom' && (
-                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row items-center gap-3 mb-6 p-3 bg-primary/5 rounded-lg border border-primary/10">
+                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row items-center gap-3 mb-6 p-3 bg-primary/5 rounded-xl border border-primary/10">
                     <div className="flex items-center gap-3 w-full">
                        <Calendar size={14} className="text-primary" />
                        <input type="date" value={customRange.from} onChange={(e) => setCustomRange({...customRange, from: e.target.value})} className="bg-transparent border-none text-[9px] font-black uppercase tracking-widest outline-none text-slate-600 dark:text-slate-300 w-full" />
@@ -349,7 +349,7 @@ function VisitorTrackingContent() {
             </div>
 
             {/* Control Station */}
-            <div className="bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200/80 dark:border-white/5 p-3 shadow-sm flex flex-col md:flex-row items-center gap-3">
+            <div className="bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200/80 dark:border-white/5 p-3 shadow-sm flex flex-col md:flex-row items-center gap-3">
                 <div className="relative group flex-1 w-full">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                   <input 
@@ -357,7 +357,7 @@ function VisitorTrackingContent() {
                     placeholder="Search by IP address or city identifier..." 
                     value={searchQuery} 
                     onChange={(e) => setSearchQuery(e.target.value)} 
-                    className="w-full h-10 pl-10 pr-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-lg text-[11px] outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
+                    className="w-full h-10 pl-10 pr-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl text-[11px] outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
                   />
                 </div>
                 <div className="flex items-center gap-3 px-3">
@@ -449,7 +449,7 @@ function VisitorTrackingContent() {
                                  <span className="text-slate-400">{item.label}</span>
                                  <span className="text-slate-900 dark:text-white">{item.value}</span>
                               </div>
-                              <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                              <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-xl overflow-hidden">
                                  <div className={`h-full ${item.color}`} style={{ width: item.value }} />
                               </div>
                            </div>

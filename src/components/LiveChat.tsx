@@ -6,18 +6,29 @@ import { Input } from "./ui/input";
 
 export function LiveChat() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<{ role: 'user' | 'bot', text: string }[]>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = sessionStorage.getItem("chat_messages");
-      if (saved) return JSON.parse(saved);
-    }
-    return [{ role: 'bot', text: 'আসসালামু আলাইকুম! রাঙ্গাও-তে আপনাকে স্বাগতম। আমি কীভাবে আপনাকে সাহায্য করতে পারি?' }];
-  });
+  const [isMounted, setIsMounted] = useState(false);
+  const [messages, setMessages] = useState<{ role: 'user' | 'bot', text: string }[]>(
+    [{ role: 'bot', text: 'আসসালামু আলাইকুম! রাঙ্গাও-তে আপনাকে স্বাগতম। আমি কীভাবে আপনাকে সাহায্য করতে পারি?' }]
+  );
   const [input, setInput] = useState("");
 
   useEffect(() => {
-    sessionStorage.setItem("chat_messages", JSON.stringify(messages));
-  }, [messages]);
+    setIsMounted(true);
+    const saved = sessionStorage.getItem("chat_messages");
+    if (saved) {
+      try {
+        setMessages(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse chat messages", e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isMounted) {
+      sessionStorage.setItem("chat_messages", JSON.stringify(messages));
+    }
+  }, [messages, isMounted]);
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +53,7 @@ export function LiveChat() {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="mb-4 w-[320px] md:w-[380px] bg-card border border-border rounded-[2rem] shadow-2xl overflow-hidden flex flex-col h-[500px]"
+            className="mb-4 w-[320px] md:w-[380px] bg-card border border-border rounded-xl shadow-2xl overflow-hidden flex flex-col h-[500px]"
           >
             {/* Header */}
             <div className="bg-primary p-6 text-primary-foreground flex items-center justify-between">
@@ -66,8 +77,8 @@ export function LiveChat() {
                 <div key={idx} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-[80%] p-4 rounded-xl text-xs leading-relaxed ${
                     m.role === 'user' 
-                      ? 'bg-primary text-primary-foreground rounded-tr-none' 
-                      : 'bg-muted text-foreground rounded-tl-none border border-border'
+                      ? 'bg-primary text-primary-foreground rounded-xl' 
+                      : 'bg-muted text-foreground rounded-xl border border-border'
                   }`}>
                     {m.text}
                   </div>

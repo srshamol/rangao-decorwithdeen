@@ -16,14 +16,14 @@ export function WhatsAppButton() {
         aria-label="Order via WhatsApp"
       >
         {/* Animated Ring */}
-        <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-20" />
+        <span className="absolute inset-0 rounded-xl bg-[#25D366] animate-ping opacity-20" />
         
-        <div className="relative w-14 h-14 bg-gradient-to-br from-[#25D366] to-[#128C7E] text-white rounded-full flex items-center justify-center shadow-[0_8px_24px_rgba(37,211,102,0.4)] hover:shadow-[0_12px_32px_rgba(37,211,102,0.5)] transition-all duration-300 group-hover:scale-110 group-active:scale-95">
+        <div className="relative w-14 h-14 bg-gradient-to-br from-[#25D366] to-[#128C7E] text-white rounded-xl flex items-center justify-center shadow-[0_8px_24px_rgba(37,211,102,0.4)] hover:shadow-[0_12px_32px_rgba(37,211,102,0.5)] transition-all duration-300 group-hover:scale-110 group-active:scale-95">
           <MessageCircle size={28} strokeWidth={1.5} className="transition-transform group-hover:rotate-12" />
         </div>
 
         {/* Tooltip on hover (desktop) */}
-        <div className="absolute right-full mr-4 px-3 py-1.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-lg opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all pointer-events-none hidden md:block whitespace-nowrap">
+        <div className="absolute right-full mr-4 px-3 py-1.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all pointer-events-none hidden md:block whitespace-nowrap">
           Chat with us
         </div>
       </a>

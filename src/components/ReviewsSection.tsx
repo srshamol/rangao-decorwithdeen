@@ -84,7 +84,7 @@ export function ReviewsSection() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <Button asChild variant="outline" className="rounded-lg px-4 h-10 border-slate-200 text-[#0F3D2E] hover:bg-slate-50 font-medium">
+            <Button asChild variant="outline" className="rounded-xl px-4 h-10 border-slate-200 text-[#0F3D2E] hover:bg-slate-50 font-medium">
               <Link href="/reviews">{language === 'bn' ? (data.btn_bn || 'সব দেখুন') : (data.btn_en || 'View All')} <ArrowRight size={16} className="ml-2" /></Link>
             </Button>
           </motion.div>
@@ -93,7 +93,7 @@ export function ReviewsSection() {
         {/* Carousel Container */}
         <div className="relative">
           {/* Left Arrow */}
-          <button className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-6 w-10 h-10 rounded-full bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-600 hover:text-[#0F3D2E] hover:bg-slate-50 z-10 transition-colors hidden sm:flex">
+          <button className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-6 w-10 h-10 rounded-xl bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-600 hover:text-[#0F3D2E] hover:bg-slate-50 z-10 transition-colors hidden sm:flex">
             <ChevronLeft size={20} />
           </button>
 
@@ -106,7 +106,7 @@ export function ReviewsSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1, duration: 0.5 }}
-                className="bg-white rounded-2xl border border-slate-100 p-8 flex flex-col shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow"
+                className="bg-white rounded-xl border border-slate-100 p-8 flex flex-col shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow"
               >
                 {/* Stars */}
                 <div className="flex items-center gap-1 mb-6">
@@ -129,7 +129,7 @@ export function ReviewsSection() {
                   <img 
                     src={r.avatar} 
                     alt={r.customer_name} 
-                    className="w-12 h-12 rounded-full object-cover border border-slate-100"
+                    className="w-12 h-12 rounded-xl object-cover border border-slate-100"
                   />
                   <div>
                     <h4 className="text-[15px] font-bold text-slate-900 leading-tight">
@@ -145,16 +145,16 @@ export function ReviewsSection() {
           </div>
 
           {/* Right Arrow */}
-          <button className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-6 w-10 h-10 rounded-full bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-600 hover:text-[#0F3D2E] hover:bg-slate-50 z-10 transition-colors hidden sm:flex">
+          <button className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-6 w-10 h-10 rounded-xl bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-600 hover:text-[#0F3D2E] hover:bg-slate-50 z-10 transition-colors hidden sm:flex">
             <ChevronRight size={20} />
           </button>
         </div>
 
         {/* Pagination Dots */}
         <div className="flex items-center justify-center gap-2 mt-10">
-          <div className="w-2 h-2 rounded-full bg-[#0F3D2E]"></div>
-          <div className="w-2 h-2 rounded-full bg-slate-200"></div>
-          <div className="w-2 h-2 rounded-full bg-slate-200"></div>
+          <div className="w-2 h-2 rounded-xl bg-[#0F3D2E]"></div>
+          <div className="w-2 h-2 rounded-xl bg-slate-200"></div>
+          <div className="w-2 h-2 rounded-xl bg-slate-200"></div>
         </div>
 
       </div>

@@ -34,7 +34,7 @@ export function BottomNav() {
 
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-4">
-      <div className="bg-white/95 backdrop-blur-xl border border-slate-200/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-[2rem] max-w-md mx-auto flex items-center justify-around h-16 px-2">
+      <div className="bg-white/95 backdrop-blur-xl border border-slate-200/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-xl max-w-md mx-auto flex items-center justify-around h-16 px-2">
         {NAV_ITEMS.map((item) => {
           const active = isActive(item.href);
           return (
@@ -53,7 +53,7 @@ export function BottomNav() {
                 <item.icon size={22} strokeWidth={1.5} />
                 
                 {item.count !== undefined && item.count > 0 && (
-                  <span className="absolute top-1 right-1 bg-emerald-600 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white shadow-lg shadow-emerald-600/20">
+                  <span className="absolute top-1 right-1 bg-emerald-600 text-white text-[8px] font-black w-4 h-4 rounded-xl flex items-center justify-center border-2 border-white shadow-lg shadow-emerald-600/20">
                     {item.count}
                   </span>
                 )}
@@ -66,12 +66,12 @@ export function BottomNav() {
                   <>
                     <motion.div 
                       layoutId="activeTabGlow"
-                      className="absolute inset-0 bg-emerald-500/5 rounded-2xl -z-10"
+                      className="absolute inset-0 bg-emerald-500/5 rounded-xl -z-10"
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                     <motion.div 
                       layoutId="activeIndicator"
-                      className="absolute -bottom-1 w-1 h-1 bg-emerald-600 rounded-full"
+                      className="absolute -bottom-1 w-1 h-1 bg-emerald-600 rounded-xl"
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   </>

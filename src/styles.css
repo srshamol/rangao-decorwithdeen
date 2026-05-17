@@ -5,13 +5,13 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: var(--radius);
+  --radius-md: var(--radius);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 2px);
-  --radius-2xl: calc(var(--radius) + 4px);
-  --radius-3xl: calc(var(--radius) + 8px);
-  --radius-4xl: calc(var(--radius) + 12px);
+  --radius-xl: var(--radius);
+  --radius-2xl: var(--radius);
+  --radius-3xl: var(--radius);
+  --radius-4xl: var(--radius);
   --radius-full: 9999px;
   --radius-none: 0px;
   --color-background: var(--background);
@@ -54,38 +54,46 @@
 }
 
 :root {
-  --radius: 0.5rem;
-  --background: #FFFFFF;
-  --foreground: #0F172A;
+  --radius: 0.75rem;
+  /* Rangao Brand Colors */
+  --background: #F8FAF9;
+  --foreground: #111827;
   --card: #FFFFFF;
-  --card-foreground: #0F172A;
+  --card-foreground: #111827;
   --popover: #FFFFFF;
-  --popover-foreground: #0F172A;
-  --primary: #064E3B; /* Deep Emerald Green */
-  --primary-foreground: #F0FDF4;
+  --popover-foreground: #111827;
+  /* Primary: Deep Emerald Green #0F3D2E */
+  --primary: #0F3D2E;
+  --primary-foreground: #FFFFFF;
+  --primary-light: #145A41;
+  --primary-dark: #082820;
+  /* Secondary */
   --secondary: #F8FAFC;
-  --secondary-foreground: #064E3B;
-  --muted: #F8FAFC;
-  --muted-foreground: #64748B;
-  --accent: #F8FAFC;
-  --accent-foreground: #064E3B;
+  --secondary-foreground: #0F3D2E;
+  --muted: #F1F5F9;
+  --muted-foreground: #6B7280;
+  --accent: #F8FAF9;
+  --accent-foreground: #0F3D2E;
+  /* Gold Accent: Soft Gold #C9A24D */
+  --gold: #C9A24D;
+  --gold-light: #E6C26A;
+  --gold-foreground: #111827;
+  /* Functional Colors */
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
-  --border: #E2E8F0;
-  --input: #E2E8F0;
-  --ring: #064E3B;
-  --gold: #B45309; /* Richer Amber/Gold */
-  --gold-foreground: #FFFFFF;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --info: #3B82F6;
+  /* Borders */
+  --border: #E5E7EB;
+  --input: #E5E7EB;
+  --ring: #0F3D2E;
+  /* Charts */
   --chart-1: #0F3D2E;
   --chart-2: #C9A24D;
-  --sidebar: #0F172A;
-  --sidebar-foreground: #F8FAFC;
-  --sidebar-primary: #0F3D2E;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #1E293B;
-  --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border: #1E293B;
-  --sidebar-ring: #0F3D2E;
+  --chart-3: #3B82F6;
+  --chart-4: #10B981;
+  --chart-5: #F59E0B;
 }
 
 .dark {
@@ -95,12 +103,15 @@
   --card-foreground: #F8FAFC;
   --popover: #0B1221;
   --popover-foreground: #F8FAFC;
-  --primary: #16A34A;
+  /* Dark mode primary - slightly brighter for visibility */
+  --primary: #0F3D2E;
   --primary-foreground: #FFFFFF;
+  --primary-light: #16A34A;
+  --primary-dark: #064E3B;
   --secondary: #111827;
   --secondary-foreground: #CBD5E1;
   --muted: #111827;
-  --muted-foreground: #64748B;
+  --muted-foreground: #9CA3AF;
   --accent: #111827;
   --accent-foreground: #C9A24D;
   --destructive: #F43F5E;
@@ -110,16 +121,16 @@
   --ring: #16A34A;
   --gold: #C9A24D;
   --gold-foreground: #05070A;
-  --chart-1: #16A34A;
+  --chart-1: #10B981;
   --chart-2: #C9A24D;
-  --sidebar: #020617;
+  --sidebar: #0A0F0C;
   --sidebar-foreground: #F8FAFC;
-  --sidebar-primary: #16A34A;
+  --sidebar-primary: #0F3D2E;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #1E293B;
+  --sidebar-accent: #145A41;
   --sidebar-accent-foreground: #FFFFFF;
   --sidebar-border: #1E293B;
-  --sidebar-ring: #16A34A;
+  --sidebar-ring: #0F3D2E;
 }
 
 @layer base {

@@ -27,6 +27,9 @@ const nextConfig = {
     // Performance: optimize package imports for large icon/component libraries
     optimizePackageImports: ['lucide-react', 'recharts', 'framer-motion', 'date-fns'],
   },
+  devIndicators: {
+    buildActivity: false,
+  },
 }
 
 export default nextConfig

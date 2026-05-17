@@ -1,6 +1,7 @@
 "use client";
+
 import { useState } from "react";
-import { Smartphone, Lock, ShieldCheck, Zap, Fingerprint, Check, ChevronRight, ChevronDown, Type, Info, MessageSquare, Key, Send, Clock, Hash, Plus, Trash2, Wallet } from "lucide-react";
+import { Smartphone, Lock, ShieldCheck, Zap, Fingerprint, Check, ChevronRight, ChevronDown, Type, Info, MessageSquare, Key, Send, Clock, Hash, Plus, Trash2, Wallet, RefreshCcw, Shield, ShieldAlert, Target, Bell, AlertTriangle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/lib/language-context";
@@ -28,10 +29,8 @@ export function OTPSettings({ settings, integrations, onUpdate, onUpdateIntegrat
   const [section, setSection] = useState<"otp"|"gateway">("otp");
   const [showProviders, setShowProviders] = useState(false);
 
-  const inputCls = "w-full h-12 px-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all";
   const smsGateways = integrations.filter(i => i.category === 'sms');
 
-  // SMS Gateway management
   const addGateway = (providerId: string) => {
     const provider = SMS_PROVIDERS.find(p => p.id === providerId);
     if (!provider || !onUpdateIntegrations) return;
@@ -41,183 +40,452 @@ export function OTPSettings({ settings, integrations, onUpdate, onUpdateIntegrat
     }]);
     setShowProviders(false);
   };
+
   const removeGateway = (id: string) => onUpdateIntegrations?.(integrations.filter(i => i.id !== id));
   const updateConfig = (id: string, f: string, v: any) => onUpdateIntegrations?.(integrations.map(i => i.id === id ? { ...i, config: { ...i.config, [f]: v } } : i));
   const toggleActive = (id: string, v: boolean) => onUpdateIntegrations?.(integrations.map(i => i.id === id ? { ...i, isActive: v } : i));
 
+  const inputCls = "w-full h-16 px-6 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-xl text-[13px] font-black uppercase tracking-tight outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all placeholder:text-slate-400 shadow-sm";
+
   return (
-    <div className="space-y-6">
-      {/* Sub-section toggle */}
-      <div className="flex gap-1 p-1 bg-slate-100 dark:bg-white/5 rounded-xl">
+    <div className="space-y-12">
+      {/* Elite Tab Switcher */}
+      <div className="flex p-2 bg-slate-100/50 dark:bg-white/[0.03] rounded-xl border border-slate-200/50 dark:border-white/5 w-fit shadow-inner backdrop-blur-xl">
         {[
-          { id: "otp" as const, label: bn ? "OTP যাচাইকরণ" : "OTP Verification", icon: Lock },
-          { id: "gateway" as const, label: bn ? "SMS গেটওয়ে" : "SMS Gateways", icon: MessageSquare, count: smsGateways.length },
+          { id: "otp" as const, label: bn ? "ভেরিফিকেশন স্টুডিও" : "Verification Studio", icon: Shield },
+          { id: "gateway" as const, label: bn ? "SMS গেটওয়ে" : "SMS Hub", icon: MessageSquare, count: smsGateways.length },
         ].map(t => (
-          <button key={t.id} onClick={() => setSection(t.id)} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold transition-all ${section === t.id ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>
-            <t.icon size={14} /> {t.label} {t.count !== undefined && <span className={`ml-1 px-1.5 py-0.5 rounded-xl text-[9px] font-bold ${section === t.id ? "bg-primary/10 text-primary" : "bg-slate-200 dark:bg-white/10 text-slate-500"}`}>{t.count}</span>}
+          <button 
+            key={t.id} 
+            onClick={() => setSection(t.id)} 
+            className={`flex items-center gap-4 px-10 py-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all relative ${
+              section === t.id 
+              ? "bg-white dark:bg-white/10 text-emerald-600 shadow-2xl border border-emerald-500/10" 
+              : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+            }`}
+          >
+            <t.icon size={16} /> 
+            {t.label} 
+            {t.count !== undefined && <span className="px-2.5 py-1 rounded-xl bg-emerald-500 text-white text-[9px] font-black ml-2 shadow-lg shadow-emerald-500/20">{t.count}</span>}
           </button>
         ))}
       </div>
 
       <AnimatePresence mode="wait">
-        <motion.div key={section} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-
+        <motion.div 
+          key={section} 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          exit={{ opacity: 0, y: -20 }} 
+          className="space-y-12"
+        >
           {section === "otp" && (
-            <div className="space-y-6">
-              {/* OTP Mode Selection */}
-              <section className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl p-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-gold/10 flex items-center justify-center"><Lock size={16} className="text-gold" /></div>
-                  <div><h3 className="text-sm font-semibold text-slate-900 dark:text-white">{bn ? "ভেরিফিকেশন মোড" : "Verification Mode"}</h3><p className="text-xs text-slate-400">{bn ? "OTP যাচাইকরণ কনফিগার করুন" : "Configure OTP verification"}</p></div>
+            <div className="space-y-12">
+              {/* OTP Mode Selection Elite */}
+              <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-xl p-12 lg:p-16 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-xl blur-[100px] -translate-y-1/2 translate-x-1/2" />
+                
+                <div className="flex items-center gap-8 mb-16 relative z-10">
+                  <div className="w-20 h-20 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 shadow-inner group">
+                    <Lock size={40} className="group-hover:rotate-12 transition-transform" />
+                  </div>
+                  <div>
+                    <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">
+                      {bn ? "ভেরিফিকেশন প্রোটোকল" : "Verification Protocol"}
+                    </h3>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.4em] mt-1">{bn ? "অর্ডার অথেনটিকেশন লেভেল সেট করুন" : "Order Authentication Framework"}</p>
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
                   {[
-                    { id: "disabled", label: bn ? "বন্ধ" : "Disabled", desc: bn ? "কোনো যাচাই নেই" : "No verification", icon: Zap },
-                    { id: "all", label: bn ? "সবসময়" : "Always On", desc: bn ? "সব অর্ডারে যাচাই" : "Verify all orders", icon: ShieldCheck },
-                    { id: "conditional", label: bn ? "শর্তসাপেক্ষ" : "Conditional", desc: bn ? "হিস্টোরি ভিত্তিক" : "History based", icon: Fingerprint }
+                    { id: "disabled", label: bn ? "বন্ধ" : "Disabled", desc: bn ? "কোনো যাচাই করা হবে না" : "No verification layer", icon: Zap, color: "slate" },
+                    { id: "all", label: bn ? "সর্বোচ্চ সুরক্ষা" : "High Security", desc: bn ? "সব অর্ডারে OTP যাচাই" : "Mandatory for all hits", icon: ShieldCheck, color: "emerald" },
+                    { id: "conditional", label: bn ? "স্মার্ট ফিল্টার" : "Smart Filter", desc: bn ? "সাকসেস রেট ভিত্তিক" : "Adaptive risk scanning", icon: Fingerprint, color: "amber" }
                   ].map(mode => (
-                    <button key={mode.id} onClick={() => upd("mode", mode.id)}
-                      className={`p-4 rounded-xl border text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${settings.mode === mode.id ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-slate-50 dark:bg-white/[0.02] border-slate-100 dark:border-white/5 hover:border-slate-200 hover:shadow-md"}`}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <mode.icon size={16} className={settings.mode === mode.id ? "text-white/80" : "text-slate-400"} />
-                        <span className="text-sm font-semibold">{mode.label}</span>
-                        {settings.mode === mode.id && <Check size={14} className="ml-auto" />}
+                    <button 
+                      key={mode.id}
+                      onClick={() => upd("otp_mode", mode.id)}
+                      className={`p-10 rounded-xl border transition-all text-left group relative overflow-hidden ${
+                        settings.otp_mode === mode.id 
+                        ? "bg-slate-900 dark:bg-white border-slate-900 dark:border-white shadow-2xl scale-105" 
+                        : "bg-slate-50 dark:bg-white/[0.03] border-slate-100 dark:border-white/5 hover:border-emerald-500/30"
+                      }`}
+                    >
+                      {settings.otp_mode === mode.id && (
+                        <div className="absolute top-0 right-0 p-8 text-emerald-500 animate-pulse">
+                           <ShieldCheck size={40} />
+                        </div>
+                      )}
+                      <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-8 shadow-inner ${
+                        settings.otp_mode === mode.id ? "bg-white/10 text-white dark:bg-slate-900/10 dark:text-slate-900" : `bg-${mode.color}-500/10 text-${mode.color}-500`
+                      }`}>
+                        <mode.icon size={28} />
                       </div>
-                      <p className={`text-[11px] ${settings.mode === mode.id ? "text-white/70" : "text-slate-400"}`}>{mode.desc}</p>
+                      <h4 className={`text-xl font-black uppercase tracking-tight mb-2 ${settings.otp_mode === mode.id ? "text-white dark:text-slate-900" : "text-slate-900 dark:text-white"}`}>
+                        {mode.label}
+                      </h4>
+                      <p className={`text-[10px] font-bold uppercase tracking-widest leading-relaxed ${settings.otp_mode === mode.id ? "text-white/60 dark:text-slate-950/60" : "text-slate-400"}`}>
+                        {mode.desc}
+                      </p>
                     </button>
                   ))}
                 </div>
-                {settings.mode === "conditional" && (
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 p-4 bg-amber-50 dark:bg-gold/5 border border-amber-200 dark:border-gold/10 rounded-xl">
-                    <div className="flex items-center justify-between mb-3">
-                      <label className="text-xs font-semibold text-amber-700 dark:text-amber-400">{bn ? "সাকসেস থ্রেশহোল্ড (%)" : "Success Threshold (%)"}</label>
-                      <span className="text-lg font-bold text-gold">{settings.threshold || 50}%</span>
+              </section>
+
+              {/* Conditional Threshold Elite */}
+              <AnimatePresence>
+                {settings.otp_mode === 'conditional' && (
+                  <motion.section 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-xl p-12 lg:p-16 shadow-sm"
+                  >
+                    <div className="flex items-center gap-8">
+                       <div className="w-20 h-20 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 shadow-inner">
+                          <Target size={40} />
+                       </div>
+                       <div className="flex-1 space-y-6">
+                          <div>
+                             <h4 className="text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white">{bn ? "শর্তাধীন ফিল্টার" : "Conditional Threshold"}</h4>
+                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] mt-1">Adaptive Security Trigger</p>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                             <div className="space-y-4">
+                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">Minimum Success Rate</label>
+                                <div className="relative">
+                                   <input 
+                                      type="number" 
+                                      value={settings.otp_threshold || 50} 
+                                      onChange={e => upd("otp_threshold", Number(e.target.value))}
+                                      className={inputCls}
+                                   />
+                                   <div className="absolute right-6 top-1/2 -translate-y-1/2 px-4 py-2 bg-emerald-500/10 text-emerald-600 rounded-xl text-[10px] font-black">
+                                      {settings.otp_threshold}%
+                                   </div>
+                                </div>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest px-2">OTP will be mandatory for users with delivery success rate below this threshold.</p>
+                             </div>
+                             <div className="flex flex-col justify-center gap-6 p-8 bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-100 dark:border-white/5">
+                                <div className="flex items-center justify-between">
+                                   <div className="space-y-1">
+                                      <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight">First Order Advance</p>
+                                      <p className="text-[9px] font-medium text-slate-400 uppercase tracking-widest">Require payment for 0 history</p>
+                                   </div>
+                                   <Switch 
+                                      checked={settings.first_order_advance !== false} 
+                                      onCheckedChange={v => upd("first_order_advance", v)}
+                                      className="data-[state=checked]:bg-emerald-600"
+                                   />
+                                </div>
+                                <div className="h-px bg-slate-200 dark:bg-white/5" />
+                                <div className="flex items-center justify-between">
+                                   <div className="space-y-1">
+                                      <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight">OTP for Low Score</p>
+                                      <p className="text-[9px] font-medium text-slate-400 uppercase tracking-widest">Trigger OTP for risky users</p>
+                                   </div>
+                                   <Switch 
+                                      checked={settings.otp_low_score !== false} 
+                                      onCheckedChange={v => upd("otp_low_score", v)}
+                                      className="data-[state=checked]:bg-amber-600"
+                                   />
+                                </div>
+                             </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 border-t border-slate-100 dark:border-white/5 pt-10">
+                              <div className="space-y-4">
+                                 <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">OTP Retry Limit</label>
+                                 <input 
+                                    type="number" 
+                                    value={settings.otp_retry_limit || 3} 
+                                    onChange={e => upd("otp_retry_limit", Number(e.target.value))}
+                                    className={inputCls}
+                                 />
+                                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest px-2">Order will be placed as 'On Hold' after this many failed attempts.</p>
+                              </div>
+                              <div className="space-y-4">
+                                 <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">Manual Review Note Template</label>
+                                 <input 
+                                    type="text" 
+                                    value={settings.hold_note_template || "Failed OTP verification – requires manual review"} 
+                                    onChange={e => upd("hold_note_template", e.target.value)}
+                                    className={inputCls}
+                                 />
+                                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest px-2">Default note added to orders that fail verification.</p>
+                              </div>
+                           </div>
+
+                           {/* Added Elite Settings based on new requirements */}
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 border-t border-slate-100 dark:border-white/5 pt-10">
+                              <div className="space-y-6">
+                                <div className="flex items-center justify-between p-6 bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-100 dark:border-white/5">
+                                   <div className="space-y-1">
+                                      <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight">Hold on OTP Failure</p>
+                                      <p className="text-[9px] font-medium text-slate-400 uppercase tracking-widest">Auto block orders failing verification</p>
+                                   </div>
+                                   <Switch 
+                                      checked={settings.hold_on_failure !== false} 
+                                      onCheckedChange={v => upd("hold_on_failure", v)}
+                                      className="data-[state=checked]:bg-amber-600"
+                                   />
+                                </div>
+                                <div className="flex items-center justify-between p-6 bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-100 dark:border-white/5">
+                                   <div className="space-y-1">
+                                      <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight">Auto Block COD Risk</p>
+                                      <p className="text-[9px] font-medium text-slate-400 uppercase tracking-widest">Disable COD for blacklisted users</p>
+                                   </div>
+                                   <Switch 
+                                      checked={settings.auto_block_cod !== false} 
+                                      onCheckedChange={v => upd("auto_block_cod", v)}
+                                      className="data-[state=checked]:bg-rose-600"
+                                   />
+                                </div>
+                              </div>
+
+                              <div className="space-y-6">
+                                 <div className="space-y-4">
+                                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">OTP Delivery Channels</label>
+                                    <div className="flex gap-4">
+                                       {['SMS', 'WhatsApp', 'Both'].map(channel => (
+                                          <button
+                                             key={channel}
+                                             onClick={() => upd("otp_channel", channel)}
+                                             className={`flex-1 h-14 rounded-xl border-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                (settings.otp_channel || 'SMS') === channel 
+                                                ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white" 
+                                                : "bg-white dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-400 hover:border-slate-200"
+                                             }`}
+                                          >
+                                             {channel}
+                                          </button>
+                                       ))}
+                                    </div>
+                                 </div>
+                                 <div className="flex items-center justify-between p-6 bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-100 dark:border-white/5">
+                                   <div className="space-y-1">
+                                      <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight">Auto Resend OTP</p>
+                                      <p className="text-[9px] font-medium text-slate-400 uppercase tracking-widest">Trigger auto-resend on timeout</p>
+                                   </div>
+                                   <Switch 
+                                      checked={!!settings.auto_resend} 
+                                      onCheckedChange={v => upd("auto_resend", v)}
+                                      className="data-[state=checked]:bg-emerald-600"
+                                   />
+                                </div>
+                              </div>
+                           </div>
+
+                           {/* Notification & Tab Settings */}
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 border-t border-slate-100 dark:border-white/5 pt-10">
+                              <div className="p-8 bg-indigo-50/50 dark:bg-indigo-500/5 rounded-xl border border-indigo-100 dark:border-indigo-500/10 space-y-6">
+                                 <div className="flex items-center gap-4 mb-2">
+                                    <Bell size={20} className="text-indigo-600" />
+                                    <h5 className="text-[11px] font-black text-indigo-900 dark:text-indigo-400 uppercase tracking-widest">Admin Alerts</h5>
+                                 </div>
+                                 <div className="space-y-4">
+                                    {[
+                                       { id: 'notify_dashboard', label: 'Dashboard Alerts' },
+                                       { id: 'notify_sms', label: 'SMS Notification' },
+                                       { id: 'notify_email', label: 'Email Notification' }
+                                    ].map(n => (
+                                       <div key={n.id} className="flex items-center justify-between">
+                                          <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-tight">{n.label}</span>
+                                          <Switch 
+                                             checked={!!settings[n.id]} 
+                                             onCheckedChange={v => upd(n.id, v)}
+                                             className="data-[state=checked]:bg-indigo-600"
+                                          />
+                                       </div>
+                                    ))}
+                                 </div>
+                              </div>
+                              <div className="p-8 bg-slate-900 text-white rounded-xl shadow-2xl space-y-6">
+                                 <div className="flex items-center gap-4 mb-2">
+                                    <ShieldAlert size={20} className="text-amber-400" />
+                                    <h5 className="text-[11px] font-black text-white uppercase tracking-widest">Interface Logic</h5>
+                                 </div>
+                                 <div className="flex items-center justify-between p-4 bg-white/10 rounded-xl border border-white/5">
+                                    <div className="space-y-1">
+                                       <p className="text-[11px] font-black text-white uppercase tracking-tight">Enable Risk Orders Tab</p>
+                                       <p className="text-[9px] font-medium text-white/50 uppercase tracking-widest">Show dedicated triage view</p>
+                                    </div>
+                                    <Switch 
+                                       checked={settings.show_risk_tab !== false} 
+                                       onCheckedChange={v => upd("show_risk_tab", v)}
+                                       className="data-[state=checked]:bg-emerald-500"
+                                    />
+                                 </div>
+                                 <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest leading-relaxed">
+                                    Risk Orders tab allows rapid manual verification of orders that triggered security flags or failed OTP.
+                                 </p>
+                              </div>
+                           </div>
+                       </div>
                     </div>
-                    <input type="range" min="0" max="100" value={settings.threshold || 50} onChange={e => upd("threshold", Number(e.target.value))} className="w-full h-2 bg-amber-200 dark:bg-gold/20 rounded-xl appearance-none cursor-pointer accent-gold" />
-                    <p className="text-[11px] text-gold/70 mt-2">{bn ? "সাকসেস রেট এই থ্রেশহোল্ডের নিচে গেলে OTP সক্রিয় হবে" : "OTP activates when success rate falls below threshold"}</p>
-                  </motion.div>
+                  </motion.section>
                 )}
-              </section>
+              </AnimatePresence>
 
-              {/* SMS Template */}
-              <section className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl p-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-primary/10 flex items-center justify-center"><MessageSquare size={16} className="text-primary" /></div>
-                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{bn ? "SMS টেমপ্লেট" : "SMS Template"}</h3>
-                </div>
-                <div className="space-y-4">
-                  <textarea rows={4} value={settings.template || ""} onChange={e => upd("template", e.target.value)} placeholder={bn ? "আপনার OTP কোড: {otp}..." : "Your OTP code is {otp}..."} className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm resize-none outline-none focus:ring-2 focus:ring-primary/20 transition-all" />
-                  <div className="flex flex-wrap gap-2">
-                    {["{otp}", "{expiry}", "{site_name}"].map(tag => (
-                      <button key={tag} onClick={() => upd("template", (settings.template || "") + " " + tag)} className="px-2.5 py-1 bg-slate-100 dark:bg-white/5 rounded-xl text-[10px] font-semibold text-slate-500 border border-slate-200 dark:border-white/10 hover:text-primary hover:border-primary/30 hover:scale-105 active:scale-95 transition-all">{tag}</button>
-                    ))}
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-slate-500 ml-1">{bn ? "SMS গেটওয়ে" : "SMS Gateway"}</label>
-                    <div className="relative">
-                      <select value={settings.provider_id || ""} onChange={e => upd("provider_id", e.target.value)} className={inputCls + " appearance-none cursor-pointer"}>
-                        <option value="">{bn ? "গেটওয়ে সিলেক্ট করুন" : "Select Gateway"}</option>
-                        {smsGateways.map((i: any) => (<option key={i.id} value={i.id}>{i.providerLabel}</option>))}
-                      </select>
-                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+              {/* Popup Experience Hub */}
+              <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-xl p-12 lg:p-16 shadow-sm">
+                 <div className="flex items-center gap-8 mb-12">
+                    <div className="w-14 h-14 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600 shadow-inner">
+                       <Smartphone size={28} />
                     </div>
-                    {smsGateways.length === 0 && <p className="text-[11px] text-gold font-medium ml-1">⚠ {bn ? "SMS গেটওয়ে ট্যাবে প্রথমে গেটওয়ে যোগ করুন" : "Add a gateway in the SMS Gateways tab first"}</p>}
-                  </div>
-                </div>
-              </section>
+                    <div>
+                       <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">UX Interface Design</h3>
+                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-1">Verification Modal Configuration</p>
+                    </div>
+                 </div>
 
-              {/* OTP Popup UI */}
-              <section className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl p-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center"><Smartphone size={16} className="text-indigo-600" /></div>
-                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{bn ? "OTP পপআপ UI" : "OTP Popup UI"}</h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {[
-                    { field: "heading", label: bn ? "হেডিং" : "Heading", icon: Type },
-                    { field: "subheading", label: bn ? "সাবহেডিং" : "Subheading", icon: Info },
-                    { field: "button", label: bn ? "বাটন টেক্সট" : "Button Text", icon: Zap },
-                  ].map(f => (
-                    <div key={f.field} className="space-y-2">
-                      <label className="text-xs font-medium text-slate-500 ml-1 flex items-center gap-1.5"><f.icon size={12} />{f.label}</label>
-                      <input type="text" value={settings.popup?.[f.field] || ""} onChange={e => updPopup(f.field, e.target.value)} className={inputCls} />
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="space-y-4">
+                       <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">Modal Heading</label>
+                       <input type="text" value={settings.popup?.title || ""} onChange={e => updPopup("title", e.target.value)} className={inputCls} />
                     </div>
-                  ))}
-                </div>
-                {/* Live Preview */}
-                <div className="mt-5 p-4 bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-xl">
-                  <p className="text-[10px] font-medium text-slate-400 mb-3 uppercase tracking-wider">{bn ? "প্রিভিউ" : "Preview"}</p>
-                  <div className="max-w-xs mx-auto bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-white/10 p-6 text-center space-y-3">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto"><Lock size={20} className="text-primary"/></div>
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">{settings.popup?.heading || (bn ? "নম্বর যাচাই করুন" : "Verify Number")}</h4>
-                    <p className="text-[11px] text-slate-400">{settings.popup?.subheading || (bn ? "আপনার ফোনে কোড পাঠানো হয়েছে" : "Code sent to your phone")}</p>
-                    <div className="flex gap-2 justify-center">{[1,2,3,4].map(i=><div key={i} className="w-10 h-12 rounded-xl border-2 border-slate-200 dark:border-white/10 flex items-center justify-center text-lg font-bold text-primary">•</div>)}</div>
-                    <button className="w-full py-3 bg-primary text-white rounded-xl text-xs font-semibold shadow-lg shadow-primary/20">{settings.popup?.button || (bn ? "যাচাই করুন" : "Verify")}</button>
-                  </div>
-                </div>
+                    <div className="space-y-4">
+                       <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">Action CTA</label>
+                       <input type="text" value={settings.popup?.button || ""} onChange={e => updPopup("button", e.target.value)} className={inputCls} />
+                    </div>
+                    <div className="space-y-4">
+                       <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">OTP Placeholder</label>
+                       <input type="text" value={settings.popup?.placeholder || ""} onChange={e => updPopup("placeholder", e.target.value)} className={inputCls} />
+                    </div>
+                 </div>
               </section>
             </div>
           )}
 
-          {/* SMS GATEWAY TAB */}
           {section === "gateway" && (
-            <div className="space-y-5">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-slate-500">{smsGateways.length} {bn ? "টি গেটওয়ে কনফিগার করা" : "gateways configured"}</p>
-                <div className="relative">
-                  <button onClick={() => setShowProviders(!showProviders)} className="px-4 py-2.5 bg-primary text-white rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all">
-                    <Plus size={14} /> {bn ? "গেটওয়ে যোগ" : "Add Gateway"}
-                  </button>
-                  {showProviders && (
-                    <motion.div initial={{ opacity: 0, y: -5, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl shadow-xl z-20 overflow-hidden">
-                      {SMS_PROVIDERS.map(p => (
-                        <button key={p.id} onClick={() => addGateway(p.id)} className="w-full text-left px-4 py-3 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-all">{p.label}</button>
-                      ))}
-                    </motion.div>
-                  )}
-                </div>
-              </div>
+            <div className="space-y-10">
+              {/* SMS Gateway Hub Elite */}
+              <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-xl p-12 lg:p-16 shadow-sm">
+                 <div className="flex items-center justify-between mb-12">
+                    <div className="flex items-center gap-8">
+                       <div className="w-20 h-20 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 shadow-inner">
+                          <MessageSquare size={40} />
+                       </div>
+                       <div>
+                          <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">SMS Dispatch Hub</h3>
+                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.4em] mt-1">Neural Messaging Infrastructure</p>
+                       </div>
+                    </div>
+                    <button 
+                       onClick={() => setShowProviders(!showProviders)}
+                       className="h-16 px-10 bg-slate-950 dark:bg-white text-white dark:text-slate-900 rounded-xl text-[11px] font-black uppercase tracking-[0.3em] shadow-2xl flex items-center gap-3 hover:scale-105 active:scale-95 transition-all"
+                    >
+                       <Plus size={18} /> Connect Provider
+                    </button>
+                 </div>
 
-              {smsGateways.map((gw, idx) => (
-                <motion.div key={gw.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }} className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl p-6 shadow-sm">
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">{gw.providerLabel?.slice(0, 2)}</div>
-                      <div>
-                        <h4 className="text-sm font-semibold text-slate-900 dark:text-white">{gw.providerLabel}</h4>
-                        <div className="flex items-center gap-1.5 mt-0.5"><div className={`w-1.5 h-1.5 rounded-xl ${gw.isActive ? "bg-primary" : "bg-slate-300"}`} /><span className="text-[10px] font-medium text-slate-400">{gw.isActive ? (bn ? "সক্রিয়" : "Active") : (bn ? "নিষ্ক্রিয়" : "Inactive")}</span></div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => toast.success(bn ? "টেস্ট পালস পাঠানো হয়েছে" : "Test pulse sent")} className="px-3 py-2 bg-slate-50 dark:bg-white/5 text-xs font-medium text-slate-500 rounded-xl hover:text-primary transition-all border border-slate-200 dark:border-white/10 hover:scale-105 active:scale-95"><Send size={12} className="inline mr-1" />{bn ? "টেস্ট" : "Test"}</button>
-                      <button onClick={() => toast.info(bn ? "ব্যালেন্স: ৳250" : "Balance: ৳250")} className="px-3 py-2 bg-slate-50 dark:bg-white/5 text-xs font-medium text-slate-500 rounded-xl hover:text-primary transition-all border border-slate-200 dark:border-white/10 hover:scale-105 active:scale-95"><Wallet size={12} className="inline mr-1" />{bn ? "ব্যালেন্স" : "Balance"}</button>
-                      <Switch checked={gw.isActive} onCheckedChange={(v) => toggleActive(gw.id, v)} />
-                      <button onClick={() => removeGateway(gw.id)} className="p-2 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-400 hover:text-rose-600 rounded-xl transition-all"><Trash2 size={16} /></button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {[
-                      { f: "api_key", l: "API Key", icon: Key, pw: true },
-                      { f: "sender_id", l: bn ? "সেন্ডার ID" : "Sender ID", icon: Send, pw: false },
-                      { f: "otp_length", l: bn ? "OTP দৈর্ঘ্য" : "OTP Length", icon: Hash, pw: false },
-                      { f: "otp_expiry", l: bn ? "মেয়াদ (মি.)" : "Expiry (min)", icon: Clock, pw: false },
-                    ].map(field => (
-                      <div key={field.f} className="space-y-1.5">
-                        <label className="text-[11px] font-medium text-slate-400 ml-1 flex items-center gap-1"><field.icon size={10} />{field.l}</label>
-                        <input type={field.pw ? "password" : field.f.includes("length") || field.f.includes("expiry") ? "number" : "text"} value={gw.config?.[field.f] || ""} onChange={e => updateConfig(gw.id, field.f, e.target.value)} placeholder="..." className="w-full h-11 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/20 transition-all" />
-                      </div>
+                 <AnimatePresence>
+                    {showProviders && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="grid grid-cols-1 md:grid-cols-4 gap-6 p-10 bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-100 dark:border-white/5 mb-12"
+                      >
+                         {SMS_PROVIDERS.map(p => (
+                            <button 
+                               key={p.id} 
+                               onClick={() => addGateway(p.id)}
+                               className="p-8 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-white/10 text-left hover:border-emerald-500 hover:scale-105 transition-all shadow-sm group"
+                            >
+                               <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight mb-1 group-hover:text-emerald-500">{p.label}</p>
+                               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Connect API</p>
+                            </button>
+                         ))}
+                      </motion.div>
+                    )}
+                 </AnimatePresence>
+
+                 <div className="grid grid-cols-1 gap-10">
+                    {smsGateways.map((g: any) => (
+                       <motion.div 
+                         key={g.id} 
+                         layout 
+                         className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 rounded-xl p-12 group hover:shadow-2xl hover:shadow-indigo-500/5 transition-all"
+                       >
+                          <div className="flex flex-col lg:flex-row gap-16">
+                             <div className="lg:w-1/3 space-y-10">
+                                <div className="flex items-center gap-6">
+                                   <div className="w-16 h-16 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shadow-2xl group-hover:rotate-6 transition-transform">
+                                      <Zap size={32} />
+                                   </div>
+                                   <div>
+                                      <h4 className="text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white">{g.providerLabel}</h4>
+                                      <div className="flex items-center gap-3 mt-2">
+                                         <span className={`w-2 h-2 rounded-xl ${g.isActive ? "bg-emerald-400 animate-pulse" : "bg-slate-400"}`} />
+                                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{g.isActive ? "Online" : "Standby"}</span>
+                                      </div>
+                                   </div>
+                                </div>
+                                <div className="space-y-4">
+                                   <div className="flex items-center justify-between p-6 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-white/10">
+                                      <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Active Status</span>
+                                      <Switch 
+                                         checked={g.isActive} 
+                                         onCheckedChange={v => toggleActive(g.id, v)}
+                                         className="data-[state=checked]:bg-emerald-600"
+                                      />
+                                   </div>
+                                   <button 
+                                      onClick={() => removeGateway(g.id)}
+                                      className="w-full h-16 flex items-center justify-center gap-3 text-rose-500 hover:bg-rose-500/10 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all"
+                                   >
+                                      <Trash2 size={18} /> Disconnect Engine
+                                   </button>
+                                </div>
+                             </div>
+
+                             <div className="lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-8 p-10 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/10">
+                                <div className="space-y-4">
+                                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">API Key</label>
+                                   <div className="relative">
+                                      <input 
+                                         type="password" 
+                                         value={g.config.api_key || ""} 
+                                         onChange={e => updateConfig(g.id, "api_key", e.target.value)}
+                                         className={inputCls}
+                                      />
+                                      <div className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400">
+                                         <Key size={18} />
+                                      </div>
+                                   </div>
+                                </div>
+                                <div className="space-y-4">
+                                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">Sender ID / From</label>
+                                   <div className="relative">
+                                      <input 
+                                         type="text" 
+                                         value={g.config.sender_id || ""} 
+                                         onChange={e => updateConfig(g.id, "sender_id", e.target.value)}
+                                         className={inputCls}
+                                      />
+                                      <div className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400">
+                                         <Hash size={18} />
+                                      </div>
+                                   </div>
+                                </div>
+                                <div className="space-y-4">
+                                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">OTP Length</label>
+                                   <select value={g.config.otp_length || 4} onChange={e => updateConfig(g.id, "otp_length", Number(e.target.value))} className={inputCls}>
+                                      {[4,6,8].map(l => <option key={l} value={l}>{l} Digits</option>)}
+                                   </select>
+                                </div>
+                                <div className="space-y-4">
+                                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">Expiry (Minutes)</label>
+                                   <input type="number" value={g.config.otp_expiry || 5} onChange={e => updateConfig(g.id, "otp_expiry", Number(e.target.value))} className={inputCls} />
+                                </div>
+                             </div>
+                          </div>
+                       </motion.div>
                     ))}
-                  </div>
-                </motion.div>
-              ))}
-
-              {smsGateways.length === 0 && (
-                <div className="py-16 bg-slate-50 dark:bg-white/[0.01] border-2 border-dashed border-slate-200 dark:border-white/5 rounded-xl text-center">
-                  <MessageSquare size={40} className="mx-auto text-slate-200 dark:text-slate-700 mb-3" />
-                  <p className="text-sm font-medium text-slate-400">{bn ? "কোনো SMS গেটওয়ে কনফিগার করা হয়নি" : "No SMS gateways configured"}</p>
-                  <p className="text-xs text-slate-300 mt-1">{bn ? "উপরে 'গেটওয়ে যোগ' বাটনে ক্লিক করুন" : "Click 'Add Gateway' above"}</p>
-                </div>
-              )}
+                 </div>
+              </section>
             </div>
           )}
         </motion.div>

@@ -108,7 +108,7 @@ export function SearchOverlay() {
                       <button
                         key={tag}
                         onClick={() => setQuery(tag)}
-                        className="px-4 py-2 bg-slate-50 rounded-full text-sm font-bold text-slate-600 hover:bg-primary/5 hover:text-primary transition-all"
+                        className="px-4 py-2 bg-slate-50 rounded-xl text-sm font-bold text-slate-600 hover:bg-primary/5 hover:text-primary transition-all"
                       >
                         {tag}
                       </button>
@@ -131,7 +131,7 @@ export function SearchOverlay() {
                     <button
                       key={product.id}
                       onClick={() => handleProductClick(product.slug)}
-                      className="w-full flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 transition-all text-left group border border-transparent hover:border-slate-100"
+                      className="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 transition-all text-left group border border-transparent hover:border-slate-100"
                     >
                       <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0">
                         <img 
@@ -155,7 +155,7 @@ export function SearchOverlay() {
                   ))
                 ) : !loading && (
                   <div className="py-20 text-center">
-                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center mx-auto mb-4">
                       <Search size={32} className="text-slate-200" />
                     </div>
                     <p className="text-slate-400 font-bold">No products found for "{query}"</p>

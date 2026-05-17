@@ -11,7 +11,9 @@ import {
   X, 
   Loader2, 
   ChevronRight, 
-  Sparkles 
+  ChevronDown,
+  Sparkles,
+  LayoutGrid
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -32,6 +34,9 @@ export function Header() {
   const [searchResults, setSearchResults] = useState<Tables<"products">[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [categories, setCategories] = useState<Tables<"categories">[]>([]);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
   
   const pathname = usePathname();
   const router = useRouter();
@@ -40,6 +45,7 @@ export function Header() {
   const { language, setLanguage, t } = useLanguage();
   const gen = settings?.general_settings || {};
   const searchRef = useRef<HTMLDivElement>(null);
+
 
   const whatsapp = settings?.general_settings?.whatsapp || "8801540707024";
 
@@ -58,12 +64,41 @@ export function Header() {
   const promoBadge = navSettings.promo_badge || { text_bn: "রমজান অফার", text_en: "Ramadan Offer", href: "/shop?offers=true", enabled: true };
 
   useEffect(() => {
+    const fetchCategories = async () => {
+      // Try with name_bn first; fall back if column doesn't exist in live DB
+      let { data, error } = await supabase
+        .from("categories")
+        .select("id, name, name_bn, slug, icon, image, sort_order")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true })
+        .limit(20);
+
+      if (error) {
+        // Fallback without name_bn
+        const fallback = await supabase
+          .from("categories")
+          .select("id, name, slug, icon, image, sort_order")
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true })
+          .limit(20);
+        data = fallback.data;
+      }
+
+      if (data) setCategories(data as Tables<"categories">[]);
+    };
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowSuggestions(false);
+      }
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+        setCategoriesOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -118,7 +153,7 @@ export function Header() {
 
   return (
     <>
-      <header className={`w-full z-[60] bg-white transition-all duration-300 ${scrolled ? 'sticky top-0 shadow-sm' : 'relative'}`}>
+      <header className={`w-full z-40 bg-white transition-all duration-300 ${scrolled ? 'sticky top-0 shadow-sm' : 'relative'}`}>
         {/* Top Row: Logo, Search, Icons */}
         <div className="border-b border-slate-50">
           <div className={`container mx-auto max-w-7xl px-4 transition-all duration-300 ${scrolled ? 'h-14 md:h-16' : 'h-16 md:h-24'} flex items-center justify-between lg:justify-between gap-4 md:gap-10`}>
@@ -135,23 +170,46 @@ export function Header() {
             {/* Center: Logo */}
             <div className="flex-1 lg:flex-none flex justify-center lg:justify-start">
               <Link href="/" className="flex items-center gap-2 shrink-0">
-               {homeSettings.show_logo !== false && (gen.logo ? (
-                  <img src={gen.logo} alt={gen.store_name || "Rangao"} className={`transition-all duration-300 ${scrolled ? 'h-8 md:h-9' : 'h-10 md:h-12'} w-auto object-contain`} />
-               ) : (
-                  <div className="w-10 h-10 md:w-12 md:h-12 bg-primary rounded-xl flex items-center justify-center text-white font-black text-xl md:text-2xl shadow-lg shadow-primary/10">
-                    {(gen.store_name || "Rangao").charAt(0).toUpperCase()}
-                  </div>
-               ))}
-               {(homeSettings.show_name !== false || homeSettings.show_tagline !== false) && (
-                 <div className="hidden md:block">
-                    {homeSettings.show_name !== false && (
-                      <h1 className="text-xl font-black text-slate-900 leading-none tracking-tight uppercase">{gen.store_name || "RANGAO"}</h1>
-                    )}
-                    {homeSettings.show_tagline !== false && (
-                      <p className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mt-0.5">{gen.store_tagline || t("decor_dream_space")}</p>
-                    )}
-                 </div>
-               )}
+               {/* Logo Visibility */}
+               {(() => {
+                 const vis = settings?.general_settings?.visibility?.logo || { desktop: true, mobile: true };
+                 if (!vis.desktop && !vis.mobile) return null;
+                 const displayClass = !vis.mobile ? "hidden md:block" : (!vis.desktop ? "block md:hidden" : "");
+                 
+                 return gen.logo ? (
+                   <img src={gen.logo} alt={gen.store_name || "Rangao"} className={`transition-all duration-300 ${scrolled ? 'h-8 md:h-9' : 'h-10 md:h-12'} w-auto object-contain ${displayClass}`} />
+                 ) : (
+                   <div className={`w-10 h-10 md:w-12 md:h-12 bg-primary rounded-xl flex items-center justify-center text-white font-black text-xl md:text-2xl shadow-lg shadow-primary/10 ${displayClass}`}>
+                     {(gen.store_name || "Rangao").charAt(0).toUpperCase()}
+                   </div>
+                 );
+               })()}
+
+               {/* Name and Tagline Visibility */}
+               <div className="hidden md:block">
+                 {(() => {
+                   const nameVis = settings?.general_settings?.visibility?.store_name || { desktop: true, mobile: true };
+                   const taglineVis = settings?.general_settings?.visibility?.store_tagline || { desktop: true, mobile: true };
+                   
+                   return (
+                     <>
+                       {nameVis.desktop && (
+                         <h1 className="text-xl font-black text-slate-900 leading-none tracking-tight uppercase">{gen.store_name || "RANGAO"}</h1>
+                       )}
+                       {taglineVis.desktop && (
+                         <p className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mt-0.5">{gen.store_tagline || t("decor_dream_space")}</p>
+                       )}
+                     </>
+                   );
+                 })()}
+               </div>
+               
+               {/* Mobile Name (if needed) */}
+               <div className="md:hidden">
+                 {settings?.general_settings?.visibility?.store_name?.mobile && (
+                    <h1 className="text-sm font-black text-slate-900 leading-none tracking-tight uppercase">{gen.store_name || "RANGAO"}</h1>
+                 )}
+               </div>
               </Link>
             </div>
 
@@ -166,7 +224,7 @@ export function Header() {
                     placeholder={t("search_placeholder")}
                     className={`w-full transition-all duration-300 ${scrolled ? 'h-10' : 'h-12'} bg-slate-50 border border-slate-200 rounded-xl px-6 pr-14 text-sm font-medium focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all`}
                   />
-                  <button type="submit" className={`absolute right-0 top-0 transition-all duration-300 ${scrolled ? 'h-10 w-12' : 'h-12 w-14'} bg-primary text-white rounded-r-xl flex items-center justify-center hover:bg-primary/95 transition-all shadow-lg shadow-primary/10`}>
+                  <button type="submit" className={`absolute right-0 top-0 transition-all duration-300 ${scrolled ? 'h-10 w-12' : 'h-12 w-14'} bg-primary text-white rounded-xl flex items-center justify-center hover:bg-primary/95 transition-all shadow-lg shadow-primary/10`}>
                      {isSearching ? <Loader2 size={18} className="animate-spin" /> : <Search size={20} />}
                   </button>
                </form>
@@ -178,7 +236,7 @@ export function Header() {
                      initial={{ opacity: 0, y: 10 }}
                      animate={{ opacity: 1, y: 0 }}
                      exit={{ opacity: 0, y: 10 }}
-                     className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[70] min-w-[300px]"
+                     className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-slate-100 overflow-hidden z-[70] min-w-[300px]"
                    >
                      {isSearching && searchResults.length === 0 ? (
                        <div className="p-8 text-center text-slate-400">
@@ -197,7 +255,7 @@ export function Header() {
                              onClick={() => setShowSuggestions(false)}
                              className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl transition-colors group"
                            >
-                             <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-slate-100">
+                             <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-100">
                                {product.images?.[0] && (
                                  <img 
                                    src={product.images[0]} 
@@ -270,7 +328,7 @@ export function Header() {
                       >
                          <ShoppingBag size={24} strokeWidth={1.5} />
                          {totalItems > 0 && (
-                           <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-[9px] font-black rounded-full w-5 h-5 flex items-center justify-center border-2 border-white shadow-lg shadow-emerald-600/20">
+                           <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-[9px] font-black rounded-xl w-5 h-5 flex items-center justify-center border-2 border-white shadow-lg shadow-emerald-600/20">
                              {totalItems}
                            </span>
                          )}
@@ -295,15 +353,94 @@ export function Header() {
         {/* Navigation Row - Desktop Only */}
         <div className={`hidden lg:block border-b border-slate-50 transition-all duration-300 ${scrolled ? 'py-2 bg-white/95 backdrop-blur-md' : 'relative py-3'}`}>
           <div className="container mx-auto max-w-7xl px-4 flex items-center justify-between">
-              <div className="flex items-center gap-10">
+              <div className="flex items-center gap-8">
+                {/* All Categories Mega Dropdown */}
                 {showCategories && (
-                  <button className="flex items-center gap-3 text-slate-900 font-bold text-sm hover:text-primary transition-all group">
-                     <Menu size={18} />
-                     {t("all_categories")}
-                     <ChevronRight size={14} className="rotate-90 text-slate-400 group-hover:text-primary transition-transform" />
-                  </button>
-                )}
+                  <div className="relative" ref={categoryDropdownRef}>
+                    <button
+                      onClick={() => setCategoriesOpen(prev => !prev)}
+                      className={`flex items-center gap-2 font-bold text-sm transition-all group ${
+                        categoriesOpen ? 'text-primary' : 'text-slate-900 hover:text-primary'
+                      }`}
+                    >
+                      <Menu size={18} />
+                      {t("all_categories")}
+                      <ChevronDown
+                        size={14}
+                        className={`text-slate-400 group-hover:text-primary transition-transform duration-200 ${
+                          categoriesOpen ? 'rotate-180 text-primary' : ''
+                        }`}
+                      />
+                    </button>
 
+                    <AnimatePresence>
+                      {categoriesOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                          transition={{ duration: 0.18, ease: 'easeOut' }}
+                          className="absolute top-[calc(100%+12px)] left-0 w-[520px] bg-white rounded-xl shadow-2xl border border-slate-100 overflow-hidden z-[60]"
+                        >
+                          {/* Header */}
+                          <div className="px-5 pt-4 pb-3 border-b border-slate-50 flex items-center gap-2">
+                            <LayoutGrid size={14} className="text-primary" />
+                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                              {language === 'bn' ? 'সকল বিভাগ' : 'All Categories'}
+                            </span>
+                          </div>
+
+                          {/* Categories Grid */}
+                          <div className="p-3 grid grid-cols-2 gap-1">
+                            {(categories.length > 0 ? categories : NAV_LINKS).map((item: any) => {
+                              const isCategory = 'slug' in item;
+                              const href = isCategory
+                                ? `/shop?category=${item.slug || item.id}`
+                                : item.href;
+                              const label = language === 'bn'
+                                ? (item.name_bn || item.label_bn || item.name)
+                                : (item.name || item.label_en);
+                              return (
+                                <Link
+                                  key={isCategory ? item.id : item.href}
+                                  href={href}
+                                  onClick={() => setCategoriesOpen(false)}
+                                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-emerald-50 group/item transition-all"
+                                >
+                                  {item.image ? (
+                                    <div className="w-9 h-9 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-100">
+                                      <img src={item.image} alt={label} className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-300" />
+                                    </div>
+                                  ) : (
+                                    <div className="w-9 h-9 rounded-xl bg-emerald-50 shrink-0 flex items-center justify-center text-base">
+                                      {item.icon || '🗂️'}
+                                    </div>
+                                  )}
+                                  <span className="text-[13px] font-bold text-slate-700 group-hover/item:text-primary transition-colors leading-tight">
+                                    {label}
+                                  </span>
+                                  <ChevronRight size={12} className="ml-auto text-slate-200 group-hover/item:text-primary transition-colors" />
+                                </Link>
+                              );
+                            })}
+                          </div>
+
+                          {/* Footer CTA */}
+                          <div className="p-3 border-t border-slate-50">
+                            <Link
+                              href="/shop"
+                              onClick={() => setCategoriesOpen(false)}
+                              className="flex items-center justify-center gap-2 w-full py-2.5 bg-primary/5 hover:bg-primary/10 rounded-xl text-[13px] font-black text-primary transition-all"
+                            >
+                              {language === 'bn' ? 'সব পণ্য দেখুন' : 'View All Products'}
+                              <ChevronRight size={13} />
+                            </Link>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
 
                 <nav className="flex items-center gap-8">
                   {NAV_LINKS.map((link: any) => (
@@ -316,7 +453,7 @@ export function Header() {
                     >
                       {language === 'bn' ? link.label_bn : link.label_en}
                       {isActive(link.href) && (
-                        <motion.div layoutId="navUnderline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+                        <motion.div layoutId="navUnderline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-xl" />
                       )}
                     </Link>
                   ))}

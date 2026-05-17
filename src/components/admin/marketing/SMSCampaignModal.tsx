@@ -139,7 +139,7 @@ export default function SMSCampaignModal({ isOpen, onClose, audienceCounts }: SM
                       { id: "inactive", label: bn ? "ইনএকটিভ (৩০+ দিন)" : "Inactive (30+ days)", count: audienceCounts?.inactive, color: "bg-slate-50 text-slate-600", icon: Calendar },
                       { id: "custom", label: bn ? "কাস্টম সেগমেন্ট" : "Custom Segment", count: null, color: "bg-purple-50 text-purple-600", icon: Plus },
                     ].map((opt) => (
-                      <label key={opt.id} className={`relative flex flex-col p-6 rounded-[2rem] border-2 transition-all cursor-pointer group hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none ${segment === opt.id ? 'border-[#0a3622] bg-white' : 'border-slate-50 bg-white dark:bg-white/[0.02] hover:border-slate-200'}`}>
+                      <label key={opt.id} className={`relative flex flex-col p-6 rounded-xl border-2 transition-all cursor-pointer group hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none ${segment === opt.id ? 'border-[#0a3622] bg-white' : 'border-slate-50 bg-white dark:bg-white/[0.02] hover:border-slate-200'}`}>
                         <div className="flex items-center justify-between mb-4">
                           <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${opt.color}`}>
                             <opt.icon size={22} />
@@ -218,7 +218,7 @@ export default function SMSCampaignModal({ isOpen, onClose, audienceCounts }: SM
                 )}
 
                 <section className="p-12 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10 bg-slate-50/30 dark:bg-white/[0.01] text-center group hover:border-[#0a3622]/30 transition-all">
-                   <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-[2rem] shadow-xl shadow-slate-200/50 dark:shadow-none flex items-center justify-center mx-auto mb-6 group-hover:-translate-y-2 transition-transform">
+                   <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-xl shadow-xl shadow-slate-200/50 dark:shadow-none flex items-center justify-center mx-auto mb-6 group-hover:-translate-y-2 transition-transform">
                       <Upload size={32} className="text-[#0a3622]" />
                    </div>
                    <h4 className="text-lg font-bold text-slate-800 dark:text-white mb-2">{bn ? "কাস্টম নম্বর ইমপোর্ট" : "Custom Audience Import"}</h4>
@@ -269,7 +269,7 @@ export default function SMSCampaignModal({ isOpen, onClose, audienceCounts }: SM
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       rows={8}
-                      className="w-full p-10 bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/10 rounded-[3rem] text-base font-bold  outline-none focus:ring-8 focus:ring-[#0a3622]/5 transition-all resize-none shadow-inner no-scrollbar leading-relaxed"
+                      className="w-full p-10 bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/10 rounded-xl text-base font-bold  outline-none focus:ring-8 focus:ring-[#0a3622]/5 transition-all resize-none shadow-inner no-scrollbar leading-relaxed"
                       placeholder={bn ? "এখানে আপনার বার্তা লিখুন..." : "Your signal payload here..."}
                     />
                     
@@ -367,7 +367,7 @@ export default function SMSCampaignModal({ isOpen, onClose, audienceCounts }: SM
                   </div>
 
                   {scheduleType === "schedule" && (
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="p-12 bg-slate-50/50 dark:bg-white/[0.02] rounded-[3rem] border border-slate-100 dark:border-white/5 space-y-8 shadow-inner">
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="p-12 bg-slate-50/50 dark:bg-white/[0.02] rounded-xl border border-slate-100 dark:border-white/5 space-y-8 shadow-inner">
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                           <div className="space-y-3">
                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{bn ? "তারিখ" : "Broadcast Date"}</label>
@@ -391,7 +391,7 @@ export default function SMSCampaignModal({ isOpen, onClose, audienceCounts }: SM
             {step === 4 && (
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
                 <section className="space-y-10 text-center">
-                  <div className="w-24 h-24 bg-emerald-50 rounded-[2rem] flex items-center justify-center text-primary mx-auto border-2 border-emerald-100 shadow-xl shadow-primary/10">
+                  <div className="w-24 h-24 bg-emerald-50 rounded-xl flex items-center justify-center text-primary mx-auto border-2 border-emerald-100 shadow-xl shadow-primary/10">
                     <ShieldCheck size={48} />
                   </div>
                   <div>
@@ -401,7 +401,7 @@ export default function SMSCampaignModal({ isOpen, onClose, audienceCounts }: SM
                     <p className="text-xs text-slate-400 font-medium max-w-md mx-auto leading-relaxed">{bn ? "আপনার ক্যাম্পেইনের সকল প্যারামিটার চেক করুন এবং শুরু করুন" : "Verify all broadcast parameters. This action will trigger live billing units."}</p>
                   </div>
 
-                  <div className="bg-[#0a3622] rounded-[3rem] p-12 text-white text-left relative overflow-hidden shadow-2xl">
+                  <div className="bg-[#0a3622] rounded-xl p-12 text-white text-left relative overflow-hidden shadow-2xl">
                      <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-xl blur-[100px] -mr-40 -mt-40" />
                      <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/10 rounded-xl blur-[80px] -ml-32 -mb-32" />
                      
@@ -472,16 +472,16 @@ export default function SMSCampaignModal({ isOpen, onClose, audienceCounts }: SM
                 </div>
               </div>
             ) : (
-              <div className="relative mx-auto w-[240px] h-[480px] bg-slate-900 rounded-[3rem] border-8 border-slate-800 shadow-2xl p-4 pt-12 overflow-hidden flex flex-col">
+              <div className="relative mx-auto w-[240px] h-[480px] bg-slate-900 rounded-xl border-8 border-slate-800 shadow-2xl p-4 pt-12 overflow-hidden flex flex-col">
                  <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-4 bg-slate-800 rounded-xl" />
                  
-                 <div className="flex-1 bg-slate-100 dark:bg-slate-950 rounded-[2rem] p-4 flex flex-col overflow-hidden">
+                 <div className="flex-1 bg-slate-100 dark:bg-slate-950 rounded-xl p-4 flex flex-col overflow-hidden">
                     <div className="flex items-center gap-2 mb-4">
                        <div className="w-6 h-6 rounded-xl bg-slate-300" />
-                       <div className="h-2 w-12 bg-slate-300 rounded" />
+                       <div className="h-2 w-12 bg-slate-300 rounded-xl" />
                     </div>
                     
-                    <div className="self-start max-w-[85%] bg-white dark:bg-slate-900 rounded-xl rounded-tl-none p-3 shadow-sm border border-slate-200 dark:border-white/5">
+                    <div className="self-start max-w-[85%] bg-white dark:bg-slate-900 rounded-xl rounded-xl p-3 shadow-sm border border-slate-200 dark:border-white/5">
                        <p className="text-[10px] font-medium leading-relaxed text-slate-600 dark:text-slate-300  whitespace-pre-wrap">
                           {renderedPreview || (bn ? "এখানে বার্তা প্রিভিউ হবে..." : "Message signal will preview here...")}
                        </p>

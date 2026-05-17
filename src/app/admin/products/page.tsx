@@ -365,31 +365,23 @@ function AdminProductsContent() {
     setSaving(false);
   };
 
-  if (loading && products.length === 0) return (
-    <div className="space-y-8 pb-32 max-w-[1400px] mx-auto animate-pulse">
-      <div className="h-28 bg-slate-100 dark:bg-white/3 rounded-xl" />
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{[...Array(4)].map((_,i)=><div key={i} className="h-24 bg-slate-100 dark:bg-white/3 rounded-xl"/>)}</div>
-      <div className="h-[600px] bg-slate-100 dark:bg-white/3 rounded-xl" />
-    </div>
-  );
-
   return (
     <div className="space-y-8 pb-32 max-w-[1400px] mx-auto selection:bg-primary/20">
       {/* Dashboard Style Header */}
-      <div className="bg-linear-to-r from-primary to-emerald-700 rounded-xl p-7 text-white relative overflow-hidden shadow-lg shadow-primary/20">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-3xl rounded-xl -mr-20 -mt-20" />
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-           <div className="flex items-center gap-5">
-              <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner">
-                 <Package size={28} />
+      <div className="bg-primary rounded-xl p-6 text-white relative overflow-hidden shadow-sm">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08)_0%,transparent_60%)]" />
+        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+           <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
+                 <Package size={20} />
               </div>
               <div>
-                 <h1 className="text-2xl font-black uppercase tracking-tight ">
+                 <h1 className="text-xl font-bold">
                    {t("product_management")}
                  </h1>
-                 <div className="flex items-center gap-2 mt-1">
-                    <div className="w-2 h-2 bg-emerald-400 rounded-xl animate-pulse" />
-                    <p className="text-[10px] font-bold text-white/80 uppercase tracking-widest ">
+                 <div className="flex items-center gap-2 mt-0.5">
+                    <div className="w-1.5 h-1.5 bg-white/60 rounded-xl animate-pulse" />
+                    <p className="text-xs text-white/60">
                        {t("total_products_live").replace("{count}", String(products.length))}
                     </p>
                  </div>
@@ -411,29 +403,29 @@ function AdminProductsContent() {
                  top_banner_text: ""
                }
              }); setShowForm(true); }}
-             className="px-6 h-12 bg-white text-primary rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-slate-50 active:scale-95 transition-all shadow-xl "
+             className="px-4 py-2.5 bg-white text-primary rounded-xl text-xs font-semibold flex items-center gap-2 hover:bg-white/90 transition-all shadow-sm"
            >
-             <Plus size={18} />
+             <Plus size={15} />
              {t("new_product")}
            </button>
         </div>
       </div>
 
       {/* Standardized Dashboard Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: t("total_items"), value: stats.total, icon: Layers, color: "text-blue-500", bg: "bg-blue-500/10" },
-          { label: t("active_listings"), value: stats.active, icon: CheckCircle2, color: "text-primary", bg: "bg-primary/10" },
-          { label: t("stock_warnings"), value: stats.outOfStock, icon: AlertCircle, color: "text-rose-500", bg: "bg-rose-500/10" },
-          { label: t("draft_archived"), value: stats.inactive, icon: Ban, color: "text-gold", bg: "bg-gold/10" },
+          { label: t("total_items"), value: stats.total, icon: Layers, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-500/10" },
+          { label: t("active_listings"), value: stats.active, icon: CheckCircle2, color: "text-primary", bg: "bg-emerald-50 dark:bg-primary/10" },
+          { label: t("stock_warnings"), value: stats.outOfStock, icon: AlertCircle, color: "text-rose-500", bg: "bg-rose-50 dark:bg-rose-500/10" },
+          { label: t("draft_archived"), value: stats.inactive, icon: Ban, color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-500/10" },
         ].map((stat, i) => (
-          <div key={i} className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl p-6 shadow-sm hover:shadow-md transition-all group flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-xl ${stat.bg} flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 shadow-inner`}>
-              <stat.icon size={24} className={stat.color} />
+          <div key={i} className="bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 rounded-xl p-4 hover:shadow-md transition-all flex items-center gap-3">
+            <div className={`w-9 h-9 rounded-xl ${stat.bg} flex items-center justify-center shrink-0`}>
+              <stat.icon size={16} className={stat.color} />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter truncate leading-none mb-1">{stat.label}</p>
-              <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter leading-none">{stat.value}</p>
+              <p className="text-[10px] font-medium text-slate-400 truncate mb-0.5">{stat.label}</p>
+              <p className="text-xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
             </div>
           </div>
         ))}
@@ -613,7 +605,7 @@ function AdminProductsContent() {
            {/* Header */}
            <div className="px-8 py-6 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-white/5 flex justify-between items-center shrink-0">
              <div className="flex items-center gap-4">
-               <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+               <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                  <ShoppingBag size={24} />
                </div>
                <div>
@@ -625,7 +617,7 @@ function AdminProductsContent() {
                  </p>
                </div>
              </div>
-             <button onClick={() => setShowForm(false)} className="w-10 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-500 transition-colors">
+             <button onClick={() => setShowForm(false)} className="w-10 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-500 transition-colors">
                <X size={20} />
              </button>
            </div>
@@ -649,7 +641,7 @@ function AdminProductsContent() {
                        {uploading ? (
                           <Loader2 className="animate-spin text-emerald-600 mb-4" size={32} />
                        ) : (
-                          <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center shadow-sm text-emerald-600 mb-4">
+                          <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm text-emerald-600 mb-4">
                             <Upload size={28} />
                           </div>
                        )}
@@ -665,20 +657,20 @@ function AdminProductsContent() {
 
                     <div className="grid grid-cols-4 gap-4">
                       {form.images.slice(0, 4).map((url, i) => (
-                        <div key={i} className={`aspect-square rounded-[12px] overflow-hidden relative group border ${i === 0 ? 'border-emerald-500' : 'border-slate-200 dark:border-white/10'}`}>
+                        <div key={i} className={`aspect-square rounded-xl overflow-hidden relative group border ${i === 0 ? 'border-emerald-500' : 'border-slate-200 dark:border-white/10'}`}>
                           <img src={url} alt="" className="w-full h-full object-cover" />
-                          <button type="button" onClick={() => handleImageRemove(i)} className="absolute top-1 right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center text-rose-500 shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button type="button" onClick={() => handleImageRemove(i)} className="absolute top-1 right-1 w-6 h-6 bg-white rounded-xl flex items-center justify-center text-rose-500 shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
                             <X size={14} />
                           </button>
                           {i === 0 && (
-                            <div className="absolute top-1 left-1 bg-emerald-100 text-emerald-700 text-[9px] font-bold px-2 py-0.5 rounded-full">
+                            <div className="absolute top-1 left-1 bg-emerald-100 text-emerald-700 text-[9px] font-bold px-2 py-0.5 rounded-xl">
                               {t("primary_image")}
                             </div>
                           )}
                         </div>
                       ))}
                       {form.images.length < 4 && [...Array(4 - form.images.length)].map((_, i) => (
-                        <div key={`empty-${i}`} className="aspect-square rounded-[12px] border border-dashed border-slate-300 dark:border-white/10 bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-300">
+                        <div key={`empty-${i}`} className="aspect-square rounded-xl border border-dashed border-slate-300 dark:border-white/10 bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-300">
                           {i === 0 && form.images.length === 0 ? <ImageIcon size={24} /> : <Plus size={24} />}
                         </div>
                       ))}
@@ -744,13 +736,13 @@ function AdminProductsContent() {
                               <option>Heading 2</option>
                             </select>
                             <div className="w-px h-4 bg-slate-300 dark:bg-slate-700 mx-2" />
-                            <button type="button" onClick={() => execCommand('bold')} className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"><Bold size={16} /></button>
-                            <button type="button" onClick={() => execCommand('italic')} className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"><Italic size={16} /></button>
-                            <button type="button" onClick={() => execCommand('underline')} className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 font-serif underline">U</button>
+                            <button type="button" onClick={() => execCommand('bold')} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"><Bold size={16} /></button>
+                            <button type="button" onClick={() => execCommand('italic')} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"><Italic size={16} /></button>
+                            <button type="button" onClick={() => execCommand('underline')} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 font-serif underline">U</button>
                             <div className="w-px h-4 bg-slate-300 dark:bg-slate-700 mx-2" />
-                            <button type="button" onClick={() => execCommand('insertUnorderedList')} className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"><List size={16} /></button>
-                            <button type="button" onClick={() => execCommand('insertOrderedList')} className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 text-[12px] font-bold">1.</button>
-                            <button type="button" onClick={() => { const url = prompt("Link URL:"); if (url) execCommand('createLink', url); }} className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"><LinkIcon size={16} /></button>
+                            <button type="button" onClick={() => execCommand('insertUnorderedList')} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"><List size={16} /></button>
+                            <button type="button" onClick={() => execCommand('insertOrderedList')} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 text-[12px] font-bold">1.</button>
+                            <button type="button" onClick={() => { const url = prompt("Link URL:"); if (url) execCommand('createLink', url); }} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"><LinkIcon size={16} /></button>
                           </div>
                           <div 
                             ref={editorRef}
@@ -841,7 +833,7 @@ function AdminProductsContent() {
                       </div>
 
                       <label className="flex items-center gap-3 cursor-pointer mt-2">
-                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${form.landing_page_config.hide_out_of_stock ? 'bg-emerald-600 border-emerald-600' : 'border-slate-300 dark:border-slate-600'}`}>
+                        <div className={`w-5 h-5 rounded-xl border flex items-center justify-center transition-colors ${form.landing_page_config.hide_out_of_stock ? 'bg-emerald-600 border-emerald-600' : 'border-slate-300 dark:border-slate-600'}`}>
                           {form.landing_page_config.hide_out_of_stock && <Check size={14} className="text-white" />}
                         </div>
                         <input type="checkbox" className="hidden" checked={form.landing_page_config.hide_out_of_stock as boolean} onChange={(e) => setForm({...form, landing_page_config: {...form.landing_page_config, hide_out_of_stock: e.target.checked}} as any)} />
@@ -889,17 +881,17 @@ function AdminProductsContent() {
                       {form.landing_page_config.specifications?.map((spec: any, i: number) => (
                         <div key={i} className="flex gap-2 items-center mt-2">
                            <input type="text" value={spec.key} onChange={(e) => {
-                             const newSpecs = [...form.landing_page_config.specifications];
+                             const newSpecs = [...(form.landing_page_config.specifications || [])];
                              newSpecs[i].key = e.target.value;
                              setForm({...form, landing_page_config: {...form.landing_page_config, specifications: newSpecs}});
                            }} placeholder="Name" className="flex-1 h-10 px-3 border border-slate-200 rounded-xl text-[13px] dark:bg-slate-800 dark:border-white/10" />
                            <input type="text" value={spec.value} onChange={(e) => {
-                             const newSpecs = [...form.landing_page_config.specifications];
+                             const newSpecs = [...(form.landing_page_config.specifications || [])];
                              newSpecs[i].value = e.target.value;
                              setForm({...form, landing_page_config: {...form.landing_page_config, specifications: newSpecs}});
                            }} placeholder="Value" className="flex-2 h-10 px-3 border border-slate-200 rounded-xl text-[13px] dark:bg-slate-800 dark:border-white/10" />
                            <button type="button" onClick={() => {
-                              const newSpecs = form.landing_page_config.specifications.filter((_: any, idx: number) => idx !== i);
+                              const newSpecs = (form.landing_page_config.specifications || []).filter((_: any, idx: number) => idx !== i);
                               setForm({...form, landing_page_config: {...form.landing_page_config, specifications: newSpecs}});
                            }} className="text-rose-500 hover:text-rose-600 p-2"><Trash2 size={16} /></button>
                         </div>
@@ -958,30 +950,30 @@ function AdminProductsContent() {
                               <div className="flex justify-between items-center">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Item #{i+1}</span>
                                 <button type="button" onClick={() => {
-                                  const newItems = form.landing_page_config.included_products.filter((_: any, idx: number) => idx !== i);
+                                  const newItems = (form.landing_page_config.included_products || []).filter((_: any, idx: number) => idx !== i);
                                   setForm({...form, landing_page_config: {...form.landing_page_config, included_products: newItems}} as any);
                                 }} className="text-rose-500 hover:text-rose-600"><X size={14} /></button>
                               </div>
                               <div className="grid grid-cols-2 gap-3">
                                 <input type="text" value={item.name} onChange={(e) => {
-                                  const newItems = [...form.landing_page_config.included_products];
+                                  const newItems = [...(form.landing_page_config.included_products || [])];
                                   newItems[i].name = e.target.value;
                                   setForm({...form, landing_page_config: {...form.landing_page_config, included_products: newItems}} as any);
                                 }} placeholder="English Name" className="h-9 px-3 border border-slate-200 rounded-xl text-[12px] dark:bg-slate-800 dark:border-white/10" />
                                 <input type="text" value={item.name_bn} onChange={(e) => {
-                                  const newItems = [...form.landing_page_config.included_products];
+                                  const newItems = [...(form.landing_page_config.included_products || [])];
                                   newItems[i].name_bn = e.target.value;
                                   setForm({...form, landing_page_config: {...form.landing_page_config, included_products: newItems}} as any);
                                 }} placeholder="Bangla Name" className="h-9 px-3 border border-slate-200 rounded-xl text-[12px] dark:bg-slate-800 dark:border-white/10" />
                               </div>
                               <div className="grid grid-cols-2 gap-3">
                                 <input type="number" value={item.price} onChange={(e) => {
-                                  const newItems = [...form.landing_page_config.included_products];
+                                  const newItems = [...(form.landing_page_config.included_products || [])];
                                   newItems[i].price = Number(e.target.value);
                                   setForm({...form, landing_page_config: {...form.landing_page_config, included_products: newItems}} as any);
                                 }} placeholder="Regular Price" className="h-9 px-3 border border-slate-200 rounded-xl text-[12px] dark:bg-slate-800 dark:border-white/10" />
                                 <input type="text" value={item.image} onChange={(e) => {
-                                  const newItems = [...form.landing_page_config.included_products];
+                                  const newItems = [...(form.landing_page_config.included_products || [])];
                                   newItems[i].image = e.target.value;
                                   setForm({...form, landing_page_config: {...form.landing_page_config, included_products: newItems}} as any);
                                 }} placeholder="Image URL" className="h-9 px-3 border border-slate-200 rounded-xl text-[12px] dark:bg-slate-800 dark:border-white/10" />
@@ -1009,12 +1001,12 @@ function AdminProductsContent() {
                           {form.landing_page_config.package_contents?.map((line: string, i: number) => (
                             <div key={i} className="flex gap-2 items-center">
                               <input type="text" value={line} onChange={(e) => {
-                                const newLines = [...form.landing_page_config.package_contents];
+                                const newLines = [...(form.landing_page_config.package_contents || [])];
                                 newLines[i] = e.target.value;
                                 setForm({...form, landing_page_config: {...form.landing_page_config, package_contents: newLines}} as any);
                               }} placeholder="e.g. Premium Quality Wood" className="flex-1 h-9 px-3 border border-slate-200 rounded-xl text-[12px] dark:bg-slate-800 dark:border-white/10" />
                               <button type="button" onClick={() => {
-                                const newLines = form.landing_page_config.package_contents.filter((_: any, idx: number) => idx !== i);
+                                const newLines = (form.landing_page_config.package_contents || []).filter((_: any, idx: number) => idx !== i);
                                 setForm({...form, landing_page_config: {...form.landing_page_config, package_contents: newLines}} as any);
                               }} className="text-rose-500 p-1"><X size={14} /></button>
                             </div>
@@ -1028,7 +1020,7 @@ function AdminProductsContent() {
            </div>
 
            {/* Footer */}
-           <div className="px-8 py-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-white/5 flex justify-between items-center shrink-0 rounded-b-xl">
+           <div className="px-8 py-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-white/5 flex justify-between items-center shrink-0 rounded-xl">
               <button onClick={() => setShowForm(false)} className="px-8 h-12 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-[14px] font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                  {t("cancel_btn")}
               </button>

@@ -111,10 +111,10 @@ function AdminCustomersContent() {
     );
   }, [customers, searchQuery]);
 
-  if (loading && orders.length === 0) return (
-    <div className="space-y-8 pb-32 max-w-[1400px] mx-auto animate-pulse">
-       <div className="h-28 bg-slate-100 dark:bg-white/[0.03] rounded-xl" />
-       <div className="h-[500px] bg-slate-100 dark:bg-white/[0.03] rounded-xl" />
+if (loading && orders.length === 0) return (
+    <div className="space-y-6 pb-32 max-w-[1400px] mx-auto animate-pulse">
+       <div className="h-24 bg-slate-100 rounded-xl" />
+       <div className="h-[400px] bg-slate-100 rounded-xl" />
     </div>
   );
 
@@ -148,76 +148,76 @@ function AdminCustomersContent() {
         </div>
       </div>
       
-      {/* KPI Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+{/* KPI Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: bn ? "মোট কাস্টমার" : "Total Entities", value: customers.length, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
-          { label: bn ? "লোয়াল কাস্টমার" : "High LTV Nodes", value: customers.filter(c => c.total_orders > 1).length, icon: Heart, color: "text-rose-500", bg: "bg-rose-500/10" },
-          { label: bn ? "মোট রেভিনিউ" : "Gross Yield", value: `৳${customers.reduce((s, c) => s + c.total_spend, 0).toLocaleString()}`, icon: CreditCard, color: "text-primary", bg: "bg-primary/10" },
-          { label: bn ? "অ্যাক্টিভ কাস্টমার" : "Operational Status", value: "Optimal", icon: Activity, color: "text-gold", bg: "bg-gold/10" },
+          { label: bn ? "মোট কাস্টমার" : "Total Customers", value: customers.length, icon: Users, color: "text-blue-500", bg: "bg-blue-50" },
+          { label: bn ? "লোয়াল কাস্টমার" : "Repeat Customers", value: customers.filter(c => c.total_orders > 1).length, icon: Heart, color: "text-rose-500", bg: "bg-rose-50" },
+          { label: bn ? "মোট রেভিনিউ" : "Total Revenue", value: `৳${customers.reduce((s, c) => s + c.total_spend, 0).toLocaleString()}`, icon: CreditCard, color: "text-primary", bg: "bg-primary/10" },
+          { label: bn ? "অ্যাক্টিভ" : "Active", value: "Optimal", icon: Activity, color: "text-gold", bg: "bg-amber-50" },
         ].map((stat, i) => (
-          <div key={i} className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl p-5 shadow-sm hover:shadow-md transition-all group flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-xl ${stat.bg} flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform`}>
-              <stat.icon size={24} className={stat.color} />
+          <div key={i} className="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-md transition-all flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center shrink-0`}>
+              <stat.icon size={18} className={stat.color} />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate leading-none mb-1">{stat.label}</p>
-              <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter leading-none">{stat.value}</p>
+              <p className="text-[9px] font-medium text-slate-500 uppercase tracking-wider truncate">{stat.label}</p>
+              <p className="text-lg font-bold text-slate-900">{stat.value}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Customers Table */}
-      <div className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/5 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-100 dark:border-white/5">
-                <th className="text-left px-8 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{bn ? "কাস্টমার" : "Customer"}</th>
-                <th className="text-left px-8 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{bn ? "ফোন" : "Phone"}</th>
-                <th className="text-left px-8 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{bn ? "প্রোডাক্ট" : "Products"}</th>
-                <th className="text-center px-8 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{bn ? "মোট অর্ডার" : "Orders"}</th>
-                <th className="text-left px-8 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{bn ? "মোট খরচ" : "Spend"}</th>
-                <th className="text-left px-8 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{bn ? "শেষ অর্ডার" : "Last Order"}</th>
-                <th className="text-right px-8 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{bn ? "অ্যাকশন" : "Action"}</th>
+              <tr className="border-b border-slate-100">
+                <th className="text-left px-6 py-3 text-[10px] font-medium text-slate-500 uppercase tracking-wider">{bn ? "কাস্টমার" : "Customer"}</th>
+                <th className="text-left px-6 py-3 text-[10px] font-medium text-slate-500 uppercase tracking-wider">{bn ? "ফোন" : "Phone"}</th>
+                <th className="text-left px-6 py-3 text-[10px] font-medium text-slate-500 uppercase tracking-wider">{bn ? "প্রোডাক্ট" : "Products"}</th>
+                <th className="text-center px-6 py-3 text-[10px] font-medium text-slate-500 uppercase tracking-wider">{bn ? "অর্ডার" : "Orders"}</th>
+                <th className="text-left px-6 py-3 text-[10px] font-medium text-slate-500 uppercase tracking-wider">{bn ? "মোট খরচ" : "Spend"}</th>
+                <th className="text-left px-6 py-3 text-[10px] font-medium text-slate-500 uppercase tracking-wider">{bn ? "শেষ অর্ডার" : "Last Order"}</th>
+                <th className="text-right px-6 py-3 text-[10px] font-medium text-slate-500 uppercase tracking-wider">{bn ? "অ্যাকশন" : "Action"}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+            <tbody className="divide-y divide-slate-100">
               {filteredCustomers.map((c) => {
                 const allImages = Array.from(new Set(c.orders.flatMap((o) => parseItems(o.items).map((i: any) => i.image)).filter(Boolean)));
                 return (
                 <tr 
                   key={c.phone} 
                   onClick={() => setSelectedCustomer(c)}
-                  className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer"
+                  className="hover:bg-slate-50 transition-colors cursor-pointer"
                 >
-                  <td className="px-8 py-4">
+                  <td className="px-6 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-xs font-bold text-slate-500 group-hover:bg-primary group-hover:text-white transition-all">
+                      <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 group-hover:bg-primary group-hover:text-white transition-all">
                         {c.name[0]?.toUpperCase()}
                       </div>
-                      <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">{c.name}</p>
+                      <p className="text-xs font-medium text-slate-700">{c.name}</p>
                     </div>
                   </td>
-                  <td className="px-8 py-4">
+                  <td className="px-6 py-3">
                     <span className="text-xs font-medium text-slate-500 font-mono">{c.phone}</span>
                   </td>
-                  <td className="px-8 py-4">
-                    <div className="flex -space-x-2 overflow-hidden">
+                  <td className="px-6 py-3">
+                    <div className="flex -space-x-2">
                       {allImages.slice(0, 4).map((img: any, i) => (
-                        <div key={i} className="inline-block h-8 w-8 rounded-xl ring-2 ring-white dark:ring-slate-900 overflow-hidden bg-slate-100">
+                        <div key={i} className="inline-block h-6 w-6 rounded-xl ring-2 ring-white overflow-hidden bg-slate-100">
                           <img src={img} alt="" className="h-full w-full object-cover" />
                         </div>
                       ))}
                       {allImages.length > 4 && (
-                        <div className="flex items-center justify-center h-8 w-8 rounded-xl ring-2 ring-white dark:ring-slate-900 bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-500">
+                        <div className="flex items-center justify-center h-6 w-6 rounded-xl ring-2 ring-white bg-slate-100 text-[9px] font-medium text-slate-500">
                           +{allImages.length - 4}
                         </div>
                       )}
                       {allImages.length === 0 && (
-                        <div className="h-8 w-8 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-300">
-                           <ShoppingBag size={14} />
+                        <div className="h-6 w-6 rounded-xl bg-slate-50 flex items-center justify-center text-slate-300">
+                           <ShoppingBag size={12} />
                         </div>
                       )}
                     </div>
@@ -262,7 +262,7 @@ function AdminCustomersContent() {
                     <div className="flex items-center gap-3 mt-1.5">
                        <span className="flex items-center gap-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider"><MapPin size={12}/> {selectedCustomer?.district}</span>
                        <span className="w-1 h-1 bg-slate-300 rounded-xl" />
-                       <span className="flex items-center gap-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider"><Clock size={12}/> {bn ? "শেষ অর্ডার:" : "Last:"} {new Date(selectedCustomer?.last_order_date).toLocaleDateString()}</span>
+                       <span className="flex items-center gap-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider"><Clock size={12}/> {bn ? "শেষ অর্ডার:" : "Last:"} {selectedCustomer?.last_order_date ? new Date(selectedCustomer.last_order_date).toLocaleDateString() : 'N/A'}</span>
                     </div>
                  </div>
               </div>
@@ -319,7 +319,7 @@ function AdminCustomersContent() {
                                 <div className="mt-2 flex flex-wrap gap-1.5">
                                    {parseItems(order.items).map((item: any, idx: number) => (
                                       <div key={idx} className="flex items-center gap-1.5 bg-slate-50 dark:bg-white/[0.03] px-2 py-1 rounded-xl border border-slate-100 dark:border-white/5">
-                                         {item.image && <img src={item.image} alt="" className="w-4 h-4 rounded object-cover" />}
+                                         {item.image && <img src={item.image} alt="" className="w-4 h-4 rounded-xl object-cover" />}
                                          <span className="text-[9px] font-semibold text-slate-500 truncate max-w-[100px]">{item.name}</span>
                                          <span className="text-[9px] font-bold text-primary">x{item.qty || item.quantity || 1}</span>
                                       </div>

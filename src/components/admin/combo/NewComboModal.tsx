@@ -242,7 +242,7 @@ export function NewComboModal({ isOpen, onClose, onSuccess }: NewComboModalProps
             {/* Header */}
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center border border-emerald-100">
+                <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center border border-emerald-100">
                   <Gift size={22} />
                 </div>
                 <div>
@@ -256,7 +256,7 @@ export function NewComboModal({ isOpen, onClose, onSuccess }: NewComboModalProps
               </div>
               <button 
                 onClick={onClose}
-                className="w-10 h-10 flex items-center justify-center rounded-2xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all"
+                className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all"
               >
                 <X size={20} />
               </button>
@@ -269,7 +269,7 @@ export function NewComboModal({ isOpen, onClose, onSuccess }: NewComboModalProps
               <div className="flex-[1.5] overflow-y-auto p-6 space-y-8 border-r border-slate-100 custom-scrollbar">
                 <div className="space-y-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1 bg-emerald-500 h-4 rounded-full" />
+                    <div className="w-1 bg-emerald-500 h-4 rounded-xl" />
                     <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wider">কম্বো সেটিংস</h3>
                     <span className="text-[10px] text-slate-400 font-medium ml-auto">কম্বোর বিস্তারিত তথ্য দিন</span>
                   </div>
@@ -283,7 +283,7 @@ export function NewComboModal({ isOpen, onClose, onSuccess }: NewComboModalProps
                       <input 
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all"
                         placeholder="e.g. Ramadan Special Combo"
                       />
                     </div>
@@ -295,7 +295,7 @@ export function NewComboModal({ isOpen, onClose, onSuccess }: NewComboModalProps
                         <input 
                           value={formData.slug}
                           onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                          className={`w-full px-4 py-2.5 bg-white border rounded-2xl text-sm font-medium focus:ring-2 focus:ring-emerald-500/10 outline-none transition-all pr-10 ${slugError ? 'border-rose-500' : 'border-slate-200 focus:border-emerald-500'}`}
+                          className={`w-full px-4 py-2.5 bg-white border rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500/10 outline-none transition-all pr-10 ${slugError ? 'border-rose-500' : 'border-slate-200 focus:border-emerald-500'}`}
                           placeholder="ramadan-special-combo"
                         />
                         <div className="absolute right-4 flex items-center gap-2">
@@ -391,9 +391,9 @@ export function NewComboModal({ isOpen, onClose, onSuccess }: NewComboModalProps
                         <button 
                           type="button"
                           onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}
-                          className={`w-12 h-6 rounded-full transition-all relative ${formData.isActive ? "bg-emerald-500" : "bg-slate-200"}`}
+                          className={`w-12 h-6 rounded-xl transition-all relative ${formData.isActive ? "bg-emerald-500" : "bg-slate-200"}`}
                         >
-                          <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm ${formData.isActive ? "left-7" : "left-1"}`} />
+                          <div className={`absolute top-1 w-4 h-4 bg-white rounded-xl transition-all shadow-sm ${formData.isActive ? "left-7" : "left-1"}`} />
                         </button>
                         <span className="text-xs font-bold text-slate-600">অ্যাকটিভ</span>
                       </div>
@@ -439,8 +439,8 @@ export function NewComboModal({ isOpen, onClose, onSuccess }: NewComboModalProps
                     <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">কম্বো ইমেজ</label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="relative group">
-                        <div className="aspect-[2/1] bg-white border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center gap-3 transition-all group-hover:border-emerald-500/50 group-hover:bg-emerald-50/10 cursor-pointer overflow-hidden">
-                          <div className="w-10 h-10 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:scale-110 transition-transform">
+                        <div className="aspect-[2/1] bg-white border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-3 transition-all group-hover:border-emerald-500/50 group-hover:bg-emerald-50/10 cursor-pointer overflow-hidden">
+                          <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:scale-110 transition-transform">
                             <Upload size={20} />
                           </div>
                           <div className="text-center">
@@ -451,14 +451,14 @@ export function NewComboModal({ isOpen, onClose, onSuccess }: NewComboModalProps
                         </div>
                       </div>
                       
-                      <div className="relative group aspect-[2/1] bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                      <div className="relative group aspect-[2/1] bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                         {formData.images[0] ? (
                           <>
                             <img src={formData.images[0]} className="w-full h-full object-cover" />
                             <button 
                               type="button"
                               onClick={() => setFormData({ ...formData, images: [] })}
-                              className="absolute top-2 right-2 w-8 h-8 bg-rose-500 text-white rounded-2xl flex items-center justify-center shadow-lg hover:scale-110 transition-all opacity-0 group-hover:opacity-100"
+                              className="absolute top-2 right-2 w-8 h-8 bg-rose-500 text-white rounded-xl flex items-center justify-center shadow-lg hover:scale-110 transition-all opacity-0 group-hover:opacity-100"
                             >
                               <Trash2 size={14} />
                             </button>
@@ -466,7 +466,7 @@ export function NewComboModal({ isOpen, onClose, onSuccess }: NewComboModalProps
                         ) : (
                           <img src="https://images.unsplash.com/photo-1590073242678-70ee3fc28e8e?q=80&w=2000&auto=format&fit=crop" className="w-full h-full object-cover opacity-50 grayscale" />
                         )}
-                        <div className="absolute inset-0 pointer-events-none border-2 border-transparent group-hover:border-emerald-500/20 transition-all rounded-3xl" />
+                        <div className="absolute inset-0 pointer-events-none border-2 border-transparent group-hover:border-emerald-500/20 transition-all rounded-xl" />
                       </div>
                     </div>
                   </div>
@@ -474,15 +474,15 @@ export function NewComboModal({ isOpen, onClose, onSuccess }: NewComboModalProps
                   {/* Search & Tags */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="w-1 bg-emerald-500 h-4 rounded-full" />
+                      <div className="w-1 bg-emerald-500 h-4 rounded-xl" />
                       <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wider">সার্চ ও ট্যাগ</h3>
                     </div>
                     
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">ট্যাগ (কমা দিয়ে লিখুন)</label>
-                      <div className="flex flex-wrap gap-2 p-3 bg-white border border-slate-200 rounded-2xl min-h-[46px]">
+                      <div className="flex flex-wrap gap-2 p-3 bg-white border border-slate-200 rounded-xl min-h-[46px]">
                         {formData.tags.map((tag, idx) => (
-                          <div key={idx} className="px-3 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-bold rounded-2xl flex items-center gap-2 border border-emerald-100">
+                          <div key={idx} className="px-3 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-bold rounded-xl flex items-center gap-2 border border-emerald-100">
                             {tag}
                             <button onClick={() => setFormData({ ...formData, tags: formData.tags.filter((_, i) => i !== idx) })}>
                               <X size={10} className="hover:text-rose-500" />
@@ -511,7 +511,7 @@ export function NewComboModal({ isOpen, onClose, onSuccess }: NewComboModalProps
                         <input 
                           value={formData.seoTitle}
                           onChange={(e) => setFormData({ ...formData, seoTitle: e.target.value })}
-                          className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all"
+                          className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all"
                           placeholder="SEO friendly title..."
                         />
                       </div>
@@ -521,7 +521,7 @@ export function NewComboModal({ isOpen, onClose, onSuccess }: NewComboModalProps
                           <input 
                             value={formData.seoDescription}
                             onChange={(e) => setFormData({ ...formData, seoDescription: e.target.value })}
-                            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all pr-12"
+                            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all pr-12"
                             placeholder="SEO description..."
                           />
                           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-mono">65/160</span>
@@ -538,7 +538,7 @@ export function NewComboModal({ isOpen, onClose, onSuccess }: NewComboModalProps
                 {/* 1. Add Products Section */}
                 <div className="p-6 space-y-4 border-b border-slate-100 flex-1 overflow-hidden flex flex-col">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-1 bg-emerald-500 h-4 rounded-full" />
+                    <div className="w-1 bg-emerald-500 h-4 rounded-xl" />
                     <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wider">১. প্রোডাক্ট যোগ করুন</h3>
                   </div>
 
@@ -579,7 +579,7 @@ export function NewComboModal({ isOpen, onClose, onSuccess }: NewComboModalProps
                             onClick={() => toggleProductSelection(product)}
                             className={`p-2 bg-white border rounded-xl flex items-center gap-3 cursor-pointer transition-all ${isSelected ? 'border-emerald-500 ring-1 ring-emerald-500/10 bg-emerald-50/5' : 'border-slate-200 hover:border-slate-300'}`}
                           >
-                            <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${isSelected ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-slate-50 border-slate-200'}`}>
+                            <div className={`w-5 h-5 rounded-xl border flex items-center justify-center transition-all ${isSelected ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-slate-50 border-slate-200'}`}>
                               {isSelected && <Check size={12} strokeWidth={3} />}
                             </div>
                             <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 shrink-0">
@@ -590,7 +590,7 @@ export function NewComboModal({ isOpen, onClose, onSuccess }: NewComboModalProps
                               <p className="text-[10px] font-bold text-emerald-600">৳ {product.price}</p>
                             </div>
                             <div className="text-right">
-                              <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-[9px] font-bold rounded-full">স্টক: {product.stock || 0}</span>
+                              <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-[9px] font-bold rounded-xl">স্টক: {product.stock || 0}</span>
                             </div>
                           </div>
                         );
@@ -610,7 +610,7 @@ export function NewComboModal({ isOpen, onClose, onSuccess }: NewComboModalProps
                 {/* 3. Combo Preview Section */}
                 <div className="p-6 bg-slate-50 border-t border-slate-100">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1 bg-emerald-500 h-4 rounded-full" />
+                    <div className="w-1 bg-emerald-500 h-4 rounded-xl" />
                     <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wider">৩. কম্বো প্রিভিউ</h3>
                   </div>
 
@@ -624,7 +624,7 @@ export function NewComboModal({ isOpen, onClose, onSuccess }: NewComboModalProps
                               <img src={p.images?.[0] || ""} className="w-full h-full object-cover" />
                             </div>
                             <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                              <span className="text-[8px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-100 shadow-sm">{p.name_bn || p.name}</span>
+                              <span className="text-[8px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-xl border border-slate-100 shadow-sm">{p.name_bn || p.name}</span>
                             </div>
                           </div>
                           {i < selectedProducts.length - 1 && (
