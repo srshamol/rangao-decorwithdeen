@@ -5,7 +5,7 @@ import {
   Layout, Image as ImageIcon, Award, Grid3X3, Star, Package, 
   ChevronDown, Plus, Trash2, GripVertical, Upload, Loader2, 
   Zap, Smartphone, Monitor, Eye, EyeOff, Layers, Flame, 
-  Quote, Mail, Heart, Palette, MoveUp, MoveDown, Gift, ShieldCheck
+  Quote, Mail, Heart, Palette, MoveUp, MoveDown, Gift, ShieldCheck, Sparkles
 } from "lucide-react";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { useLanguage } from "@/lib/language-context";

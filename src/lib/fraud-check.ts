@@ -15,6 +15,7 @@ export interface FraudSummary {
   total_parcel: number;
   success_parcel: number;
   cancelled_parcel: number;
+  returned_parcel?: number;
   success_ratio: number;
 }
 

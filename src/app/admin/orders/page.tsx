@@ -170,7 +170,7 @@ function AdminOrdersContent() {
         event: '*', 
         schema: 'public', 
         table: 'orders' 
-      }, (payload) => {
+      }, (payload: any) => {
         // Only show toast for actual new inserts
         if (payload.eventType === 'INSERT') {
           const newOrder = payload.new as Order;
@@ -185,7 +185,7 @@ function AdminOrdersContent() {
         setLastUpdate(new Date());
         loadOrders();
       })
-      .subscribe((status) => {
+      .subscribe((status: any) => {
         if (status === 'SUBSCRIBED') setRealtimeStatus('connected');
         else if (status === 'CLOSED' || status === 'TIMED_OUT') setRealtimeStatus('connecting');
         else if (status === 'CHANNEL_ERROR') setRealtimeStatus('error');

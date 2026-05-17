@@ -14,6 +14,7 @@ import { useLanguage } from "@/lib/language-context";
 import { useSettings } from "@/lib/useSettings";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();

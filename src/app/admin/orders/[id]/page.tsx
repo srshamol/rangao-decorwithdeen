@@ -9,7 +9,7 @@ import {
   MapPin, Printer, Phone, MessageSquare, X, 
   CheckCircle2, Clock, History, LayoutDashboard,
   ExternalLink, Copy, Bell, RotateCcw, Pencil,
-  AlertCircle, Send, Check, Save, ShieldCheck
+  AlertCircle, Send, Check, Save, ShieldCheck, Zap, Globe
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";

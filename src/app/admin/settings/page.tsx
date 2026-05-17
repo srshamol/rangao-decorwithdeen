@@ -34,10 +34,11 @@ const getSettingsTabs = (t: (key: string) => string) => [
 interface AdvancedSettingsData {
   order: any;
   otp: {
-    mode: string;
-    threshold: number;
+    otp_mode: string;
+    otp_threshold: number;
     template: string;
     popup: { heading: string; subheading: string; button: string };
+    [key: string]: any;
   };
   capi: { enabled: boolean; strict_tracking: boolean; pixel_id: string; access_token: string; test_code: string };
   firebase: any;

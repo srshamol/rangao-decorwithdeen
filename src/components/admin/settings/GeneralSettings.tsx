@@ -92,7 +92,7 @@ export function GeneralSettings({ settings, onUpdate, brandingSettings, onBrandi
     if (!file) return;
 
     try {
-      setUploading(field);
+      setUploading(field as string);
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `store-assets/${fileName}`;

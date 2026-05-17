@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Layout, Tag, Zap, ShieldCheck, Plus, Trash2, 
   Upload, Loader2, Smartphone, Banknote, Truck, 
   HeartHandshake, Star, Clock, Gift, Image as ImageIcon,
-  ChevronRight, CheckCircle2, Globe, Sparkles
+  ChevronRight, CheckCircle2, Globe, Sparkles, Search
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -363,13 +363,13 @@ export function BannerSettings({ banners, onChange }: { banners: any[], onChange
   const bn = language === "bn";
 
   const addBanner = () => {
-    onChange([...banners, { id: Date.now(), title: bn ? "বিশেষ অফার" : "Special Offer", image_url: "", link: "/shop" }]);
+    onChange([...(banners || []), { id: Date.now(), title: bn ? "বিশেষ অফার" : "Special Offer", image_url: "", link: "/shop" }]);
   };
   const updateBanner = (id: any, field: string, value: string) => {
-    onChange(banners.map(b => b.id === id ? { ...b, [field]: value } : b));
+    onChange((banners || []).map((b: any) => b.id === id ? { ...b, [field]: value } : b));
   };
   const removeBanner = (id: any) => {
-    onChange(banners.filter(b => b.id !== id));
+    onChange((banners || []).filter((b: any) => b.id !== id));
   };
 
   return (
@@ -390,7 +390,7 @@ export function BannerSettings({ banners, onChange }: { banners: any[], onChange
       </div>
 
       <div className="grid grid-cols-1 gap-10">
-        {banners.map(banner => (
+        {(banners || []).map((banner: any) => (
           <motion.div 
             key={banner.id} 
             layout

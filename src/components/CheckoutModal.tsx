@@ -15,6 +15,7 @@ import { checkCustomerFraud } from "@/lib/fraud-check";
 import { sendSMSServer } from "@/lib/sms";
 import { notifyAdminOfRiskOrder } from "@/lib/notifications";
 import { EliteOTPModal } from "./EliteOTPModal";
+import { OTPVerification } from "./OTPVerification";
 
 interface CheckoutModalProps {
   isOpen: boolean;

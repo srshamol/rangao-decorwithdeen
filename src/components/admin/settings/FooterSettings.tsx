@@ -59,7 +59,12 @@ export function FooterSettings({ settings, onUpdate }: Props) {
   const addLink = (columnId: string) => {
     const col = footer.columns.find(c => c.id === columnId);
     if (!col) return;
-    const newLink: HeaderLink = { label_bn: bn ? "নতুন লিংক" : "New Link", label_en: "New Link", href: "/" };
+    const newLink: HeaderLink = { 
+      id: `link-${Date.now()}`,
+      label_bn: bn ? "নতুন লিংক" : "New Link", 
+      label_en: "New Link", 
+      href: "/" 
+    };
     updateColumn(columnId, { links: [...col.links, newLink] });
   };
 
